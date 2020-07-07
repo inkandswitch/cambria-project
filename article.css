@@ -1,0 +1,90 @@
+
+/* LOAD FONTS ================================ */
+
+/* Merriweather Serif, for long form body text */
+
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Merriweather Regular"), local("Merriweather-Regular"), url("assets/merriweather/merriweather-v20-latin-regular.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-v20-latin-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Merriweather Bold"), local("Merriweather-Bold"), url("assets/merriweather/merriweather-v20-latin-700.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-v20-latin-700.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* Merriweather Sans, for asides, caption, nav */
+
+@font-face {
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Merriweather Sans Light"), local("MerriweatherSans-Light"), url("assets/merriweather/merriweather-sans-v10-latin-300.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-sans-v10-latin-300.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Merriweather Sans"), local("MerriweatherSans-Regular"), url("assets/merriweather/merriweather-sans-v10-latin-regular.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-sans-v10-latin-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Merriweather Sans Bold"), local("MerriweatherSans-Bold"), url("assets/merriweather/merriweather-sans-v10-latin-700.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-sans-v10-latin-700.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Merriweather Sans Light"), local("MerriweatherSans-Light"), url("assets/merriweather/merriweather-sans-v10-latin-300.woff2") format("woff2"), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url("assets/merriweather/merriweather-sans-v10-latin-300.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* Fira Mono, for code, numerical data ------- */
+
+@font-face {
+  font-family: 'Fira Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Fira Mono Regular'), local('FiraMono-Regular'), url('assets/fira/fira-mono-v7-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url('assets/fira/fira-mono-v7-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+@font-face {
+  font-family: 'Fira Mono';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Fira Mono Medium'), local('FiraMono-Medium'), url('assets/fira/fira-mono-v7-latin-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+  url('assets/fira/fira-mono-v7-latin-500.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* SET FONTS --------------------------------- */
+
+/* Serif, long form text, default rem size */
+body {
+  font-family: "Merriweather", serif;
+}
+
+/* Sans Serif, most other text */
+aside, figcaption, nav, header>ul li, h1, h2, h3, h4, blockquote, figure table, .nav {
+  font-family: "Merriweather Sans", sans-serif;
+  font-weight: 400;
+}
+
+/* Monospace */
+pre, code {
+  font-family: 'Fira Mono', monospace;
+}
