@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Cambria, Week One: Prototyping the Problem | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="Cambria, Week One: Prototyping the Problem" />
+<meta property="og:description" content="Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.
+What&rsquo;s the problem? Cambria was motivated by some problems we kept seeing in our work." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://example.org/weekly-updates/week-1/" />
+<meta property="article:published_time" content="2020-06-15T16:47:58-07:00" />
+<meta property="article:modified_time" content="2020-06-15T16:47:58-07:00" />
+<meta itemprop="name" content="Cambria, Week One: Prototyping the Problem">
+<meta itemprop="description" content="Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.
+What&rsquo;s the problem? Cambria was motivated by some problems we kept seeing in our work.">
+<meta itemprop="datePublished" content="2020-06-15T16:47:58-07:00" />
+<meta itemprop="dateModified" content="2020-06-15T16:47:58-07:00" />
+<meta itemprop="wordCount" content="785">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cambria, Week One: Prototyping the Problem"/>
+<meta name="twitter:description" content="Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.
+What&rsquo;s the problem? Cambria was motivated by some problems we kept seeing in our work."/>
+
+	
+  </head>
+
+  <body class="ma0 avenir bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        WEEKLY-UPDATES
+      </aside>
+      
+
+
+
+
+  <div id="sharing" class="mt3">
+
+    
+    <a href="https://www.facebook.com/sharer.php?u=http://example.org/weekly-updates/week-1/" class="facebook no-underline" aria-label="share on Facebook">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765,50.32h6.744V33.998h4.499l0.596-5.624h-5.095  l0.007-2.816c0-1.466,0.14-2.253,2.244-2.253h2.812V17.68h-4.5c-5.405,0-7.307,2.729-7.307,7.317v3.377h-3.369v5.625h3.369V50.32z   M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;"/></svg>
+
+    </a>
+
+    
+    
+    <a href="https://twitter.com/share?url=http://example.org/weekly-updates/week-1/&amp;text=Cambria,%20Week%20One:%20Prototyping%20the%20Problem" class="twitter no-underline" aria-label="share on Twitter">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167,22.283c-2.619,0.953-4.274,3.411-4.086,6.101  l0.063,1.038l-1.048-0.127c-3.813-0.487-7.145-2.139-9.974-4.915l-1.383-1.377l-0.356,1.017c-0.754,2.267-0.272,4.661,1.299,6.271  c0.838,0.89,0.649,1.017-0.796,0.487c-0.503-0.169-0.943-0.296-0.985-0.233c-0.146,0.149,0.356,2.076,0.754,2.839  c0.545,1.06,1.655,2.097,2.871,2.712l1.027,0.487l-1.215,0.021c-1.173,0-1.215,0.021-1.089,0.467  c0.419,1.377,2.074,2.839,3.918,3.475l1.299,0.444l-1.131,0.678c-1.676,0.976-3.646,1.526-5.616,1.568  C19.775,43.256,19,43.341,19,43.405c0,0.211,2.557,1.397,4.044,1.864c4.463,1.377,9.765,0.783,13.746-1.568  c2.829-1.673,5.657-5,6.978-8.221c0.713-1.716,1.425-4.851,1.425-6.354c0-0.975,0.063-1.102,1.236-2.267  c0.692-0.678,1.341-1.419,1.467-1.631c0.21-0.403,0.188-0.403-0.88-0.043c-1.781,0.636-2.033,0.551-1.152-0.402  c0.649-0.678,1.425-1.907,1.425-2.267c0-0.063-0.314,0.042-0.671,0.233c-0.377,0.212-1.215,0.53-1.844,0.72l-1.131,0.361l-1.027-0.7  c-0.566-0.381-1.361-0.805-1.781-0.932C39.766,21.902,38.131,21.944,37.167,22.283z M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4  s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/></svg>
+
+    </a>
+
+    
+    <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http://example.org/weekly-updates/week-1/&amp;title=Cambria,%20Week%20One:%20Prototyping%20the%20Problem" class="linkedin no-underline" aria-label="share on LinkedIn">
+      <svg  height="32px"  style="enable-background:new 0 0 65 65;" version="1.1" viewBox="0 0 65 65" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path d="M50.837,48.137V36.425c0-6.275-3.35-9.195-7.816-9.195  c-3.604,0-5.219,1.983-6.119,3.374V27.71h-6.79c0.09,1.917,0,20.427,0,20.427h6.79V36.729c0-0.609,0.044-1.219,0.224-1.655  c0.49-1.22,1.607-2.483,3.482-2.483c2.458,0,3.44,1.873,3.44,4.618v10.929H50.837z M22.959,24.922c2.367,0,3.842-1.57,3.842-3.531  c-0.044-2.003-1.475-3.528-3.797-3.528s-3.841,1.524-3.841,3.528c0,1.961,1.474,3.531,3.753,3.531H22.959z M34,64  C17.432,64,4,50.568,4,34C4,17.431,17.432,4,34,4s30,13.431,30,30C64,50.568,50.568,64,34,64z M26.354,48.137V27.71h-6.789v20.427  H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/>
+</svg>
+
+    </a>
+  </div>
+
+
+      <h1 class="f1 athelas mt3 mb1">Cambria, Week One: Prototyping the Problem</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-06-15T16:47:58-07:00">June 15, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.</p>
+<h2 id="whats-the-problem">What&rsquo;s the problem?</h2>
+<p>Cambria was motivated by some problems we kept seeing in <a href="https://www.inkandswitch.com/local-first.html#prototypes">our work</a>. The most common problem was that someone would add an array field to a document. New documents would work fine (the array would be added at document creation time) but existing documents, or documents shared by older clients, would cause Javascript runtime errors when the code would try to call Array methods on the object.</p>
+<p>This is a very common problem in all kinds of distributed systems, and in a centralised system is mostly managed by locking down how the system works. Database schemas prevent writing bad data and guarantee the shape of data that comes back. Network-friendly data structures like ProtoBuf or Avro provide strong constraints around how data types evolve, but at the cost of severely constraining how these types can be changed. Finally, JSON responses from APIs are essentially the wild west. Cloud software everywhere crashes when APIs change and many blog posts have been written about how to manage deprecation of old versions. (Stripe is a notable bright light here, with an <a href="https://stripe.com/blog/api-versioning">inspiring system</a> that supports change over time!)</p>
+<p>Instead of trying to solve these problems by constraining what can be written, we&rsquo;re embracing the uncertainty of the world and attempting to improve how we read data. This is especially important in truly decentralised systems where you may be collaborating with other nodes running older, newer, or simply differing versions of the program you have locally.</p>
+<p>We draw on a number of influences in our work here, but our main influence is the <a href="https://www.cis.upenn.edu/~bcpierce/papers/index.shtml#Lenses">research on lenses from Benjamin Pierce&rsquo;s group at UPenn</a> (in particular we found the Boomerang paper quite exciting). Other notable influences include <a href="https://thoughtbot.com/blog/getting-unstuck-with-elm-json-decoders">elm decoders</a> for demonstrating how to bridge untyped and strongly typed systems, and <a href="https://stripe.com/blog/api-versioning">Stripe&rsquo;s API versioning strategy</a>.</p>
+<h2 id="sounds-vague-what-are-you-actually-doing">Sounds&hellip; vague. What are you actually doing?</h2>
+<p>We wanted to get straight to work, so after considering a few other options, we&rsquo;ve adopted a fork of the <a href="https://github.com/automerge/pushpin">PushPin</a> project&rsquo;s codebase. This gave us the ability to jump straight into building the part of the system we&rsquo;re interested in (data structure versioning) without having to figure out other pieces like networking, storage, or rendering.</p>
+<p>In brief, we&rsquo;re building a React app that runs on your system (Electron) and communicates directly with other copies installed on other users&rsquo; computers (<a href="https://github.com/hyperswarm/hyperswarm">hyperswarm</a>, <a href="https://github.com/hypercore-protocol/hypercore">hypercore</a>.) There are CRDTs in there, <a href="https://github.com/automerge/automerge">of course</a>.</p>
+<p>Our application of choice is an issue tracker, which we have named Arthropod. We chose it because it is</p>
+<ul>
+<li>easy to implement a simple, usable example,</li>
+<li>it&rsquo;s inherently collaborative and offline friendly, and</li>
+<li>we can dog-food it during the project to discover real-world problems.</li>
+</ul>
+<p>Arthropod has already given us some great insights into managing real-world data migration challenges and Geoffrey has us far enough along to be usable as our issue tracker. Arthropod runs several versions of the actual issue tracking tool simultaneously in the same window so that we can be sure we&rsquo;re not breaking anything as we go.</p>
+<p>Enough talk though, here&rsquo;s <a href="https://www.loom.com/share/9887a085895a4ce4a39f6e70ef90cb0b">Geoffrey&rsquo;s demo</a>!</p>
+<p>In addition to Arthropod, we&rsquo;ve also got a prototype of a migration library from Orion named Chitin which has helped us start figuring out problems like storage format and APIs.</p>
+<h2 id="what-have-you-learned-so-far">What have you learned so far?</h2>
+<p>We&rsquo;ve identfied several interesting data migrations. Aside from basic cases of adding and removing fields from version to version, we&rsquo;ve spotted two interesting migrations we believe can be supported in a bidirectional way:</p>
+<ul>
+<li>moving from a boolean &ldquo;complete&rdquo; field to a &ldquo;status&rdquo; enumeration (todo, in progress, done)</li>
+<li>adding &ldquo;archive&rdquo; support in a new version and wanting to filter out &ldquo;archived&rdquo; items from showing in the older version at all</li>
+</ul>
+<h2 id="whats-up-next">What&rsquo;s up next?</h2>
+<p>Last week we prototyped the problem. This week we prototype a solution. We hope to have a simple DSL that gives us insight into programmer-facing APIs and proves that some of these migrations can indeed be implemented as lenses.</p>
+<h2 id="one-last-thing-cambria-chitin-arthropod-are-you-paleontologists-now">One last thing. Cambria? Chitin? Arthropod? Are you paleontologists now?</h2>
+<p>The Cambrian period was when life began to develop skeletons. Prior to that, everything was just a big soup of cells. Arthropods were a particularly notable creature found in the fossil record from that period. Chitin is the organic material that forms exoskeletons.</p>
+<h2 id="thats-it">That&rsquo;s it!</h2>
+<p>See you all next week. We&rsquo;d love to hear from you about the project so feel free to <a href="mailto:pvh@inkandswitch.com">send me a note</a>.</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://example.org/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+  </body>
+</html>

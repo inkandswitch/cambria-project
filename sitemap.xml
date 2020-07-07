@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://example.org/weekly-updates/week-4/</loc>
+    <lastmod>2020-07-06T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/</loc>
+    <lastmod>2020-07-06T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/weekly-updates/</loc>
+    <lastmod>2020-07-06T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/weekly-updates/week-3/</loc>
+    <lastmod>2020-06-29T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/weekly-updates/week-2/</loc>
+    <lastmod>2020-06-22T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/weekly-updates/week-1/</loc>
+    <lastmod>2020-06-15T16:47:58-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://example.org/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>http://example.org/tags/</loc>
+  </url>
+  
+</urlset>
