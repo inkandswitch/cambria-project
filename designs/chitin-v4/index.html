@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Chitin, v4: Op Log Example | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/cambria/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    <link href="/cambria/article.css"/>
+
+    
+      <link rel="stylesheet" href="/cambria/article.css">
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="Chitin, v4: Op Log Example" />
+<meta property="og:description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
+Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
+V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://inkandswitch.github.io/cambria/designs/chitin-v4/" />
+<meta property="article:published_time" content="2020-07-07T09:47:58-07:00" />
+<meta property="article:modified_time" content="2020-07-07T09:47:58-07:00" />
+<meta itemprop="name" content="Chitin, v4: Op Log Example">
+<meta itemprop="description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
+Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
+V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward.">
+<meta itemprop="datePublished" content="2020-07-07T09:47:58-07:00" />
+<meta itemprop="dateModified" content="2020-07-07T09:47:58-07:00" />
+<meta itemprop="wordCount" content="981">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Chitin, v4: Op Log Example"/>
+<meta name="twitter:description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
+Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
+V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward."/>
+
+	
+  </head>
+
+  <body class="ma0 bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/cambria/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        DESIGNS
+      </aside>
+      
+
+
+
+
+  <div id="sharing" class="mt3">
+
+    
+    <a href="https://www.facebook.com/sharer.php?u=http://inkandswitch.github.io/cambria/designs/chitin-v4/" class="facebook no-underline" aria-label="share on Facebook">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765,50.32h6.744V33.998h4.499l0.596-5.624h-5.095  l0.007-2.816c0-1.466,0.14-2.253,2.244-2.253h2.812V17.68h-4.5c-5.405,0-7.307,2.729-7.307,7.317v3.377h-3.369v5.625h3.369V50.32z   M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;"/></svg>
+
+    </a>
+
+    
+    
+    <a href="https://twitter.com/share?url=http://inkandswitch.github.io/cambria/designs/chitin-v4/&amp;text=Chitin,%20v4:%20Op%20Log%20Example" class="twitter no-underline" aria-label="share on Twitter">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167,22.283c-2.619,0.953-4.274,3.411-4.086,6.101  l0.063,1.038l-1.048-0.127c-3.813-0.487-7.145-2.139-9.974-4.915l-1.383-1.377l-0.356,1.017c-0.754,2.267-0.272,4.661,1.299,6.271  c0.838,0.89,0.649,1.017-0.796,0.487c-0.503-0.169-0.943-0.296-0.985-0.233c-0.146,0.149,0.356,2.076,0.754,2.839  c0.545,1.06,1.655,2.097,2.871,2.712l1.027,0.487l-1.215,0.021c-1.173,0-1.215,0.021-1.089,0.467  c0.419,1.377,2.074,2.839,3.918,3.475l1.299,0.444l-1.131,0.678c-1.676,0.976-3.646,1.526-5.616,1.568  C19.775,43.256,19,43.341,19,43.405c0,0.211,2.557,1.397,4.044,1.864c4.463,1.377,9.765,0.783,13.746-1.568  c2.829-1.673,5.657-5,6.978-8.221c0.713-1.716,1.425-4.851,1.425-6.354c0-0.975,0.063-1.102,1.236-2.267  c0.692-0.678,1.341-1.419,1.467-1.631c0.21-0.403,0.188-0.403-0.88-0.043c-1.781,0.636-2.033,0.551-1.152-0.402  c0.649-0.678,1.425-1.907,1.425-2.267c0-0.063-0.314,0.042-0.671,0.233c-0.377,0.212-1.215,0.53-1.844,0.72l-1.131,0.361l-1.027-0.7  c-0.566-0.381-1.361-0.805-1.781-0.932C39.766,21.902,38.131,21.944,37.167,22.283z M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4  s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/></svg>
+
+    </a>
+
+    
+    <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http://inkandswitch.github.io/cambria/designs/chitin-v4/&amp;title=Chitin,%20v4:%20Op%20Log%20Example" class="linkedin no-underline" aria-label="share on LinkedIn">
+      <svg  height="32px"  style="enable-background:new 0 0 65 65;" version="1.1" viewBox="0 0 65 65" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path d="M50.837,48.137V36.425c0-6.275-3.35-9.195-7.816-9.195  c-3.604,0-5.219,1.983-6.119,3.374V27.71h-6.79c0.09,1.917,0,20.427,0,20.427h6.79V36.729c0-0.609,0.044-1.219,0.224-1.655  c0.49-1.22,1.607-2.483,3.482-2.483c2.458,0,3.44,1.873,3.44,4.618v10.929H50.837z M22.959,24.922c2.367,0,3.842-1.57,3.842-3.531  c-0.044-2.003-1.475-3.528-3.797-3.528s-3.841,1.524-3.841,3.528c0,1.961,1.474,3.531,3.753,3.531H22.959z M34,64  C17.432,64,4,50.568,4,34C4,17.431,17.432,4,34,4s30,13.431,30,30C64,50.568,50.568,64,34,64z M26.354,48.137V27.71h-6.789v20.427  H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/>
+</svg>
+
+    </a>
+  </div>
+
+
+      <h1 class="f1 mt3 mb1">Chitin, v4: Op Log Example</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-07-07T09:47:58-07:00">July 7, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.</p>
+<p>Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.</p>
+<pre><code>V1 {
+  title: string
+  description: string
+}
+
+// - rename title to name
+// - add a complete boolean
+
+V2 {
+  name: string
+  description: string
+  complete: boolean
+}
+
+// - change the complete boolean to a 3-valued &quot;status&quot; field
+
+V3 {
+  name: string
+  description: string
+  status: string
+}
+</code></pre><p>In Chitin 4, writes are straightforward. When a client writes a change, we append an operation to an append-only stream, containing the content of the edit and some metadata about which schema they used. The edit contents are described from the perspective of the writer&rsquo;s schema;  for example, the first patch, from a client using the v1 schema, sets the &ldquo;title&rdquo; property because that&rsquo;s the name of the property for that client.</p>
+<pre><code>            set title to      set description     set complete       
+             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true         
+                ┌────┐            ┌────┐             ┌────┐          
+Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
+                └────┘            └────┘             └────┘          
+</code></pre><p>Now, let&rsquo;s say we want to read this document using the v3 schema. We map over the log of patches and create a new log of corresponding patches in the v3 schema. Notice how the first patch changed a property name, and the third patch converted <code>complete: true</code> to <code>status: &quot;done&quot;</code>.</p>
+<pre><code>            set title to      set description     set complete       
+             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true         
+                ┌────┐            ┌────┐             ┌────┐          
+Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
+                └────┘            └────┘             └────┘          
+                   │                 │                  │            
+                   │                 │                  │            
+                   ▼                 ▼                  ▼            
+                ┌────┐            ┌────┐             ┌────┐          
+ V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶
+                └────┘            └────┘             └────┘          
+             set name to       set description     set status        
+              &quot;laundry&quot;       to &quot;wash clothes&quot;    to &quot;done&quot;         
+</code></pre><p>As a brief aside, this process of mapping patches is handled by the Cloudina lens library. We won&rsquo;t go into deep detail on that part here, but some basics:</p>
+<p>The user defined some <em>lenses</em>: logic for converting patches between pairs of schemas, and we use those lenses in the conversion process.</p>
+<p>Sometimes a patch needs to be converted across more than one lens. The first patch in this example had to be converted from v1 to v3, but there&rsquo;s no lens directly connecting those two schemas. So we find a path between them, by converting the patch first from a v1 patch to a v2 patch (applying a property rename), and then from a v2 patch to a v3 patch (doing nothing to the patch, because the name field is left untouched in that lens).</p>
+<pre><code>set title to ┌────┐
+ &quot;laundry&quot;   │ v1 │
+             └────┘
+                │  
+                ▼  
+ set name to ┌────┐
+  &quot;laundry&quot;  │ v2 │
+             └────┘
+                │  
+                ▼  
+ set name to ┌────┐
+  &quot;laundry&quot;  │ v3 │
+             └────┘
+</code></pre><p>Alright, so now we have a stream of patches to a V3 document. All that&rsquo;s left is to reduce over the stream of patches, to produce a final document in the V3 schema!</p>
+<pre><code>            set title to      set description     set complete                                           
+             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true                                             
+                ┌────┐            ┌────┐             ┌────┐                                              
+Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶                                    
+                └────┘            └────┘             └────┘                                              
+                   │                 │                  │               V3 Document                      
+                   │                 │                  │             ┌─────────────────────────────────┐
+                   ▼                 ▼                  ▼             │{                                │
+                ┌────┐            ┌────┐             ┌────┐           │  name: &quot;laundry&quot;,               │
+ V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶ │  description: &quot;wash clothes&quot;,   │
+                └────┘            └────┘             └────┘           │  status: &quot;todo&quot;                 │
+             set name to       set description     set status         │}                                │
+              &quot;laundry&quot;       to &quot;wash clothes&quot;    to &quot;done&quot;          └─────────────────────────────────┘
+</code></pre><p>We&rsquo;ve found that this design combines a number of desirable characteristics. Here are two of the more subtle ones.</p>
+<h2 id="reinterpreting-the-past">Reinterpreting the past</h2>
+<p>Because no conversions happen on write, it&rsquo;s always possible to go back and reinterpret the history of edits through a different set of lenses. This turns out to be important in asynchronous collaboration. Let&rsquo;s say Alice goes offline and makes some edits, while Bob is adding new lenses and schemas. When Alice comes back online and her edits appear, Bob should be able to read them through his new schema, even though Alice&rsquo;s client didn&rsquo;t have access to his new lenses when it was making writes. This design supports that use case great, because Bob&rsquo;s client is free to interpret Alice&rsquo;s writes through any set of lenses available on his client.</p>
+<h2 id="patches-not-documents">Patches, not documents</h2>
+<p>A second feature here is that the fundamental unit of conversions is <em>patches</em>, rather than documents. We&rsquo;ve found that this helps preserve user intent through lens conversions and generally allows for more sensible behavior. Here&rsquo;s a concrete example:</p>
+<p>A V3 task has <code>status: &quot;inProgress&quot;</code>. In V1, this maps to <code>complete: false</code>.</p>
+<p>A V1 writer comes along and sets <code>complete: true</code> (which sets <code>status: &quot;done&quot;</code> on V3). Then, they change their mind, and set <code>complete: false</code>. What should V3 see? There are two reasonable answers here:</p>
+<ol>
+<li>V1 essentially did something and then undid it, so V3 should end up back where it was: <code>status: &quot;inProgress&quot;</code>.</li>
+<li>When V1 sets <code>complete: false</code>, that should always set <code>status: &quot;todo&quot;</code> on the V3 doc. So, the V3 doc should end up</li>
+</ol>
+<p>In our project, we ended up deciding we wanted Option 2.</p>
+<p>With an approach based on converting <em>documents</em> back and forth, Option 2 becomes very tricky. The V1 doc has ended up in the same state it was before, but we somehow want that to result in a change on the V3 doc!?</p>
+<p>With the patch based approach of this implementation, this sequence of events is easy to reason about. Each <em>patch</em> on the V1 document is mapped to a corresponding patch on the V3 document, and we end up with <code>status: &quot;todo&quot;</code> just as we want.</p>
+<p><a href="https://monodraw.helftone.com/">Monodraw</a> Source for the ASCII art is at <code>./chitin4.monopic</code>,</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://inkandswitch.github.io/cambria/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/cambria/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+  </body>
+</html>

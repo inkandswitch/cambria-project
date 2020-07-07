@@ -6,10 +6,21 @@
     <description>Recent content in Cambria on Cambria Development Notes</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 06 Jul 2020 16:47:58 -0700</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jul 2020 09:47:58 -0700</lastBuildDate>
     
 	<atom:link href="http://inkandswitch.github.io/cambria/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Chitin, v4: Op Log Example</title>
+      <link>http://inkandswitch.github.io/cambria/designs/chitin-v4/</link>
+      <pubDate>Tue, 07 Jul 2020 09:47:58 -0700</pubDate>
+      
+      <guid>http://inkandswitch.github.io/cambria/designs/chitin-v4/</guid>
+      <description>Here&amp;rsquo;s a concrete example to illustrate how the &amp;ldquo;op log&amp;rdquo; based Chitin 4 system works, and then some brief explanation of why it&amp;rsquo;s better than our previous iterations.
+Let&amp;rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
+V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &amp;quot;status&amp;quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward.</description>
+    </item>
     
     <item>
       <title>Cambria, Week Four: This Is Fine</title>

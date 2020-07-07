@@ -184,10 +184,10 @@ the system along two key axes:</p>
 </ol>
 <p>You might (reasonably) think that #2 there is important enough to ignore #1. In fact, because of the division of
 Chitin (storage format, distribution, types) and Cloudina (lenses and patch translation) we can tackle them in parallel.</p>
-<p>Our <a href="https://github.com/inkandswitch/cambria/blob/default/%40geoffreylitt/chitin4-example.md">plan for fixing nesting documents</a> looks a lot like work we&rsquo;ve seen coming out of Benjamin Pierce&rsquo;s group at UPenn,
+<p>Our plan for fixing nesting documents looks a lot like work we&rsquo;ve seen coming out of Benjamin Pierce&rsquo;s group at UPenn,
 with symmetric edit lenses looking promising. We have a few advantages of their usual approach, in particular that because
 we instrument users&rsquo; code directly we don&rsquo;t have to guess at intent &ndash; we can instrument it.</p>
-<p>As to the correctness problem, well, we&rsquo;re trying something new based around a log of all operations. It seems 
+<p>As to the correctness problem, well, we&rsquo;re trying something new based around a <a href="./designs/chitin-v4">log of all operations</a>. It seems 
 promising thus far, but we&rsquo;re coming dangerously close to building a new CRDT on top of an existing one and so we need
 to reconcile that.</p>
 <h1 id="out--about">Out &amp; About</h1>
