@@ -2,31 +2,31 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cambria: On-Demand Migrations for Decentralized Software on Cambria Development Notes</title>
-    <link>http://example.org/</link>
+    <link>http://inkandswitch.github.io/cambria/</link>
     <description>Recent content in Cambria: On-Demand Migrations for Decentralized Software on Cambria Development Notes</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 06 Jul 2020 16:47:58 -0700</lastBuildDate>
     
-	<atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://inkandswitch.github.io/cambria/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Cambria, Week Four: This Is Fine</title>
-      <link>http://example.org/weekly-updates/week-4/</link>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-4/</link>
       <pubDate>Mon, 06 Jul 2020 16:47:58 -0700</pubDate>
       
-      <guid>http://example.org/weekly-updates/week-4/</guid>
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-4/</guid>
       <description>I wrote you a nice week three post but didn&amp;rsquo;t get around to sharing it. You can read it if you like, but briefly, in week three we managed to connect the two ends of the project: we managed to add features to our issue tracker using Cambria.
 Once we&amp;rsquo;d managed to do that, we stepped back, squinted at what we&amp;rsquo;d done and asked ourselves whether it was the right shape.</description>
     </item>
     
     <item>
       <title>Cambria, Week Three: Connection</title>
-      <link>http://example.org/weekly-updates/week-3/</link>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-3/</link>
       <pubDate>Mon, 29 Jun 2020 16:47:58 -0700</pubDate>
       
-      <guid>http://example.org/weekly-updates/week-3/</guid>
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-3/</guid>
       <description>This week we joined the two ends of the chunnel. The problem and the solution met in the middle and now we have a working system performing migrations on top of Cambria!
 Mostly.
 We do indeed have a working end-to-end system, with a rudimentary developer experience that allows developers to write migrations in a simple lens language and have their data automatically migrated to and from that format in any client.</description>
@@ -34,20 +34,20 @@ We do indeed have a working end-to-end system, with a rudimentary developer expe
     
     <item>
       <title>Cambria, Week Two: Prototyping the Solution</title>
-      <link>http://example.org/weekly-updates/week-2/</link>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-2/</link>
       <pubDate>Mon, 22 Jun 2020 16:47:58 -0700</pubDate>
       
-      <guid>http://example.org/weekly-updates/week-2/</guid>
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-2/</guid>
       <description>Last week we showed you a demo of a problem. We wanted to run two different versions of a program, both operating on different data types&amp;hellip; but with the same underlying document.
 This is a tricky problem! The old code doesn&amp;rsquo;t natively understand data written by the new system. The new system relies on data the old one doesn&amp;rsquo;t provide. Worst, even in our little toy example there is one field where the data type changes completely, going from a Boolean type to a string.</description>
     </item>
     
     <item>
       <title>Cambria, Week One: Prototyping the Problem</title>
-      <link>http://example.org/weekly-updates/week-1/</link>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-1/</link>
       <pubDate>Mon, 15 Jun 2020 16:47:58 -0700</pubDate>
       
-      <guid>http://example.org/weekly-updates/week-1/</guid>
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-1/</guid>
       <description>Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp;amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.
 What&amp;rsquo;s the problem? Cambria was motivated by some problems we kept seeing in our work.</description>
     </item>
