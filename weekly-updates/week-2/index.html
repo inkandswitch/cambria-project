@@ -42,7 +42,7 @@ This is a tricky problem! The old code doesn&rsquo;t natively understand data wr
 This is a tricky problem! The old code doesn&rsquo;t natively understand data written by the new system. The new system relies on data the old one doesn&rsquo;t provide. Worst, even in our little toy example there is one field where the data type changes completely, going from a Boolean type to a string.">
 <meta itemprop="datePublished" content="2020-06-22T16:47:58-07:00" />
 <meta itemprop="dateModified" content="2020-06-22T16:47:58-07:00" />
-<meta itemprop="wordCount" content="839">
+<meta itemprop="wordCount" content="844">
 
 
 
@@ -148,6 +148,12 @@ This is a tricky problem! The old code doesn&rsquo;t natively understand data wr
     <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p><!-- raw HTML omitted --> Last week we showed you a demo of a problem. We wanted to run two different versions of a program, both operating on different data types&hellip; but with the same underlying document.</p>
 <p>This is a tricky problem! The old code doesn&rsquo;t natively understand data written by the new system. The new system relies on data the old one doesn&rsquo;t provide. Worst, even in our little toy example there is one field where the data type changes completely, going from a Boolean type to a string.</p>
 <p>So, if last week was a prototype of a problem then this week is a prototype of a solution.</p>
+<p>Let&rsquo;s see it in action.</p>
+
+
+<div style="position: relative; padding-bottom: 64.98194945848375%; height: 0;"><iframe src="https://www.loom.com/embed/8acc5f13e4d0443aab8fb08b026d4f97" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+
 <h1 id="a-prototype-of-a-solution">A prototype of a solution</h1>
 <p><a href="../week-1">Last week&rsquo;s</a> <a href="https://www.loom.com/share/9887a085895a4ce4a39f6e70ef90cb0b">demo</a> showed data flowing back and forth between two systems. The implementation was a
 giant soup of spaghetti code under the hood. This week we wanted to attempt a principled approach
