@@ -1,0 +1,147 @@
+[
+  {
+    "from": "673eb1edf57b97b88f3d3cb1a6290e6f",
+    "to": "5c15f9720938c71f20f0f1c0ac0b48ff",
+    "lens": [
+      {
+        "tag": "lensOp/in",
+        "name": "metadata",
+        "lens": [
+          {
+            "tag": "lensOp/renameProperty",
+            "from": "goal",
+            "to": "objective"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "11045347db0a9e2aaee53f6066c3bc0b",
+    "to": "673eb1edf57b97b88f3d3cb1a6290e6f",
+    "lens": [
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "metadata",
+          "type": "object"
+        }
+      },
+      {
+        "tag": "lensOp/in",
+        "name": "metadata",
+        "lens": [
+          {
+            "tag": "lensOp/addProperty",
+            "property": {
+              "name": "goal",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "d8443e1f259c69909ad6d9ab5c8c0067",
+    "to": "11045347db0a9e2aaee53f6066c3bc0b",
+    "lens": [
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "members",
+          "type": "array"
+        }
+      }
+    ]
+  },
+  {
+    "from": "2487ebebbd27d21425fa5c87fa5d5903",
+    "to": "d8443e1f259c69909ad6d9ab5c8c0067",
+    "lens": [
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "tasks",
+          "type": "array",
+          "default": []
+        }
+      }
+    ]
+  },
+  {
+    "from": "d988458c25625fdbba44e6168dd42164",
+    "to": "2487ebebbd27d21425fa5c87fa5d5903",
+    "lens": [
+      {
+        "tag": "lensOp/renameProperty",
+        "from": "complete",
+        "to": "status"
+      },
+      {
+        "tag": "lensOp/convertValue",
+        "target": "status",
+        "mapping": {
+          "right": {
+            "false": "todo",
+            "true": "done"
+          },
+          "left": {
+            "todo": false,
+            "inProgress": false,
+            "done": true,
+            "default": true
+          }
+        },
+        "fromType": "boolean",
+        "toType": "string"
+      }
+    ]
+  },
+  {
+    "from": "ef609eccafd53956b50a2bf948df306e",
+    "to": "d988458c25625fdbba44e6168dd42164",
+    "lens": [
+      {
+        "tag": "lensOp/renameProperty",
+        "from": "title",
+        "to": "name"
+      },
+      {
+        "tag": "lensOp/renameProperty",
+        "from": "summary",
+        "to": "description"
+      },
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "complete",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    ]
+  },
+  {
+    "from": "9e727fdd3aec8274f46685441900280d",
+    "to": "ef609eccafd53956b50a2bf948df306e",
+    "lens": [
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "title",
+          "type": "string",
+          "default": ""
+        }
+      },
+      {
+        "tag": "lensOp/addProperty",
+        "property": {
+          "name": "summary",
+          "type": "string",
+          "default": ""
+        }
+      }
+    ]
+  }
+]

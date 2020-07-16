@@ -1,0 +1,40 @@
+{
+  "lens": [
+    { "tag": "lensOp/renameProperty", "from": "title", "to": "name" },
+    { "tag": "lensOp/renameProperty", "from": "body", "to": "description" },
+    { "tag": "lensOp/renameProperty", "from": "state", "to": "status" },
+    {
+      "tag": "lensOp/convertValue",
+      "target": "status",
+      "mapping": {
+        "right": { "open": "todo", "closed": "done" },
+        "left": { "todo": "open", "doing": "open", "done": "closed" }
+      }
+    },
+    {
+      "tag": "lensOp/hoistProperty",
+      "target": "login",
+      "host": "assignee"
+    },
+    { "tag": "lensOp/removeProperty", "property": { "name": "assignee", "type": "object" } },
+    { "tag": "lensOp/renameProperty", "from": "login", "to": "assignee" },
+    { "tag": "lensOp/removeProperty", "property": { "name": "locked", "type": "object" } },
+    {
+      "tag": "lensOp/removeProperty",
+      "property": { "name": "active_lock_reason", "type": "object" }
+    },
+
+    { "tag": "lensOp/removeProperty", "property": { "name": "milestone", "type": "object" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "closed_by", "type": "object" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "pull_request", "type": "object" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "node_id", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "assignees", "type": "array" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "user", "type": "object" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "repository_url", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "labels_url", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "comments_url", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "events_url", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "html_url", "type": "string" } },
+    { "tag": "lensOp/removeProperty", "property": { "name": "number", "type": "string" } }
+  ]
+}
