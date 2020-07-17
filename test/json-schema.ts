@@ -37,7 +37,7 @@ describe('transforming a json schema', () => {
   describe('addProperty', () => {
     it('adds the property', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'description', type: 'string' }),
+        addProperty({ name: 'description', type: 'string' }),
       ])
 
       assert.deepEqual(newSchema.properties, {
@@ -48,7 +48,7 @@ describe('transforming a json schema', () => {
 
     it('uses default value if provided', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'description', type: 'string', default: 'hi' }),
+        addProperty({ name: 'description', type: 'string', default: 'hi' }),
       ])
 
       assert.deepEqual(newSchema.properties, {
@@ -59,7 +59,7 @@ describe('transforming a json schema', () => {
 
     it('sets field as required', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'description', type: 'string', required: true }),
+        addProperty({ name: 'description', type: 'string', required: true }),
       ])
 
       assert.deepEqual(newSchema.properties, {
@@ -130,10 +130,10 @@ describe('transforming a json schema', () => {
   describe('inside', () => {
     it('adds new properties inside a key', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'metadata', type: 'object' }),
+        addProperty({ name: 'metadata', type: 'object' }),
         inside('metadata', [
-          addProperty({ destination: 'createdAt', type: 'number' }),
-          addProperty({ destination: 'updatedAt', type: 'number' }),
+          addProperty({ name: 'createdAt', type: 'number' }),
+          addProperty({ name: 'updatedAt', type: 'number' }),
         ]),
       ])
 
@@ -159,9 +159,9 @@ describe('transforming a json schema', () => {
 
     it('renames properties inside a key', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'metadata', type: 'object' }),
+        addProperty({ name: 'metadata', type: 'object' }),
         inside('metadata', [
-          addProperty({ destination: 'createdAt', type: 'number' }),
+          addProperty({ name: 'createdAt', type: 'number' }),
           renameProperty('createdAt', 'created'),
         ]),
       ])
@@ -193,11 +193,11 @@ describe('transforming a json schema', () => {
   describe('map', () => {
     it('adds new properties inside an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'tasks', type: 'array', arrayItemType: 'object' }),
+        addProperty({ name: 'tasks', type: 'array', arrayItemType: 'object' }),
         inside('tasks', [
           map([
-            addProperty({ destination: 'name', type: 'string' }),
-            addProperty({ destination: 'description', type: 'string' }),
+            addProperty({ name: 'name', type: 'string' }),
+            addProperty({ name: 'description', type: 'string' }),
           ]),
         ]),
       ])
@@ -227,12 +227,9 @@ describe('transforming a json schema', () => {
 
     it('renames properties inside an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'tasks', type: 'array', arrayItemType: 'object' }),
+        addProperty({ name: 'tasks', type: 'array', arrayItemType: 'object' }),
         inside('tasks', [
-          map([
-            addProperty({ destination: 'name', type: 'string' }),
-            renameProperty('name', 'title'),
-          ]),
+          map([addProperty({ name: 'name', type: 'string' }), renameProperty('name', 'title')]),
         ]),
       ])
 
@@ -256,10 +253,10 @@ describe('transforming a json schema', () => {
     })
   })
 
-  describe('wrapProperty', () => {
-    it('can wrap a scalar into an array', () => {
+  describe('headProperty', () => {
+    it('can turn an array into a scalar', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'assignees', type: 'array', arrayItemType: 'string' }),
+        addProperty({ name: 'assignees', type: 'array', arrayItemType: 'string' }),
         headProperty('assignees'),
       ])
 
@@ -270,10 +267,10 @@ describe('transforming a json schema', () => {
     })
   })
 
-  describe('headProperty', () => {
-    it('can turn an array into a scalar', () => {
+  describe('wrapProperty', () => {
+    it('can wrap a scalar into an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'assignee', type: 'string' }),
+        addProperty({ name: 'assignee', type: 'string' }),
         wrapProperty('assignee'),
       ])
 
@@ -293,10 +290,10 @@ describe('transforming a json schema', () => {
   describe('hoistProperty', () => {
     it('hoists the property up in the schema', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'metadata', type: 'object' }),
+        addProperty({ name: 'metadata', type: 'object' }),
         inside('metadata', [
-          addProperty({ destination: 'createdAt', type: 'number' }),
-          addProperty({ destination: 'editedAt', type: 'number' }),
+          addProperty({ name: 'createdAt', type: 'number' }),
+          addProperty({ name: 'editedAt', type: 'number' }),
         ]),
         hoistProperty('metadata', 'createdAt'),
       ])
@@ -326,10 +323,10 @@ describe('transforming a json schema', () => {
     it('plunges the property down in the schema', () => {
       // move the existing summary down into a metadata object
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ destination: 'metadata', type: 'object' }),
+        addProperty({ name: 'metadata', type: 'object' }),
         inside('metadata', [
-          addProperty({ destination: 'createdAt', type: 'number' }),
-          addProperty({ destination: 'editedAt', type: 'number' }),
+          addProperty({ name: 'createdAt', type: 'number' }),
+          addProperty({ name: 'editedAt', type: 'number' }),
         ]),
         plungeProperty('metadata', 'summary'),
       ])

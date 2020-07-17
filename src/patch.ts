@@ -86,8 +86,8 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       // leading slash needs trimming
       const pathElements = patchOp.path.substr(1).split('/')
       const [possibleSource, possibleDestination, ...rest] = pathElements
-      if (possibleSource === lensOp.host && possibleDestination === lensOp.destination) {
-        const path = ['', lensOp.destination, ...rest].join('/')
+      if (possibleSource === lensOp.host && possibleDestination === lensOp.name) {
+        const path = ['', lensOp.name, ...rest].join('/')
         return { ...patchOp, path }
       }
       break
@@ -96,7 +96,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
     case 'plunge': {
       const pathElements = patchOp.path.substr(1).split('/')
       const [head] = pathElements
-      if (head === lensOp.destination) {
+      if (head === lensOp.name) {
         const path = ['', lensOp.host, pathElements].join('/')
         return { ...patchOp, path }
       }
@@ -104,7 +104,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
     }
 
     case 'wrap': {
-      const pathComponent = new RegExp(`^/(${lensOp.destination})(.*)`)
+      const pathComponent = new RegExp(`^/(${lensOp.name})(.*)`)
       const match = patchOp.path.match(pathComponent)
       if (match) {
         const newPath = `/${match[1]}/0${match[2]}`
@@ -115,18 +115,18 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
 
     case 'head': {
       // break early if we're not handling a write to the array handled by this lens
-      const arrayMatch = patchOp.path.match(new RegExp(`^/${lensOp.destination}(.*)`))
+      const arrayMatch = patchOp.path.match(new RegExp(`^/${lensOp.name}(.*)`))
       if (!arrayMatch) break
 
       // We only care about writes to the head element, nothing else matters
-      const headMatch = patchOp.path.match(new RegExp(`^/${lensOp.destination}/0(.*)`))
+      const headMatch = patchOp.path.match(new RegExp(`^/${lensOp.name}/0(.*)`))
       if (!headMatch) return null
 
       if (patchOp.op === 'add' || patchOp.op === 'replace') {
         // If the write is to the first array element, write to the scalar
         return {
           op: 'replace' as const,
-          path: `/${lensOp.destination}${headMatch[1] || ''}`,
+          path: `/${lensOp.name}${headMatch[1] || ''}`,
           value: patchOp.value,
         }
       }
@@ -134,7 +134,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       if (patchOp.op === 'remove') {
         return {
           op: 'replace' as const,
-          path: `/${lensOp.destination}${headMatch[1] || ''}`,
+          path: `/${lensOp.name}${headMatch[1] || ''}`,
           value: null,
         }
       }
@@ -149,12 +149,12 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       break
 
     case 'remove':
-      if (patchOp.path.startsWith(`/${lensOp.destination}`)) return null
+      if (patchOp.path.startsWith(`/${lensOp.name}`)) return null
       break
 
     case 'in': {
       // Run the inner body in a context where the path has been narrowed down...
-      const pathComponent = new RegExp(`^/${lensOp.source}`)
+      const pathComponent = new RegExp(`^/${lensOp.name}`)
       if (patchOp.path.match(pathComponent)) {
         const childPatch = applyLensToPatchOp(lensOp.lens, {
           ...patchOp,
@@ -162,7 +162,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
         })
 
         if (childPatch) {
-          return { ...childPatch, path: `/${lensOp.source}${childPatch.path}` }
+          return { ...childPatch, path: `/${lensOp.name}${childPatch.path}` }
         }
       }
       break
@@ -186,7 +186,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
 
     case 'convert': {
       if (patchOp.op !== 'add' && patchOp.op !== 'replace') break
-      if (`/${lensOp.destination}` !== patchOp.path) break
+      if (`/${lensOp.name}` !== patchOp.path) break
       const stringifiedValue = String(patchOp.value)
 
       // todo: should we add in support for fallback/default conversions

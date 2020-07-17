@@ -1,7 +1,7 @@
 import { JSONSchema7TypeName } from 'json-schema'
 
 export interface Property {
-  destination: string
+  name: string
   type: JSONSchema7TypeName
   default?: any
   required?: boolean
@@ -24,28 +24,28 @@ export interface RenameProperty {
 
 export interface HoistProperty {
   op: 'hoist'
-  destination: string
+  name: string
   host: string
 }
 
 export interface PlungeProperty {
   op: 'plunge'
-  destination: string
+  name: string
   host: string
 }
 export interface WrapProperty {
   op: 'wrap'
-  destination: string
+  name: string
 }
 
 export interface HeadProperty {
   op: 'head'
-  destination: string
+  name: string
 }
 
 export interface LensIn {
   op: 'in'
-  source: string
+  name: string
   lens: LensSource
 }
 
@@ -64,7 +64,7 @@ export type ValueMapping = { [key: string]: any }[]
 //   can consider further conversions later
 export interface ConvertValue {
   op: 'convert'
-  destination: string
+  name: string
   mapping: ValueMapping
   sourceType?: JSONSchema7TypeName
   destinationType?: JSONSchema7TypeName

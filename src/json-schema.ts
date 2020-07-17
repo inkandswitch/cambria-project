@@ -1,6 +1,14 @@
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
 import { defaultValuesByType } from './defaults'
-import { Property, LensSource, ConvertValue, LensOp } from './lens-ops'
+import {
+  Property,
+  LensSource,
+  ConvertValue,
+  LensOp,
+  AddProperty,
+  HeadProperty,
+  WrapProperty,
+} from './lens-ops'
 
 // add a property to a schema
 // note: property names are in json pointer with leading /
@@ -10,7 +18,7 @@ import { Property, LensSource, ConvertValue, LensOp } from './lens-ops'
 // (should switch to a more functional style)
 function addProperty(schema: JSONSchema7, property: Property) {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
-  const { destination, type, arrayItemType, required: isPropertyRequired } = property
+  const { name, type, arrayItemType, required: isPropertyRequired } = property
 
   const arraylessPropertyDefinition = {
     type,
@@ -25,9 +33,9 @@ function addProperty(schema: JSONSchema7, property: Property) {
         }
       : arraylessPropertyDefinition
 
-  const properties = { ...origProperties, [destination]: propertyDefinition }
-  const shouldAdd = isPropertyRequired !== false && !origRequired.includes(destination)
-  const required = [...origRequired, ...(shouldAdd ? [destination] : [])]
+  const properties = { ...origProperties, [name]: propertyDefinition }
+  const shouldAdd = isPropertyRequired !== false && !origRequired.includes(name)
+  const required = [...origRequired, ...(shouldAdd ? [name] : [])]
   return {
     ...schema,
     properties,
@@ -89,27 +97,28 @@ function mapSchema(schema: JSONSchema7, lens: LensSource) {
   return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
 }
 
-function wrapProperty(schema, op) {
+function wrapProperty(schema, op: WrapProperty) {
+  console.log('wrap')
   // create an array property, stuff the existing schema info inside the array type
   return addProperty(schema, {
-    destination: op.destination,
+    name: op.name,
     type: 'array',
 
     // todo: I think arrayItemType needs to take more than a string,
     // it probably needs to take a recursive schema arg of some kind?
     // seems like this will not work if array items are obbjects
-    arrayItemType: schema.properties[op.destination].type,
+    arrayItemType: schema.properties[op.name].type,
   })
 }
 
-function headProperty(schema, op) {
+function headProperty(schema, op: HeadProperty) {
   return addProperty(schema, {
-    destination: op.destination,
-    ...schema.properties[op.destination].items,
+    name: op.name,
+    ...schema.properties[op.name].items,
   })
 }
 
-function hoistProperty(schema: JSONSchema7, host: string, destination: string) {
+function hoistProperty(schema: JSONSchema7, host: string, name: string) {
   const { properties = {} } = schema
 
   const sourceSchema = properties[host] || {}
@@ -118,7 +127,7 @@ function hoistProperty(schema: JSONSchema7, host: string, destination: string) {
     // errrr... complain?
     return schema
   }
-  const destinationProperties = sourceSchema.properties[destination] || {}
+  const destinationProperties = sourceSchema.properties[name] || {}
 
   if (destinationProperties === true) {
     // this is bad too?
@@ -128,21 +137,21 @@ function hoistProperty(schema: JSONSchema7, host: string, destination: string) {
   // add the property to the root schema
   schema = addProperty(schema, {
     ...(destinationProperties as Property),
-    destination, // bleh, adding the / here is bad...
+    name, // bleh, adding the / here is bad...
   })
 
   // remove it from its current parent
   // PS: ugh
-  schema = inSchema(schema, host, [{ op: 'remove', destination, type: 'null' }])
+  schema = inSchema(schema, host, [{ op: 'remove', name, type: 'null' }])
 
   return schema
 }
 
-function plungeProperty(schema: JSONSchema7, host: string, destination: string) {
+function plungeProperty(schema: JSONSchema7, host: string, name: string) {
   // XXXX what should we do for missing child properties? error?
   const { properties = {} } = schema
 
-  const destinationTypeProperties = properties[destination] || {}
+  const destinationTypeProperties = properties[name] || {}
   // we can throw an error here if things are missing?
   if (destinationTypeProperties === true) {
     // errrr... complain?
@@ -154,13 +163,13 @@ function plungeProperty(schema: JSONSchema7, host: string, destination: string) 
     {
       op: 'add',
       ...(destinationTypeProperties as Property),
-      destination,
+      name,
     },
   ])
 
   // remove it from its current parent
   // PS: ugh
-  schema = removeProperty(schema, destination)
+  schema = removeProperty(schema, name)
 
   return schema
 }
@@ -173,7 +182,7 @@ function convertValue(schema: JSONSchema7, lensOp: ConvertValue) {
     ...schema,
     properties: {
       ...schema.properties,
-      [lensOp.destination]: {
+      [lensOp.name]: {
         type: lensOp.destinationType,
         default: defaultValuesByType[lensOp.destinationType],
       },
@@ -190,11 +199,11 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
     case 'add':
       return addProperty(schema, op)
     case 'remove':
-      return removeProperty(schema, op.destination)
+      return removeProperty(schema, op.name)
     case 'rename':
       return renameProperty(schema, op.source, op.destination)
     case 'in':
-      return inSchema(schema, op.source, op.lens)
+      return inSchema(schema, op.name, op.lens)
     case 'map':
       return mapSchema(schema, op.lens)
     case 'wrap':
@@ -202,9 +211,9 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
     case 'head':
       return headProperty(schema, op)
     case 'hoist':
-      return hoistProperty(schema, op.host, op.destination)
+      return hoistProperty(schema, op.host, op.name)
     case 'plunge':
-      return plungeProperty(schema, op.host, op.destination)
+      return plungeProperty(schema, op.host, op.name)
     case 'convert':
       return convertValue(schema, op)
 

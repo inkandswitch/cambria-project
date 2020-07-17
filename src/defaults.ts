@@ -26,7 +26,7 @@ export function defaultObjectForLens(lens: LensSource): any {
         if (op.required !== false) {
           // do a copy to avoid accidentally sharing a mutable default value
           const defaultValue = deepClone(op.default || defaultValuesByType[op.type])
-          return { ...acc, [op.destination]: defaultValue }
+          return { ...acc, [op.name]: defaultValue }
         }
         break
       case 'rename': {
@@ -45,9 +45,9 @@ export function defaultObjectForLens(lens: LensSource): any {
       }
       case 'convert':
         if (!op.destinationType) break // there was no type conversion
-        return { ...acc, [op.destination]: deepClone(defaultValuesByType[op.destinationType]) }
+        return { ...acc, [op.name]: deepClone(defaultValuesByType[op.destinationType]) }
       case 'remove': {
-        const { [op.destination]: _discard, ...rest } = acc
+        const { [op.name]: _discard, ...rest } = acc
         return { ...rest }
       }
 

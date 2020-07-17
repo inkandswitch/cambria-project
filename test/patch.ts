@@ -31,7 +31,7 @@ export interface ProjectV2 {
 
 const lensSource: LensSource = [
   renameProperty('title', 'name'),
-  addProperty({ destination: 'description', type: 'string', default: '' }),
+  addProperty({ name: 'description', type: 'string', default: '' }),
   convertValue(
     'complete',
     [

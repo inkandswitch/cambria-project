@@ -41,40 +41,40 @@ export function renameProperty(source: string, destination: string): RenamePrope
   }
 }
 
-export function hoistProperty(host: string, destination: string): HoistProperty {
+export function hoistProperty(host: string, name: string): HoistProperty {
   return {
     op: 'hoist',
     host,
-    destination,
+    name,
   }
 }
 
-export function plungeProperty(host: string, destination: string): PlungeProperty {
+export function plungeProperty(host: string, name: string): PlungeProperty {
   return {
     op: 'plunge',
     host,
-    destination,
+    name,
   }
 }
 
-export function wrapProperty(destination: string): WrapProperty {
+export function wrapProperty(name: string): WrapProperty {
   return {
     op: 'wrap',
-    destination,
+    name,
   }
 }
 
-export function headProperty(destination: string): HeadProperty {
+export function headProperty(name: string): HeadProperty {
   return {
     op: 'head',
-    destination,
+    name,
   }
 }
 
-export function inside(source: string, lens: LensSource): LensIn {
+export function inside(name: string, lens: LensSource): LensIn {
   return {
     op: 'in',
-    source,
+    name,
     lens,
   }
 }
@@ -87,14 +87,14 @@ export function map(lens: LensSource): LensMap {
 }
 
 export function convertValue(
-  destination: string,
+  name: string,
   mapping: ValueMapping,
   sourceType?: JSONSchema7TypeName,
   destinationType?: JSONSchema7TypeName
 ): ConvertValue {
   return {
     op: 'convert',
-    destination,
+    name,
     mapping,
     sourceType,
     destinationType,
