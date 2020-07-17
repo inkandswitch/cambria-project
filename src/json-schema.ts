@@ -1,6 +1,6 @@
 import { JSONSchema7 } from 'json-schema'
 import { defaultValuesByType } from './cloudina'
-import { Property, LensSource, ConvertValue } from './lens-ops'
+import { Property, LensSource, ConvertValue, LensOp } from './lens-ops'
 
 // add a property to a schema
 // note: property names are in json pointer with leading /
@@ -55,7 +55,11 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   // we don't care about the `discarded` variable...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [removed]: discarded, ...rest } = properties
-  return { ...schema, properties: rest, required: required.filter((e) => e !== removed) }
+  return {
+    ...schema,
+    properties: rest,
+    required: required.filter((e) => e !== removed),
+  }
 }
 
 function inSchema(schema: JSONSchema7, name: string, lens: LensSource) {
@@ -68,6 +72,9 @@ function inSchema(schema: JSONSchema7, name: string, lens: LensSource) {
       [name]: updateSchema(properties[name] as JSONSchema7, lens),
     },
   }
+}
+function mapSchema(schema: JSONSchema7, lens: LensSource) {
+  return { ...schema, items: updateSchema(schema.items, lens) }
 }
 
 function hoistProperty(schema: JSONSchema7, host: string, destination: string) {
@@ -146,71 +153,56 @@ function assertNever(x: never): never {
   throw new Error(`Unexpected object: ${x}`)
 }
 
+function applyLensOperation(schema: JSONSchema7, op: LensOp) {
+  switch (op.op) {
+    case 'add':
+      return addProperty(schema, op)
+    case 'remove':
+      return removeProperty(schema, op.destination)
+    case 'rename':
+      return renameProperty(schema, op.source, op.destination)
+    case 'in':
+      return inSchema(schema, op.source, op.lens)
+    case 'map':
+      return mapSchema(schema, op.lens)
+    // recursively update the items schema with the provided lens
+
+    case 'wrap':
+      // create an array property, stuff the existing schema info inside the array type
+      return addProperty(schema, {
+        destination: op.destination,
+        type: 'array',
+
+        // todo: I think arrayItemType needs to take more than a string,
+        // it probably needs to take a recursive schema arg of some kind?
+        // seems like this will not work if array items are obbjects
+        arrayItemType: schema.properties[op.destination].type,
+      })
+
+      break
+
+    case 'head':
+      return addProperty(schema, {
+        destination: op.destination,
+        ...schema.properties[op.destination].items,
+      })
+
+    case 'hoist':
+      return hoistProperty(schema, op.host, op.destination)
+
+    case 'plunge':
+      return plungeProperty(schema, op.host, op.destination)
+
+    case 'convert':
+      return convertValue(schema, op)
+
+    default:
+      assertNever(op) // exhaustiveness check
+  }
+}
 export function updateSchema(schema: JSONSchema7, lens: LensSource): JSONSchema7 {
-  // todo: we iterate over lens ops and mutate the schema;
-  // should change to reduce over the lens ops and treat schema as immutable
-  lens.forEach((op) => {
-    switch (op.op) {
-      case 'add': {
-        schema = addProperty(schema, op)
-        break
-      }
-      case 'remove': {
-        schema = removeProperty(schema, op.destination)
-        break
-      }
-
-      case 'rename': {
-        schema = renameProperty(schema, op.source, op.destination)
-        break
-      }
-
-      case 'in':
-        schema = inSchema(schema, op.source, op.lens)
-        break
-
-      case 'map':
-        // recursively update the items schema with the provided lens
-        schema.items = updateSchema(schema.items, op.lens)
-        break
-
-      case 'wrap':
-        // create an array property, stuff the existing schema info inside the array type
-        schema = addProperty(schema, {
-          destination: op.destination,
-          type: 'array',
-
-          // todo: I think arrayItemType needs to take more than a string,
-          // it probably needs to take a recursive schema arg of some kind?
-          // seems like this will not work if array items are obbjects
-          arrayItemType: schema.properties[op.destination].type,
-        })
-
-        break
-
-      case 'head':
-        schema = addProperty(schema, {
-          destination: op.destination,
-          ...schema.properties[op.destination].items,
-        })
-        break
-
-      case 'hoist':
-        schema = hoistProperty(schema, op.host, op.destination)
-        break
-
-      case 'plunge':
-        schema = plungeProperty(schema, op.host, op.destination)
-        break
-
-      case 'convert':
-        schema = convertValue(schema, op)
-        break
-
-      default:
-        assertNever(op) // exhaustiveness check
-    }
-  })
-
-  return schema
+  return lens.reduce<JSONSchema7>(
+    (schema: JSONSchema7, op: LensOp) => applyLensOperation(schema, op),
+    schema as JSONSchema7
+  )
 }

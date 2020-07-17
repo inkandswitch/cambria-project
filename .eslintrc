@@ -1,0 +1,116 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true
+  },
+  "globals": {
+    "__static": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["react-hooks"],
+  "extends": [
+    "airbnb-typescript",
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    // we agreed we don't like semicolons
+    "semi": ["error", "never"],
+
+    // we agreed class methods don't have to use "this".
+    "class-methods-use-this": "off",
+
+    // we like dangling commas
+    "comma-dangle": "off",
+
+    // we agreed we don't require default cases
+    "default-case": "off",
+
+    // doesn't really make sense when targeting electron
+    "no-restricted-syntax": "off",
+
+    // we agreed that we're okay with idiomatic short-circuits
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowShortCircuit": true
+      }
+    ],
+
+    // we agreed this feels unnecessarily opinionated
+    "lines-between-class-members": "off",
+
+    // arguably we should not do this, but we do, 18 times
+    "no-shadow": "off",
+    // arguably we should not do this, but there are 70 cases where we do
+    "no-param-reassign": "off",
+
+    // third-party libs often use this
+    "no-underscore-dangle": "off",
+
+    // we agreed this is a bad rule
+    "react/destructuring-assignment": "off",
+
+    // we agreed this is gratuitous
+    "react/jsx-one-expression-per-line": "off",
+
+    // pushpin was inherently visual, so we've disabled quite a few accessibility rules
+    // it would be reasonable to re-enable these but would take some work, and might be
+    // a good idea for an app like arthropod
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "jsx-a11y/interactive-supports-focus": "off",
+    "jsx-a11y/no-noninteractive-tabindex": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-autofocus": "off",
+    "jsx-a11y/media-has-caption": "off", // randomly sourced audio doesn't come captioned
+
+    // This isn't really useful
+    "@typescript-eslint/no-empty-interface": "off",
+
+    // we might want to do this, but there are 97 cases where we don't
+    "@typescript-eslint/explicit-member-accessibility": "off",
+
+    // we might want to this, but there are 424 places we don't
+    "@typescript-eslint/explicit-function-return-type": "off",
+
+    // we agreed this rule is gratuitious
+    "@typescript-eslint/no-use-before-define": "off",
+
+    // someday, we should turn this back on, but we use it 44 times
+    "@typescript-eslint/no-explicit-any": "off",
+
+    // sometimes third-party libs are typed incorrectly
+    "@typescript-eslint/no-non-null-assertion": "off",
+
+    // we agreed unused arguments should be left in-place and not removed
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "none"
+      }
+    ],
+
+    "react-hooks/rules-of-hooks": "error",
+    // this rule caused bugs when it was automatically applied
+    "react-hooks/exhaustive-deps": "off",
+
+    // import-specific rulings
+    // we probably want to enable this, and it's violated 23 times
+    "import/no-extraneous-dependencies": "off",
+
+    // we probably don't like this rule, but only Content violates it, so we could have it
+    "import/no-named-as-default-member": "off",
+
+    // we agreed it's better to be consistent in how you export than follow this rule
+    "import/prefer-default-export": "off",
+
+    // tsc handles this better, and allows for multiple typed exports of the same name
+    "import/export": "off",
+
+    // we agreed we don't really care about this rule
+    "import/no-cycle": "off"
+  }
+}
