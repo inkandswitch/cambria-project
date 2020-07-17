@@ -177,7 +177,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" }
+                "name": { "$ref": "#/definitions/fields/name" }
               }
             }
           }

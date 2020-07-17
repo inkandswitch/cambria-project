@@ -3,32 +3,32 @@ schemaName: Issue
 
 lens:
   # remove unnecessary fields
-  - remove: { destination: milestone }
-  - remove: { destination: pull_request }
-  - remove: { destination: closed_by }
-  - remove: { destination: repository_url }
-  - remove: { destination: number }
-  - remove: { destination: assignees }
-  - remove: { destination: user }
-  - remove: { destination: url }
-  - remove: { destination: comments_url }
-  - remove: { destination: events_url }
-  - remove: { destination: html_url }
-  - remove: { destination: locked }
-  - remove: { destination: active_lock_reason }
-  - remove: { destination: comments }
-  - remove: { destination: node_id }
-  - remove: { destination: closed_at }
+  - remove: { name: milestone }
+  - remove: { name: pull_request }
+  - remove: { name: closed_by }
+  - remove: { name: repository_url }
+  - remove: { name: number }
+  - remove: { name: assignees }
+  - remove: { name: user }
+  - remove: { name: url }
+  - remove: { name: comments_url }
+  - remove: { name: events_url }
+  - remove: { name: html_url }
+  - remove: { name: locked }
+  - remove: { name: active_lock_reason }
+  - remove: { name: comments }
+  - remove: { name: node_id }
+  - remove: { name: closed_at }
 
   - rename:
       source: title
       destination: name
 
   - head:
-      destination: labels
+      name: labels
 
   - in:
-      source: labels
+      name: labels
       lens:
         - rename:
             source: name
@@ -36,7 +36,7 @@ lens:
 
   - hoist:
       host: labels
-      destination: category
+      name: category
 
   - remove:
-      destination: labels
+      name: labels
