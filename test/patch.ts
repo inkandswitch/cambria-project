@@ -98,7 +98,12 @@ describe('field rename', () => {
   })
 
   it('works with whole doc conversion too', () => {
-    assert.deepEqual(convertDoc({ title: 'hello' }, lensSource), { name: 'hello' })
+    // fills in default values for missing fields
+    assert.deepEqual(convertDoc({ title: 'hello' }, lensSource), {
+      complete: '',
+      description: '',
+      name: 'hello',
+    })
   })
 })
 
