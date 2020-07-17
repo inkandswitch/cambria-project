@@ -1,4 +1,4 @@
-import { JSONSchema7 } from 'json-schema'
+import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
 import { defaultValuesByType } from './cloudina'
 import { Property, LensSource, ConvertValue, LensOp } from './lens-ops'
 
@@ -73,8 +73,40 @@ function inSchema(schema: JSONSchema7, name: string, lens: LensSource) {
     },
   }
 }
+
+type JSONSchema7Items = boolean | JSONSchema7 | JSONSchema7Definition[] | undefined
+function validateSchemaItems(items: JSONSchema7Items) {
+  if (Array.isArray(items)) {
+    throw new Error('Cloudina only supports consistent types for arrays.')
+  }
+  if (!items || items === true) {
+    throw new Error('Cloudina requires a specific items definition.')
+  }
+  return items
+}
+
 function mapSchema(schema: JSONSchema7, lens: LensSource) {
-  return { ...schema, items: updateSchema(schema.items, lens) }
+  return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
+}
+
+function wrapProperty(schema, op) {
+  // create an array property, stuff the existing schema info inside the array type
+  return addProperty(schema, {
+    destination: op.destination,
+    type: 'array',
+
+    // todo: I think arrayItemType needs to take more than a string,
+    // it probably needs to take a recursive schema arg of some kind?
+    // seems like this will not work if array items are obbjects
+    arrayItemType: schema.properties[op.destination].type,
+  })
+}
+
+function headProperty(schema, op) {
+  return addProperty(schema, {
+    destination: op.destination,
+    ...schema.properties[op.destination].items,
+  })
 }
 
 function hoistProperty(schema: JSONSchema7, host: string, destination: string) {
@@ -165,34 +197,14 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
       return inSchema(schema, op.source, op.lens)
     case 'map':
       return mapSchema(schema, op.lens)
-    // recursively update the items schema with the provided lens
-
     case 'wrap':
-      // create an array property, stuff the existing schema info inside the array type
-      return addProperty(schema, {
-        destination: op.destination,
-        type: 'array',
-
-        // todo: I think arrayItemType needs to take more than a string,
-        // it probably needs to take a recursive schema arg of some kind?
-        // seems like this will not work if array items are obbjects
-        arrayItemType: schema.properties[op.destination].type,
-      })
-
-      break
-
+      return wrapProperty(schema, op)
     case 'head':
-      return addProperty(schema, {
-        destination: op.destination,
-        ...schema.properties[op.destination].items,
-      })
-
+      return headProperty(schema, op)
     case 'hoist':
       return hoistProperty(schema, op.host, op.destination)
-
     case 'plunge':
       return plungeProperty(schema, op.host, op.destination)
-
     case 'convert':
       return convertValue(schema, op)
 
