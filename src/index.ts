@@ -7,3 +7,6 @@ export { compile, convertDoc, Patch, CompiledLens } from './patch'
 export { LensSource, LensOp, Property } from './lens-ops'
 export { defaultObjectForLens } from './defaults'
 export { reverseLens } from './reverse'
+
+// TODO: delete js syntax, remove these
+export { addProperty, renameProperty, convertValue } from './helpers'
