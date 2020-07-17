@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Micromerge | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/cambria/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    <link href="/cambria/article.css"/>
+
+    
+      <link rel="stylesheet" href="/cambria/article.css">
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="Micromerge" />
+<meta property="og:description" content="As part of designing the new integration between Chitin and our CRDTs, Martin wrote a tiny two-hundred line version of Automerge called Micromerge that displays the core behaviours of automerge with none of the additional complexity of production software.
+I have included it here in its complete form:
+const ROOT_ID = &#39;00000000-0000-0000-0000-000000000000&#39; /** * Miniature implementation of a subset of Automerge. Supports the following: * - only map, list, and primitive datatypes (no table, text, counter, or date objects) * - no undo/redo * - no conflicts on concurrent updates to the same field (uses last-writer-wins instead) * - no API for creating new changes (you need to create change objects yourself) * - no buffering of changes that are missing their causal dependencies * - no saving or loading in serialised form * - relies on object mutation (no immutability) */ class Micromerge { constructor() { this." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://inkandswitch.github.io/cambria/designs/micromerge/" />
+<meta property="article:published_time" content="2020-07-17T12:05:58-07:00" />
+<meta property="article:modified_time" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="name" content="Micromerge">
+<meta itemprop="description" content="As part of designing the new integration between Chitin and our CRDTs, Martin wrote a tiny two-hundred line version of Automerge called Micromerge that displays the core behaviours of automerge with none of the additional complexity of production software.
+I have included it here in its complete form:
+const ROOT_ID = &#39;00000000-0000-0000-0000-000000000000&#39; /** * Miniature implementation of a subset of Automerge. Supports the following: * - only map, list, and primitive datatypes (no table, text, counter, or date objects) * - no undo/redo * - no conflicts on concurrent updates to the same field (uses last-writer-wins instead) * - no API for creating new changes (you need to create change objects yourself) * - no buffering of changes that are missing their causal dependencies * - no saving or loading in serialised form * - relies on object mutation (no immutability) */ class Micromerge { constructor() { this.">
+<meta itemprop="datePublished" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="dateModified" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="wordCount" content="1029">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Micromerge"/>
+<meta name="twitter:description" content="As part of designing the new integration between Chitin and our CRDTs, Martin wrote a tiny two-hundred line version of Automerge called Micromerge that displays the core behaviours of automerge with none of the additional complexity of production software.
+I have included it here in its complete form:
+const ROOT_ID = &#39;00000000-0000-0000-0000-000000000000&#39; /** * Miniature implementation of a subset of Automerge. Supports the following: * - only map, list, and primitive datatypes (no table, text, counter, or date objects) * - no undo/redo * - no conflicts on concurrent updates to the same field (uses last-writer-wins instead) * - no API for creating new changes (you need to create change objects yourself) * - no buffering of changes that are missing their causal dependencies * - no saving or loading in serialised form * - relies on object mutation (no immutability) */ class Micromerge { constructor() { this."/>
+
+	
+  </head>
+
+  <body class="ma0 bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/cambria/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        DESIGNS
+      </aside>
+      <h1 class="f1 mt3 mb1">Micromerge</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-07-17T12:05:58-07:00">July 17, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>As part of designing the new integration between Chitin and our CRDTs, Martin wrote a tiny two-hundred line version of Automerge called Micromerge that displays the core behaviours of automerge with none of the additional complexity of production software.</p>
+<p>I have included it here in its complete form:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js">
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">ROOT_ID</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;00000000-0000-0000-0000-000000000000&#39;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Miniature implementation of a subset of Automerge. Supports the following:
+</span><span style="color:#75715e"> *  - only map, list, and primitive datatypes (no table, text, counter, or date objects)
+</span><span style="color:#75715e"> *  - no undo/redo
+</span><span style="color:#75715e"> *  - no conflicts on concurrent updates to the same field (uses last-writer-wins instead)
+</span><span style="color:#75715e"> *  - no API for creating new changes (you need to create change objects yourself)
+</span><span style="color:#75715e"> *  - no buffering of changes that are missing their causal dependencies
+</span><span style="color:#75715e"> *  - no saving or loading in serialised form
+</span><span style="color:#75715e"> *  - relies on object mutation (no immutability)
+</span><span style="color:#75715e"> */</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Micromerge</span> {
+  <span style="color:#a6e22e">constructor</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span> <span style="color:#f92672">=</span> {} <span style="color:#75715e">// map from actorId to array of changes
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span> <span style="color:#f92672">=</span> {[<span style="color:#a6e22e">ROOT_ID</span>]<span style="color:#f92672">:</span> {}} <span style="color:#75715e">// objects, keyed by the ID of the operation that created the object
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span> <span style="color:#f92672">=</span> {[<span style="color:#a6e22e">ROOT_ID</span>]<span style="color:#f92672">:</span> {}} <span style="color:#75715e">// map from objID to object with CRDT metadata for each object field
+</span><span style="color:#75715e"></span>  }
+
+  <span style="color:#a6e22e">get</span> <span style="color:#a6e22e">root</span>() {
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">ROOT_ID</span>]
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Updates the document state by applying the change object `change`, in the format documented here:
+</span><span style="color:#75715e">   * https://github.com/automerge/automerge/blob/performance/BINARY_FORMAT.md#json-representation-of-changes
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">change</span>) {
+    <span style="color:#75715e">// Check that the change&#39;s dependencies are met
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">lastSeq</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span>] <span style="color:#f92672">?</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span>].<span style="color:#a6e22e">length</span> <span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">seq</span> <span style="color:#f92672">!==</span> <span style="color:#a6e22e">lastSeq</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) {
+      <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RangeError</span>(<span style="color:#e6db74">`Expected sequence number </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">lastSeq</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span><span style="color:#e6db74">}</span><span style="color:#e6db74">, got </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">seq</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>)
+    }
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> [<span style="color:#a6e22e">actor</span>, <span style="color:#a6e22e">dep</span>] <span style="color:#66d9ef">of</span> Object.<span style="color:#a6e22e">entries</span>(<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">deps</span> <span style="color:#f92672">||</span> {})) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">actor</span>] <span style="color:#f92672">||</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">actor</span>].<span style="color:#a6e22e">length</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">dep</span>) {
+        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RangeError</span>(<span style="color:#e6db74">`Missing dependency: change </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">dep</span><span style="color:#e6db74">}</span><span style="color:#e6db74"> by actor </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">actor</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>)
+      }
+    }
+
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span>]) <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span>] <span style="color:#f92672">=</span> []
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byActor</span>[<span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span>].<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">change</span>)
+
+    <span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">ops</span>.<span style="color:#a6e22e">forEach</span>((<span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">index</span>) =&gt; {
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">applyOp</span>(Object.<span style="color:#a6e22e">assign</span>({<span style="color:#a6e22e">opId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">`</span><span style="color:#e6db74">${</span><span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">startOp</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">index</span><span style="color:#e6db74">}</span><span style="color:#e6db74">@</span><span style="color:#e6db74">${</span><span style="color:#a6e22e">change</span>.<span style="color:#a6e22e">actor</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>}, <span style="color:#a6e22e">op</span>))
+    })
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Updates the document state with one of the operations from a change.
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">applyOp</span>(<span style="color:#a6e22e">op</span>) {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>]) <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RangeError</span>(<span style="color:#e6db74">`Object does not exist: </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>)
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;makeMap&#39;</span>) {
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">=</span> {}
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">=</span> {}
+    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;makeList&#39;</span>) {
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">=</span> []
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">=</span> []
+    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#39;set&#39;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#39;del&#39;</span>) {
+      <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RangeError</span>(<span style="color:#e6db74">`Unsupported operation type: </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>)
+    }
+
+    <span style="color:#66d9ef">if</span> (Array.<span style="color:#a6e22e">isArray</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>])) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">insert</span>) <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">applyListInsert</span>(<span style="color:#a6e22e">op</span>); <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">applyListUpdate</span>(<span style="color:#a6e22e">op</span>)
+    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>] <span style="color:#f92672">||</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">compareOpIds</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>], <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>)) {
+      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>
+      <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;del&#39;</span>) {
+        <span style="color:#66d9ef">delete</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>]
+      } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#39;make&#39;</span>)) {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>]
+      } <span style="color:#66d9ef">else</span> {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">value</span>
+      }
+    }
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Applies a list insertion operation.
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">applyListInsert</span>(<span style="color:#a6e22e">op</span>) {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">meta</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>]
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">value</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#39;make&#39;</span>) <span style="color:#f92672">?</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">:</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">value</span>
+    <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">index</span>, <span style="color:#a6e22e">visible</span>} <span style="color:#f92672">=</span>
+      (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;_head&#39;</span>) <span style="color:#f92672">?</span> {<span style="color:#a6e22e">index</span><span style="color:#f92672">:</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">visible</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>} <span style="color:#f92672">:</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">findListElement</span>(<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>)
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">index</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">meta</span>[<span style="color:#a6e22e">index</span>].<span style="color:#a6e22e">deleted</span>) <span style="color:#a6e22e">visible</span><span style="color:#f92672">++</span>
+    <span style="color:#a6e22e">index</span><span style="color:#f92672">++</span>
+    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">index</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">compareOpIds</span>(<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>, <span style="color:#a6e22e">meta</span>[<span style="color:#a6e22e">index</span>].<span style="color:#a6e22e">elemId</span>)) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">meta</span>[<span style="color:#a6e22e">index</span>].<span style="color:#a6e22e">deleted</span>) <span style="color:#a6e22e">visible</span><span style="color:#f92672">++</span>
+      <span style="color:#a6e22e">index</span><span style="color:#f92672">++</span>
+    }
+    <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">splice</span>(<span style="color:#a6e22e">index</span>, <span style="color:#ae81ff">0</span>, {<span style="color:#a6e22e">elemId</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>, <span style="color:#a6e22e">valueId</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>, <span style="color:#a6e22e">deleted</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>})
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>].<span style="color:#a6e22e">splice</span>(<span style="color:#a6e22e">visible</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">value</span>)
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Applies a list element update (setting the value of a list element, or deleting a list element).
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">applyListUpdate</span>(<span style="color:#a6e22e">op</span>) {
+    <span style="color:#66d9ef">const</span> {<span style="color:#a6e22e">index</span>, <span style="color:#a6e22e">visible</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">findListElement</span>(<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span>)
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">meta</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">index</span>]
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;del&#39;</span>) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">deleted</span>) <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>].<span style="color:#a6e22e">splice</span>(<span style="color:#a6e22e">visible</span>, <span style="color:#ae81ff">1</span>)
+      <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">deleted</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>
+    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">compareOpIds</span>(<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">valueId</span>, <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>)) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">deleted</span>) {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">obj</span>][<span style="color:#a6e22e">visible</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#39;make&#39;</span>) <span style="color:#f92672">?</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byObjId</span>[<span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>] <span style="color:#f92672">:</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">value</span>
+      }
+      <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">valueId</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">opId</span>
+    }
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Searches for the list element with ID `elemId` in the object with ID `objId`. Returns an object
+</span><span style="color:#75715e">   * `{index, visible}` where `index` is the index of the element in the metadata array, and
+</span><span style="color:#75715e">   * `visible` is the number of non-deleted elements that precede the specified element.
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">findListElement</span>(<span style="color:#a6e22e">objectId</span>, <span style="color:#a6e22e">elemId</span>) {
+    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">index</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">visible</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">meta</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">metadata</span>[<span style="color:#a6e22e">objectId</span>]
+    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">index</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">meta</span>[<span style="color:#a6e22e">index</span>].<span style="color:#a6e22e">elemId</span> <span style="color:#f92672">!==</span> <span style="color:#a6e22e">elemId</span>) {
+      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">meta</span>[<span style="color:#a6e22e">index</span>].<span style="color:#a6e22e">deleted</span>) <span style="color:#a6e22e">visible</span><span style="color:#f92672">++</span>
+      <span style="color:#a6e22e">index</span><span style="color:#f92672">++</span>
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">index</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">length</span>) <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RangeError</span>(<span style="color:#e6db74">`List element not found: </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">key</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>)
+    <span style="color:#66d9ef">return</span> {<span style="color:#a6e22e">index</span>, <span style="color:#a6e22e">visible</span>}
+  }
+
+  <span style="color:#75715e">/**
+</span><span style="color:#75715e">   * Compares two operation IDs in the form `counter@actor`. Returns true if `id1` has a lower counter
+</span><span style="color:#75715e">   * than `id2`, or if the counter values are the same and `id1` has an actorId that sorts
+</span><span style="color:#75715e">   * lexicographically before the actorId of `id2`.
+</span><span style="color:#75715e">   */</span>
+  <span style="color:#a6e22e">compareOpIds</span>(<span style="color:#a6e22e">id1</span>, <span style="color:#a6e22e">id2</span>) {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">regex</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">/^([0-9.]+)@(.*)$/</span>
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">match1</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">regex</span>.<span style="color:#a6e22e">exec</span>(<span style="color:#a6e22e">id1</span>), <span style="color:#a6e22e">match2</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">regex</span>.<span style="color:#a6e22e">exec</span>(<span style="color:#a6e22e">id2</span>)
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">counter1</span> <span style="color:#f92672">=</span> parseFloat(<span style="color:#a6e22e">match1</span>[<span style="color:#ae81ff">1</span>]), <span style="color:#a6e22e">counter2</span> <span style="color:#f92672">=</span> parseFloat(<span style="color:#a6e22e">match2</span>[<span style="color:#ae81ff">1</span>])
+    <span style="color:#66d9ef">return</span> (<span style="color:#a6e22e">counter1</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">counter2</span>) <span style="color:#f92672">||</span> (<span style="color:#a6e22e">counter1</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">counter2</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">match1</span>[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">match2</span>[<span style="color:#ae81ff">2</span>])
+  }
+}
+
+
+<span style="color:#75715e">/********** TESTS *************/</span>
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">assert</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;assert&#39;</span>)
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change1</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1234&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ROOT_ID</span>,  <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;title&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Hello&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;makeList&#39;</span>, <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ROOT_ID</span>,  <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;tags&#39;</span>,   <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@1234&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;_head&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;foo&#39;</span>}
+]}
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change2</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1234&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">2</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">4</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ROOT_ID</span>,  <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;title&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Hello 1&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@1234&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;3@1234&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;bar&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;del&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@1234&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;3@1234&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>}
+]}
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change3</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;abcd&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {<span style="color:#e6db74">&#39;1234&#39;</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">4</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ROOT_ID</span>,  <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;title&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Hello 2&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@1234&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;3@1234&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;baz&#39;</span>}
+]}
+
+<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">doc1</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Micromerge</span>(), <span style="color:#a6e22e">doc2</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Micromerge</span>()
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">of</span> [<span style="color:#a6e22e">change1</span>, <span style="color:#a6e22e">change2</span>, <span style="color:#a6e22e">change3</span>]) <span style="color:#a6e22e">doc1</span>.<span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">c</span>)
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">of</span> [<span style="color:#a6e22e">change1</span>, <span style="color:#a6e22e">change3</span>, <span style="color:#a6e22e">change2</span>]) <span style="color:#a6e22e">doc2</span>.<span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">c</span>)
+<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">deepStrictEqual</span>(<span style="color:#a6e22e">doc1</span>.<span style="color:#a6e22e">root</span>, {<span style="color:#a6e22e">title</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Hello 2&#39;</span>, <span style="color:#a6e22e">tags</span><span style="color:#f92672">:</span> [<span style="color:#e6db74">&#39;baz&#39;</span>, <span style="color:#e6db74">&#39;bar&#39;</span>]})
+<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">deepStrictEqual</span>(<span style="color:#a6e22e">doc2</span>.<span style="color:#a6e22e">root</span>, {<span style="color:#a6e22e">title</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Hello 2&#39;</span>, <span style="color:#a6e22e">tags</span><span style="color:#f92672">:</span> [<span style="color:#e6db74">&#39;baz&#39;</span>, <span style="color:#e6db74">&#39;bar&#39;</span>]})
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change4</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2345&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;makeList&#39;</span>, <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ROOT_ID</span>,  <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;todos&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;_head&#39;</span>,  <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Task 1&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Task 2&#39;</span>}
+]}
+
+<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">doc3</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Micromerge</span>()
+<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">change4</span>)
+<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">deepStrictEqual</span>(<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">root</span>, {<span style="color:#a6e22e">todos</span><span style="color:#f92672">:</span> [<span style="color:#e6db74">&#39;Task 1&#39;</span>, <span style="color:#e6db74">&#39;Task 2&#39;</span>]})
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change5</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2345&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">2</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">4</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;del&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;3@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Task 3&#39;</span>}
+]}
+<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">change5</span>)
+<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">deepStrictEqual</span>(<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">root</span>, {<span style="color:#a6e22e">todos</span><span style="color:#f92672">:</span> [<span style="color:#e6db74">&#39;Task 2&#39;</span>, <span style="color:#e6db74">&#39;Task 3&#39;</span>]})
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">change6</span> <span style="color:#f92672">=</span> {<span style="color:#a6e22e">actor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;2345&#39;</span>, <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">3</span>, <span style="color:#a6e22e">deps</span><span style="color:#f92672">:</span> {}, <span style="color:#a6e22e">startOp</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">6</span>, <span style="color:#a6e22e">ops</span><span style="color:#f92672">:</span> [
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;del&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;3@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;5@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Task 3b&#39;</span>},
+  {<span style="color:#a6e22e">action</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;set&#39;</span>,      <span style="color:#a6e22e">obj</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;1@2345&#39;</span>, <span style="color:#a6e22e">key</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;5@2345&#39;</span>, <span style="color:#a6e22e">insert</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,  <span style="color:#a6e22e">value</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Task 4&#39;</span>}
+]}
+<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">applyChange</span>(<span style="color:#a6e22e">change6</span>)
+<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">deepStrictEqual</span>(<span style="color:#a6e22e">doc3</span>.<span style="color:#a6e22e">root</span>, {<span style="color:#a6e22e">todos</span><span style="color:#f92672">:</span> [<span style="color:#e6db74">&#39;Task 3b&#39;</span>, <span style="color:#e6db74">&#39;Task 4&#39;</span>]})
+
+</code></pre></div><ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://inkandswitch.github.io/cambria/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/cambria/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+<script src="/cambria/mermaid.min.js"></script>
+
+  </body>
+</html>

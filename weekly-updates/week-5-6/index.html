@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Cambria, Weeks Five and Six: Nesting Instinct | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/cambria/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    <link href="/cambria/article.css"/>
+
+    
+      <link rel="stylesheet" href="/cambria/article.css">
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="Cambria, Weeks Five and Six: Nesting Instinct" />
+<meta property="og:description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
+The simplest case to think about is renaming a property.
+graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://inkandswitch.github.io/cambria/weekly-updates/week-5-6/" />
+<meta property="article:published_time" content="2020-07-17T12:05:58-07:00" />
+<meta property="article:modified_time" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="name" content="Cambria, Weeks Five and Six: Nesting Instinct">
+<meta itemprop="description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
+The simplest case to think about is renaming a property.
+graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction.">
+<meta itemprop="datePublished" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="dateModified" content="2020-07-17T12:05:58-07:00" />
+<meta itemprop="wordCount" content="1210">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cambria, Weeks Five and Six: Nesting Instinct"/>
+<meta name="twitter:description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
+The simplest case to think about is renaming a property.
+graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction."/>
+
+	
+  </head>
+
+  <body class="ma0 bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/cambria/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        WEEKLY UPDATES
+      </aside>
+      <h1 class="f1 mt3 mb1">Cambria, Weeks Five and Six: Nesting Instinct</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-07-17T12:05:58-07:00">July 17, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.</p>
+<h2 id="a-lens-for-every-purpose">A lens for every purpose</h2>
+<p>Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.</p>
+<p>The simplest case to think about is renaming a property.</p>
+<div class="mermaid" align="center">
+graph LR
+ d1("name: Get Milk") --"rename(name, title)"--> d2("title: Get Milk")
+ d2 --"rename(title, name)"-->d1
+
+</div>
+
+<p>It&rsquo;s easy to see how this lens could run in either direction. Writes to <code>title</code> can be translated into <code>name</code>, and vice versa.</p>
+<p>Another simple lens is the <code>addProperty</code> lens, which looks like this:</p>
+<div class="mermaid" align="center">
+graph LR
+d1("∅") --"add(name)"--> d2("name")
+</div>
+
+<p>Before, you had nothing! Now you have a field you can write a name to. This operator is useful because it defines what fields exist. It&rsquo;s worth noting that <code>removeProperty</code> is just the inverse of <code>addProperty</code>.</p>
+<p>In an important sense, these are the same lens, with the order of arguments swapped.</p>
+<div class="mermaid" align="center">
+graph LR
+d2 -- "remove(name)" --> d1
+d1("∅") --"add(name)"--> d2("name")
+</div>
+
+<p>Now, it&rsquo;s not terribly useful to write a library that can handle renaming fields. That&rsquo;s a pretty trivial problem to solve.</p>
+<p>That said, there are plenty of other more interesting cases. In our <code>arthropod</code> issue tracker we initially supported just one <code>assignee</code> for each issue.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Issue</span> {
+  <span style="color:#a6e22e">title</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">string</span>
+  <span style="color:#a6e22e">assignee</span><span style="color:#f92672">?:</span> <span style="color:#a6e22e">string</span>
+}
+</code></pre></div><p>But we very quickly realized that we actually wanted to be able to have multiple people working on an issue.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Issue</span> {
+  <span style="color:#a6e22e">title</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">string</span>
+  <span style="color:#a6e22e">assignees</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">string</span>[]
+}
+</code></pre></div><p>How can we handle this migration? We thought at length about the <a href="../../designs/converting-scalar-to-arrays">options for how to handle this migration</a>, if you want to follow the thought process, but the basic conclusion is that the old versions of the code should basically operate on the first element of the array.</p>
+<p>The lens-pair for this operation looks like this:</p>
+<div class="mermaid" align="center">
+graph LR
+ d1("assignee: <br>'Peter'") --"wrap(assignee)"--> d2("assignees:<br/> ['Peter']")
+ d2 --"head(assignees)"-->d1
+
+</div>
+
+<p>In addition to wrap/head, we&rsquo;ve also built up a substantial set of bidirectional lenses to handle a wide variety of different migration cases we&rsquo;ve encountered, including moving data up and down a hierarchy (hoist/plunge), converting data types, and so on.</p>
+<p>In the interest of preserving your attention, I&rsquo;ll just enumerate them briefly here:</p>
+<ul>
+<li>add / remove</li>
+<li>hoist / plunge - pulling/pushing an object from/into a child</li>
+<li>wrap / head - turning scalars into arrays</li>
+<li>rename</li>
+<li>convertValue - converting values from one to another</li>
+</ul>
+<h2 id="composition--reversal">Composition &amp; Reversal</h2>
+<p>Each of the lenses we&rsquo;ve written is extremely simple, and therefore, more likely to be correct. In order to perform complicated tasks, then, these small lenses need to be built up in to complex structures.</p>
+<p>This is done by two special lenses:</p>
+<ul>
+<li>map - for applying a lens to every element of an array</li>
+<li>in - for zooming in on a child object</li>
+</ul>
+<p>These two lenses <em>take a lens as their argument</em>, and so we can build up complicated migrations. We&rsquo;ll see an example of that in action in this week&rsquo;s video.</p>
+<p>Further, we can then compose those lens programs into conversion pipelines that can find a path from one document&rsquo;s type to any other document it can reach.</p>
+<p>Last, all of these lenses are reversible. That means that you can always convert a piece of data using our lenses in either direction. Reversing a lens program is quite straightforward, and the implementation is exactly this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">reverseLens</span>(<span style="color:#a6e22e">lens</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">LensSource</span>) {
+  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">lens</span>
+    .<span style="color:#a6e22e">slice</span>()
+    .<span style="color:#a6e22e">reverse</span>()
+    .<span style="color:#a6e22e">map</span>((<span style="color:#a6e22e">l</span>) =&gt; <span style="color:#a6e22e">reverseLensOp</span>(<span style="color:#a6e22e">l</span>))
+}
+
+<span style="color:#75715e">// reverseLensOp is trivial.
+</span><span style="color:#75715e">// it does things like reversing the fields on a rename.
+</span><span style="color:#75715e"></span>
+</code></pre></div><p><em>This is really cool</em> and the simplicity of the implementation is evidence that our design is on the right track.</p>
+<p>It&rsquo;s worth noting that we&rsquo;ve still got a few gremlinks to work through with our lenses. In particular, we recently realized that while we can support nested data formats, we don&rsquo;t support recursive ones. This doesn&rsquo;t seem too hard to fix, but we&rsquo;re living without it right now.</p>
+<h2 id="writing--running-lenses">Writing &amp; Running Lenses</h2>
+<p>General purpose document lenses are something we suspect many people might find useful, and since we haven&rsquo;t found an existing implementation that met our needs, we thought separating the lenses from the rest of the project for release would be a worthwhile step.</p>
+<p>As such, we&rsquo;ve separated the lens library (codenamed <code>cloudina</code>) into its own node module, added a simple CLI, and improved the experience of authoring lenses.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat github-issue.json | cloudina -l github-to-arthropod.yml &gt; arthropod-issue.json
+</code></pre></div><p>In past demos you might have caught a glimpse of a gnarly JSON format that we used to represent lenses. We&rsquo;ve retired that. For runtime creation of lenses (say during tests) we now have some convenience helpers which produce the necessary data structures and those look like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js">
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">lensSource</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">LensSource</span> <span style="color:#f92672">=</span> [
+  <span style="color:#a6e22e">renameProperty</span>(<span style="color:#e6db74">&#39;title&#39;</span>, <span style="color:#e6db74">&#39;name&#39;</span>),
+  <span style="color:#a6e22e">addProperty</span>({ <span style="color:#a6e22e">destination</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;description&#39;</span>, <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;string&#39;</span>, <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span> }),
+  <span style="color:#a6e22e">convertValue</span>(
+    <span style="color:#e6db74">&#39;complete&#39;</span>,
+    [
+      { <span style="color:#66d9ef">false</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;todo&#39;</span>, <span style="color:#66d9ef">true</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;done&#39;</span> },
+      { <span style="color:#a6e22e">todo</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">inProgress</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">done</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span> },
+    ],
+    <span style="color:#e6db74">&#39;boolean&#39;</span>,
+    <span style="color:#e6db74">&#39;string&#39;</span>
+  ),
+]
+
+</code></pre></div><p>For lenses we want to keep around on disk we&rsquo;ve also added a YML dialect and a JSON Schema to add autocompletion hints, and that looks more like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">
+<span style="color:#66d9ef">lens</span>:
+  - rename
+      <span style="color:#66d9ef">source</span>: title
+      <span style="color:#66d9ef">destination</span>: name
+  - add
+      <span style="color:#66d9ef">name</span>: description
+      <span style="color:#66d9ef">type</span>: <span style="color:#e6db74">&#39;string&#39;</span>
+      <span style="color:#66d9ef">default</span>: <span style="color:#e6db74">&#39;&#39;</span>
+  - convertValue
+      <span style="color:#66d9ef">name</span>: <span style="color:#e6db74">&#39;complete&#39;</span>,
+      <span style="color:#66d9ef">sourceType</span>: boolean,
+      <span style="color:#66d9ef">outputType</span>: string
+      <span style="color:#66d9ef">mapping</span>: 
+        - { <span style="color:#66d9ef">false: &#39;todo&#39;, true</span>: <span style="color:#e6db74">&#39;done&#39;</span> },
+        - { <span style="color:#66d9ef">todo: false, inProgress: false, done</span>: <span style="color:#66d9ef">true</span> },
+</code></pre></div><p>This is vastly easier to read, write, and debug, but still a little rough around the edges.</p>
+<p>Now that we have a better and more complete lens language, we&rsquo;re exploring new ways of using it. More on that next time.</p>
+<h2 id="ongoing-problems">Ongoing problems</h2>
+<h3 id="missing-data-and-defaults">Missing data and defaults.</h3>
+<p>We&rsquo;re written a bit about this, but we&rsquo;re struggling a bit with different strategies for handling required, default, and missing data. As a general rule, not all data formats are compatible. No amount of cleverness will turn a recipe for brownies into the maintenance manual for a 1982 Volkswagen Vanagon. The problem of when and how to insert default data, and when and how to decide to fail on a conversion is an ongoing conversation we hope to return to soon.</p>
+<h3 id="array-indices--micromerge">Array Indices &amp; Micromerge</h3>
+<p>We talked about this problem two weeks ago, which is that in a distributed system recording absolute array indices is problematic. We&rsquo;ll hope to return to this subject next week, but since we last spoke we&rsquo;ve come up with a hypothesis that involves integrating with a CRDT at the operation level, and received <a href="../../designs/micromerge">a miniaturized version of Automerge</a> from Martin Kleppmann that we can use to explore design concepts.</p>
+<h3 id="lens-developer-experience">Lens Developer Experience</h3>
+<p>Actually writing lenses is quite a bit better now than it was two weeks ago, but it still has some gaps. It&rsquo;s too easy right now to write a lens that doesn&rsquo;t match the document or format that you&rsquo;re targeting, and we don&rsquo;t detect, for example, that you tried to rename <code>nmae</code> instead of <code>name</code>. This is exacerbated when working with data created outside of cloudina/chitin since that data often lacks a schema. We some ideas about how to proceed here.</p>
+<h2 id="and-thats-it">And that&rsquo;s it!</h2>
+<p>Next week we&rsquo;re going to continue to work on exploring CRDT integration for Chitin, continue to refine and improve the current libraries, and a bi-directional synchronization from Chitin to a real-world API. Watch this space&hellip;</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://inkandswitch.github.io/cambria/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/cambria/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+<script src="/cambria/mermaid.min.js"></script>
+
+  </body>
+</html>

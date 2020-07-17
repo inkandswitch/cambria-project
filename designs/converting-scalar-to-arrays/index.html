@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>On Scalar to Array Conversions | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/cambria/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    <link href="/cambria/article.css"/>
+
+    
+      <link rel="stylesheet" href="/cambria/article.css">
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="On Scalar to Array Conversions" />
+<meta property="og:description" content="Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array) What should happen when the two versions make writes?
+In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&rsquo;s array (denoted []).
+Reads In the simplest case, both values are empty.
+[{}]With a single value, the read semantics are equivalent.
+[{&quot;Alice&quot;}]Given additional values added to the new version, the old version would see just the head of the list." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://inkandswitch.github.io/cambria/designs/converting-scalar-to-arrays/" />
+<meta property="article:published_time" content="2020-07-06T16:47:58-07:00" />
+<meta property="article:modified_time" content="2020-07-06T16:47:58-07:00" />
+<meta itemprop="name" content="On Scalar to Array Conversions">
+<meta itemprop="description" content="Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array) What should happen when the two versions make writes?
+In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&rsquo;s array (denoted []).
+Reads In the simplest case, both values are empty.
+[{}]With a single value, the read semantics are equivalent.
+[{&quot;Alice&quot;}]Given additional values added to the new version, the old version would see just the head of the list.">
+<meta itemprop="datePublished" content="2020-07-06T16:47:58-07:00" />
+<meta itemprop="dateModified" content="2020-07-06T16:47:58-07:00" />
+<meta itemprop="wordCount" content="682">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="On Scalar to Array Conversions"/>
+<meta name="twitter:description" content="Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array) What should happen when the two versions make writes?
+In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&rsquo;s array (denoted []).
+Reads In the simplest case, both values are empty.
+[{}]With a single value, the read semantics are equivalent.
+[{&quot;Alice&quot;}]Given additional values added to the new version, the old version would see just the head of the list."/>
+
+	
+  </head>
+
+  <body class="ma0 bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/cambria/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        DESIGNS
+      </aside>
+      <h1 class="f1 mt3 mb1">On Scalar to Array Conversions</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-07-06T16:47:58-07:00">July 6, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array)
+What should happen when the two versions make writes?</p>
+<p>In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&rsquo;s array (denoted []).</p>
+<h3 id="reads">Reads</h3>
+<p>In the simplest case, both values are empty.</p>
+<pre><code>[{}]
+</code></pre><p>With a single value, the read semantics are equivalent.</p>
+<pre><code>[{&quot;Alice&quot;}]
+</code></pre><p>Given additional values added to the new version, the old version would see just the head of the list.</p>
+<pre><code>[ { Alice }, Bob ]
+</code></pre><h3 id="writing">Writing</h3>
+<p>Writes from the old version are also straightforward, manipulating the array as they wish, and leaving the old version to read whatever the first value is.</p>
+<p>How should writes from the old version be interpreted by newer versions?</p>
+<p>In these examples we&rsquo;ll look at what the old version writing either &ldquo;Eve&rdquo;, or <code>null</code>.</p>
+<h3 id="option-1-old-version-rules">Option 1: Old Version Rules</h3>
+<p>The simplest option is to give the old version control.</p>
+<pre><code>[ { Alice }, Bob ] -- &quot;Eve&quot; -&gt; [{Eve}]
+[ { Alice }, Bob ] -- `null` -&gt; [{}]
+</code></pre><p>The problem is that Eve didn&rsquo;t know &ldquo;Bob&rdquo; existed and has now clobbered him.</p>
+<h3 id="option-2-register">Option 2: Register</h3>
+<p>The old code only affects the 0th element, since that&rsquo;s all it can see.</p>
+<pre><code>[ { Alice }, Bob ] -- &quot;Eve&quot; -&gt; [{Eve}, Bob]
+[ { Alice }, Bob ] -- `null` -&gt; [{null}, Bob]
+</code></pre><p>This assumes the individual elements are nullable, which might be undesirable.</p>
+<h3 id="option-3-null-clearing">Option 3: Null Clearing</h3>
+<p>The old code modifies just the element it sees on writes, but for deletes (set to null) it clears the whole array.</p>
+<pre><code>[ { Alice }, Bob ] -- &quot;Eve&quot; -&gt; [{Eve}, Bob]
+[ { Alice }, Bob ] -- `null` -&gt; [{}]
+</code></pre><p>The concern with this option is that the old code can delete data it isn&rsquo;t aware of. Eve might be surprised to learn she removed Bob from a project.</p>
+<h3 id="option-4-stack-popping">Option 4: Stack Popping</h3>
+<p>Writes affect the head of the array, but writing a null is inferred to mean &ldquo;delete the first element&rdquo;.</p>
+<pre><code>[ { Alice }, Bob ] -- &quot;Eve&quot; -&gt; [{Eve}, Bob]
+[ { Alice }, Bob ] -- `null` -&gt; [{Bob}]
+</code></pre><p>In this case, Eve might be surprised and confused that her &ldquo;delete&rdquo; has resulted in Bob appearing instead. The program has inferred the intent of the delete was to remove just the head, and the old code can&rsquo;t know how many remaining values there are.</p>
+<h3 id="option-5-explicit-articulation">Option 5: Explicit Articulation</h3>
+<p>Perhaps we should embrace the complexity of this space and insist that all scalars specify what kind of deletion they want in order to avoid getting into these problems in the future.</p>
+<pre><code>[ { Alice }, Bob ] -- &quot;Eve&quot; -&gt; [{Eve}, Bob]
+[ { Alice }, Bob ] -- `clear` -&gt; [{}]
+[ { Alice }, Bob ] -- `remove` -&gt; [{Bob}]
+</code></pre><p>This, of course, is a burden on developers in the present to spare potential problems in the future that would only manifest in rare occasions, but is perhaps useful to think about in terms of &ldquo;intent preservation&rdquo;.</p>
+<h3 id="option-6-configurability">Option 6: Configurability</h3>
+<p>Instead of making a guess at the intent of the developer/user, we could offer the option of customizing how to interpret null writes from older versions. They could:</p>
+<ul>
+<li>null the head element (requires nullable values in the array)</li>
+<li>clear the whole array</li>
+<li>remove the first element</li>
+</ul>
+<h3 id="on-nullability">On Nullability</h3>
+<p>Notably, nullable data is annoying to deal with and requires frequent guards throughout developers&rsquo; code to avoid creating runtime errors. Because of this, many fields are explicitly not nullable.</p>
+<p>Not-nullable fields cannot be converted into arrays. This is because we can&rsquo;t guarantee a minimum (or maximum) array length in a distributed system.</p>
+<h3 id="on-sets">On Sets</h3>
+<p>In the case of issue assignees we are using an array as a convenient or intuitive representation. In fact, because each assignee can only be on the task once, a set would be a better model. Automerge, our CRDT, doesn&rsquo;t have an explicit set type. We could emulate one with the keys of a dictionary but that has its own challenges.</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://inkandswitch.github.io/cambria/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/cambria/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+<script src="/cambria/mermaid.min.js"></script>
+
+  </body>
+</html>
