@@ -8,7 +8,7 @@ import { defaultObjectForLens } from './defaults'
 export type PatchOp = Operation
 type MaybePatchOp = PatchOp | null
 export type Patch = Operation[]
-type CompiledLens = (patch: Patch, targetDoc: any) => Patch
+export type CompiledLens = (patch: Patch, targetDoc: any) => Patch
 
 function assertNever(x: never): never {
   throw new Error(`Unexpected object: ${x}`)
