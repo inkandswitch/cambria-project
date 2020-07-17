@@ -8,7 +8,7 @@
     "__static": true
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["react-hooks"],
+  "plugins": [],
   "extends": [
     "airbnb-typescript",
     "plugin:@typescript-eslint/recommended",
