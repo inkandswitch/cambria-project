@@ -1,11 +1,13 @@
 {
   "name": "cloudina",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
     "build": "tsc --outDir ./dist",
-    "test": "mocha -r ts-node/register test/**.ts"
+    "test": "mocha -r ts-node/register test/**.ts",
+    "postinstall": "yarn run build"
   },
   "dependencies": {
     "commander": "^5.1.0",

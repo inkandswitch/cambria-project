@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
-import { convertDoc } from '../src/cloudina'
+import { convertDoc } from '../src/index'
 import { LensSource } from '../src/lens-ops'
 import {
   renameProperty,

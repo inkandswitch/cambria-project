@@ -1,5 +1,5 @@
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
-import { defaultValuesByType } from './cloudina'
+import { defaultValuesByType } from './defaults'
 import { Property, LensSource, ConvertValue, LensOp } from './lens-ops'
 
 // add a property to a schema

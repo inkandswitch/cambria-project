@@ -1,17 +1,12 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "skipLibCheck": true,
     "strict": true,
     "noImplicitAny": false,
     "sourceMap": true,
     "noFallthroughCasesInSwitch": true,
-    "lib": [
-      "es2015",
-      "es2017",
-      "es2019",
-      "dom",
-      "webworker"
-    ],
+    "lib": ["es2015", "es2017", "es2019", "dom", "webworker"],
     "target": "es2016",
     "module": "CommonJS",
     "esModuleInterop": true,
@@ -20,5 +15,6 @@
     "pretty": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true
-  }
+  },
+  "include": ["src/index.ts"]
 }
