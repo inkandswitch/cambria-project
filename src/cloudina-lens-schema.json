@@ -27,15 +27,10 @@
           }
         ]
       },
-      "destination": {
+      "name": {
         "type": "string",
-        "title": "Destination",
-        "description": "The destination field name for data"
-      },
-      "source": {
-        "type": "string",
-        "title": "Source",
-        "description": "Where to draw the data from for this property"
+        "title": "Name",
+        "description": "The name of the property to operate on"
       },
       "default": {
         "title": "Default",
@@ -65,7 +60,7 @@
     "lens": {
       "type": "array",
       "title": "Lens",
-      "description": "The lens being applied",
+      "description": "A lens to apply inside of the given context",
       "items": { "$ref": "#/definitions/lensOp" }
     },
     "lensOp": {
@@ -80,7 +75,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
+                "name": { "$ref": "#/definitions/fields/name" },
                 "type": { "$ref": "#/definitions/fields/dataType" },
                 "default": { "$ref": "#/definitions/fields/default" },
                 "required": { "$ref": "#/definitions/fields/req" }
@@ -96,7 +91,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
+                "name": { "$ref": "#/definitions/fields/name" },
                 "type": { "$ref": "#/definitions/fields/dataType" },
                 "default": { "$ref": "#/definitions/fields/default" }
               }
@@ -111,8 +106,16 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "source": { "$ref": "#/definitions/fields/source" },
-                "destination": { "$ref": "#/definitions/fields/destination" }
+                "source": {
+                  "type": "string",
+                  "title": "Source",
+                  "description": "The old name for the property"
+                },
+                "destination": {
+                  "type": "string",
+                  "title": "Destination",
+                  "description": "The new name for the property"
+                }
               }
             }
           }
@@ -125,8 +128,12 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
-                "host": { "$ref": "#/definitions/fields/destination" }
+                "name": { "$ref": "#/definitions/fields/name" },
+                "host": {
+                  "type": "string",
+                  "title": "Host",
+                  "description": "The property name of the containing object to hoist out of"
+                }
               }
             }
           }
@@ -139,8 +146,12 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
-                "host": { "$ref": "#/definitions/fields/destination" }
+                "name": { "$ref": "#/definitions/fields/name" },
+                "host": {
+                  "type": "string",
+                  "title": "Host",
+                  "description": "The property name of the containing object to plunge into"
+                }
               }
             }
           }
@@ -153,8 +164,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
-                "host": { "$ref": "#/definitions/fields/destination" }
+                "name": { "$ref": "#/definitions/fields/name" }
               }
             }
           }
@@ -167,8 +177,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "destination": { "$ref": "#/definitions/fields/destination" },
-                "host": { "$ref": "#/definitions/fields/destination" }
+                "destination": { "$ref": "#/definitions/fields/destination" }
               }
             }
           }
@@ -181,7 +190,11 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "source": { "$ref": "#/definitions/fields/source" },
+                "name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "The property name in which the sub-lens will be run"
+                },
                 "lens": { "$ref": "#/definitions/lens" }
               }
             }
@@ -195,7 +208,6 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "source": { "$ref": "#/definitions/fields/source" },
                 "lens": { "$ref": "#/definitions/lens" }
               }
             }
@@ -209,8 +221,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "source": { "$ref": "#/definitions/fields/source" },
-                "destination": { "$ref": "#/definitions/fields/destination" },
+                "name": { "$ref": "#/definitions/fields/name" },
                 "sourceType": { "$ref": "#/definitions/fields/dataType" },
                 "destinationType": { "$ref": "#/definitions/fields/dataType" },
                 "mapping": { "$ref": "#/definitions/valueMapping" }
