@@ -18,9 +18,141 @@
       
       <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-5-6/</guid>
       <description>The last two weeks have been incredibly busy. We&amp;rsquo;ve spent a lot of time getting our foundations into better shape, so let&amp;rsquo;s dive right into it.
+(If you feel like watching instead of reading, skip ahead to the video demo.)
 A lens for every purpose Conceptually, what we&amp;rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
-The simplest case to think about is renaming a property.
-graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&amp;rsquo;s easy to see how this lens could run in either direction.</description>
+The simplest case to think about is renaming a property.</description>
+      <content>&lt;p&gt;The last two weeks have been incredibly busy. We&amp;rsquo;ve spent a lot of time getting our foundations into better shape, so let&amp;rsquo;s dive right into it.&lt;/p&gt;
+&lt;p&gt;(If you feel like watching instead of reading, skip ahead to the &lt;a href=&#34;#video-demo&#34;&gt;video demo&lt;/a&gt;.)&lt;/p&gt;
+&lt;h2 id=&#34;a-lens-for-every-purpose&#34;&gt;A lens for every purpose&lt;/h2&gt;
+&lt;p&gt;Conceptually, what we&amp;rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.&lt;/p&gt;
+&lt;p&gt;The simplest case to think about is renaming a property.&lt;/p&gt;
+&lt;div class=&#34;mermaid&#34; align=&#34;center&#34;&gt;
+graph LR
+d1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;--&gt; d2(&#34;title: Get Milk&#34;)
+d2 --&#34;rename(title, name)&#34;--&gt;d1
+
+&lt;/div&gt;
+
+&lt;p&gt;It&amp;rsquo;s easy to see how this lens could run in either direction. Writes to &lt;code&gt;title&lt;/code&gt; can be translated into &lt;code&gt;name&lt;/code&gt;, and vice versa.&lt;/p&gt;
+&lt;p&gt;Another simple lens is the &lt;code&gt;addProperty&lt;/code&gt; lens, which looks like this:&lt;/p&gt;
+&lt;div class=&#34;mermaid&#34; align=&#34;center&#34;&gt;
+graph LR
+d1(&#34;∅&#34;) --&#34;add(name)&#34;--&gt; d2(&#34;name&#34;)
+&lt;/div&gt;
+
+&lt;p&gt;Before, you had nothing! Now you have a field you can write a name to. This operator is useful because it defines what fields exist. It&amp;rsquo;s worth noting that &lt;code&gt;removeProperty&lt;/code&gt; is just the inverse of &lt;code&gt;addProperty&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In an important sense, these are the same lens, with the order of arguments swapped.&lt;/p&gt;
+&lt;div class=&#34;mermaid&#34; align=&#34;center&#34;&gt;
+graph LR
+d2 -- &#34;remove(name)&#34; --&gt; d1
+d1(&#34;∅&#34;) --&#34;add(name)&#34;--&gt; d2(&#34;name&#34;)
+&lt;/div&gt;
+
+&lt;p&gt;Now, it&amp;rsquo;s not terribly useful to write a library that can handle renaming fields. That&amp;rsquo;s a pretty trivial problem to solve.&lt;/p&gt;
+&lt;p&gt;That said, there are plenty of other more interesting cases. In our &lt;code&gt;arthropod&lt;/code&gt; issue tracker we initially supported just one &lt;code&gt;assignee&lt;/code&gt; for each issue.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Issue&lt;/span&gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;title&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;assignee&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;?:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;But we very quickly realized that we actually wanted to be able to have multiple people working on an issue.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Issue&lt;/span&gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;title&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;assignees&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt;[]
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;How can we handle this migration? We thought at length about the &lt;a href=&#34;../../designs/converting-scalar-to-arrays&#34;&gt;options for how to handle this migration&lt;/a&gt;, if you want to follow the thought process, but the basic conclusion is that the old versions of the code should basically operate on the first element of the array.&lt;/p&gt;
+&lt;p&gt;The lens-pair for this operation looks like this:&lt;/p&gt;
+&lt;div class=&#34;mermaid&#34; align=&#34;center&#34;&gt;
+graph LR
+d1(&#34;assignee: &lt;br&gt;&#39;Peter&#39;&#34;) --&#34;wrap(assignee)&#34;--&gt; d2(&#34;assignees:&lt;br/&gt; [&#39;Peter&#39;]&#34;)
+d2 --&#34;head(assignees)&#34;--&gt;d1
+
+&lt;/div&gt;
+
+&lt;p&gt;In addition to wrap/head, we&amp;rsquo;ve also built up a substantial set of bidirectional lenses to handle a wide variety of different migration cases we&amp;rsquo;ve encountered, including moving data up and down a hierarchy (hoist/plunge), converting data types, and so on.&lt;/p&gt;
+&lt;p&gt;In the interest of preserving your attention, I&amp;rsquo;ll just enumerate them briefly here:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;add / remove&lt;/li&gt;
+&lt;li&gt;hoist / plunge - pulling/pushing an object from/into a child&lt;/li&gt;
+&lt;li&gt;wrap / head - turning scalars into arrays&lt;/li&gt;
+&lt;li&gt;rename&lt;/li&gt;
+&lt;li&gt;convertValue - converting values from one to another&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;composition--reversal&#34;&gt;Composition &amp;amp; Reversal&lt;/h2&gt;
+&lt;p&gt;Each of the lenses we&amp;rsquo;ve written is extremely simple, and therefore, more likely to be correct. In order to perform complicated tasks, then, these small lenses need to be built up in to complex structures.&lt;/p&gt;
+&lt;p&gt;This is done by two special lenses:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;map - for applying a lens to every element of an array&lt;/li&gt;
+&lt;li&gt;in - for zooming in on a child object&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These two lenses &lt;em&gt;take a lens as their argument&lt;/em&gt;, and so we can build up complicated migrations. We&amp;rsquo;ll see an example of that in action in this week&amp;rsquo;s video.&lt;/p&gt;
+&lt;p&gt;Further, we can then compose those lens programs into conversion pipelines that can find a path from one document&amp;rsquo;s type to any other document it can reach.&lt;/p&gt;
+&lt;p&gt;Last, all of these lenses are reversible. That means that you can always convert a piece of data using our lenses in either direction. Reversing a lens program is quite straightforward, and the implementation is exactly this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;reverseLens&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;lens&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LensSource&lt;/span&gt;) {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;lens&lt;/span&gt;
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;slice&lt;/span&gt;()
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;reverse&lt;/span&gt;()
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;map&lt;/span&gt;((&lt;span style=&#34;color:#a6e22e&#34;&gt;l&lt;/span&gt;) =&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;reverseLensOp&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;l&lt;/span&gt;));
+}
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// reverseLensOp is trivial.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// it does things like reversing the fields on a rename.
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;em&gt;This is really cool&lt;/em&gt; and the simplicity of the implementation is evidence that our design is on the right track.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s worth noting that we&amp;rsquo;ve still got a few gremlinks to work through with our lenses. In particular, we recently realized that while we can support nested data formats, we don&amp;rsquo;t support recursive ones. This doesn&amp;rsquo;t seem too hard to fix, but we&amp;rsquo;re living without it right now.&lt;/p&gt;
+&lt;h2 id=&#34;writing--running-lenses&#34;&gt;Writing &amp;amp; Running Lenses&lt;/h2&gt;
+&lt;p&gt;General purpose document lenses are something we suspect many people might find useful, and since we haven&amp;rsquo;t found an existing implementation that met our needs, we thought separating the lenses from the rest of the project for release would be a worthwhile step.&lt;/p&gt;
+&lt;p&gt;As such, we&amp;rsquo;ve separated the lens library (codenamed &lt;code&gt;cloudina&lt;/code&gt;) into its own node module, added a simple CLI, and improved the experience of authoring lenses.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ cat github-issue.json | cloudina -l github-to-arthropod.yml &amp;gt; arthropod-issue.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In past demos you might have caught a glimpse of a gnarly JSON format that we used to represent lenses. We&amp;rsquo;ve retired that. For runtime creation of lenses (say during tests) we now have some convenience helpers which produce the necessary data structures and those look like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;lensSource&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LensSource&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;renameProperty&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;title&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt;),
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;addProperty&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;destination&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;description&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;string&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;default&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt; }),
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;convertValue&lt;/span&gt;(
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;complete&amp;#34;&lt;/span&gt;,
+    [
+      { &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;todo&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;done&amp;#34;&lt;/span&gt; },
+      { &lt;span style=&#34;color:#a6e22e&#34;&gt;todo&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;inProgress&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;done&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt; },
+    ],
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;boolean&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;string&amp;#34;&lt;/span&gt;
+  ),
+];
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For lenses we want to keep around on disk we&amp;rsquo;ve also added a YML dialect and a JSON Schema to add autocompletion hints, and that looks more like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yml&#34; data-lang=&#34;yml&#34;&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;lens&lt;/span&gt;:
+  - rename
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;source&lt;/span&gt;: title
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;destination&lt;/span&gt;: name
+  - add
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;name&lt;/span&gt;: description
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;string&amp;#39;&lt;/span&gt;
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;default&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+  - convertValue
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;complete&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;sourceType&lt;/span&gt;: boolean,
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;outputType&lt;/span&gt;: string
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;mapping&lt;/span&gt;:
+        - { &lt;span style=&#34;color:#66d9ef&#34;&gt;false: &amp;#39;todo&amp;#39;, true&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;done&amp;#39;&lt;/span&gt; },
+        - { &lt;span style=&#34;color:#66d9ef&#34;&gt;todo: false, inProgress: false, done&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt; },
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is vastly easier to read, write, and debug, but still a little rough around the edges.&lt;/p&gt;
+&lt;p&gt;Now that we have a better and more complete lens language, we&amp;rsquo;re exploring new ways of using it. More on that next time.&lt;/p&gt;
+&lt;h2 id=&#34;video-demo&#34;&gt;Video demo&lt;/h2&gt;
+&lt;p&gt;Here&amp;rsquo;s a demo showing how it feels to write a structural transformation in this lens language. We write a lens to convert JSON output from the Github Issues API to a different simpler format. And then, because the lens is bidirectional, edits to the simpler structure flow back into the original JSON document.&lt;/p&gt;
+
+
+
+&lt;div style=&#34;position: relative; padding-bottom: 60.100166944908175%; height: 0;&#34;&gt;&lt;iframe src=&#34;https://www.loom.com/embed/f974ba7bb11e4f0c8d2637b44105b7d7&#34; frameborder=&#34;0&#34; webkitallowfullscreen mozallowfullscreen allowfullscreen style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%;&#34;&gt;&lt;/iframe&gt;&lt;/div&gt;
+
+
+&lt;h2 id=&#34;ongoing-problems&#34;&gt;Ongoing problems&lt;/h2&gt;
+&lt;h3 id=&#34;missing-data-and-defaults&#34;&gt;Missing data and defaults.&lt;/h3&gt;
+&lt;p&gt;We&amp;rsquo;re written a bit about this, but we&amp;rsquo;re struggling a bit with different strategies for handling required, default, and missing data. As a general rule, not all data formats are compatible. No amount of cleverness will turn a recipe for brownies into the maintenance manual for a 1982 Volkswagen Vanagon. The problem of when and how to insert default data, and when and how to decide to fail on a conversion is an ongoing conversation we hope to return to soon.&lt;/p&gt;
+&lt;h3 id=&#34;array-indices--micromerge&#34;&gt;Array Indices &amp;amp; Micromerge&lt;/h3&gt;
+&lt;p&gt;We talked about this problem two weeks ago, which is that in a distributed system recording absolute array indices is problematic. We&amp;rsquo;ll hope to return to this subject next week, but since we last spoke we&amp;rsquo;ve come up with a hypothesis that involves integrating with a CRDT at the operation level, and received &lt;a href=&#34;../../designs/micromerge&#34;&gt;a miniaturized version of Automerge&lt;/a&gt; from Martin Kleppmann that we can use to explore design concepts.&lt;/p&gt;
+&lt;h3 id=&#34;lens-developer-experience&#34;&gt;Lens Developer Experience&lt;/h3&gt;
+&lt;p&gt;Actually writing lenses is quite a bit better now than it was two weeks ago, but it still has some gaps. It&amp;rsquo;s too easy right now to write a lens that doesn&amp;rsquo;t match the document or format that you&amp;rsquo;re targeting, and we don&amp;rsquo;t detect, for example, that you tried to rename &lt;code&gt;nmae&lt;/code&gt; instead of &lt;code&gt;name&lt;/code&gt;. This is exacerbated when working with data created outside of cloudina/chitin since that data often lacks a schema. We some ideas about how to proceed here.&lt;/p&gt;
+&lt;h2 id=&#34;and-thats-it&#34;&gt;And that&amp;rsquo;s it!&lt;/h2&gt;
+&lt;p&gt;Next week we&amp;rsquo;re going to continue to work on exploring CRDT integration for Chitin, continue to refine and improve the current libraries, and a bi-directional synchronization from Chitin to a real-world API. Watch this space&amp;hellip;&lt;/p&gt;
+</content>
     </item>
     
     <item>
@@ -31,6 +163,63 @@ graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;
       <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-4/</guid>
       <description>I wrote you a nice week three post but didn&amp;rsquo;t get around to sharing it. You can read it if you like, but briefly, in week three we managed to connect the two ends of the project: we managed to add features to our issue tracker using Cambria.
 Once we&amp;rsquo;d managed to do that, we stepped back, squinted at what we&amp;rsquo;d done and asked ourselves whether it was the right shape.</description>
+      <content>&lt;p&gt;I wrote you a nice week three post but &lt;a href=&#34;../week-3&#34;&gt;didn&amp;rsquo;t get around to sharing it&lt;/a&gt;. You can read it if you like, but briefly,
+in week three we managed to connect the two ends of the project: we managed to add features to our issue tracker using
+Cambria.&lt;/p&gt;
+&lt;p&gt;Once we&amp;rsquo;d managed to do that, we stepped back, squinted at what we&amp;rsquo;d done and asked ourselves whether it was the right
+shape. My dear reader, it was not!&lt;/p&gt;
+&lt;p&gt;The week three prototype was wrong in three important respects:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;it didn&amp;rsquo;t actually solve the right problem&lt;/li&gt;
+&lt;li&gt;it produced incorrect results&lt;/li&gt;
+&lt;li&gt;it couldn&amp;rsquo;t do a lot of the things we needed&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We decided that bugs and missing features were big problems (more on that later), but that if we didn&amp;rsquo;t build software
+which addressed an actual human problem found in the field we were just wasting our time.&lt;/p&gt;
+&lt;h1 id=&#34;an-actual-human-problem&#34;&gt;An Actual Human Problem&lt;/h1&gt;
+&lt;p&gt;Our first few prototypes were designed to demonstrate the concept behind Cambria: that you could have multiple versions
+of a piece of software running in the field and yet still interoperate despite evolving application types.&lt;/p&gt;
+&lt;p&gt;If you watch the recorded demos, I think Geoffrey demonstrates this pretty well, with two copies of the same program
+running side-by-side even in the same window.&lt;/p&gt;
+&lt;p&gt;Unfortunately, it&amp;rsquo;s very rare for anyone to run two copies of the same program simultaneously in the same window. It&amp;rsquo;s
+much more common for developers to run a single copy at a time and then to have to merge in patches sent by their
+collaborators, and that didn&amp;rsquo;t really work &lt;em&gt;at all&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;We&amp;rsquo;d optimized for the experience of our demos (which we took to calling the Researcher Experience, or RX) instead of the
+developer experience (DX) of building real software.&lt;/p&gt;
+&lt;p&gt;We made a few changes to fix this, but the biggest was that we now treat our lenses more like a migrations directory,
+and produce the types your program will use by summing up all the lenses found there. This means that if you pull a 
+branch in from a collaborator you shouldn&amp;rsquo;t have to take any manual fix-up steps to get their code working.&lt;/p&gt;
+&lt;p&gt;As we thought through the consequences of this change we realized that our current propagating-lens-patches model was
+not going to work. It would incorrectly orphan some changes, and worse, the same problem meant that async collaboration 
+was broken too.&lt;/p&gt;
+&lt;h1 id=&#34;fixing-cambria&#34;&gt;Fixing Cambria&lt;/h1&gt;
+&lt;p&gt;The current version of Cambria is becoming increasingly ergonomic. At this point, we think we&amp;rsquo;re close to solving a 
+useful problem and having a good interface to do so. Therefore, we&amp;rsquo;ll be returning our attention to the functioning of
+the system along two key axes:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;nesting documents is not implemented&lt;/li&gt;
+&lt;li&gt;we probably ought to stop losing data&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;You might (reasonably) think that #2 there is important enough to ignore #1. In fact, because of the division of
+Chitin (storage format, distribution, types) and Cloudina (lenses and patch translation) we can tackle them in parallel.&lt;/p&gt;
+&lt;p&gt;Our plan for fixing nesting documents looks a lot like work we&amp;rsquo;ve seen coming out of Benjamin Pierce&amp;rsquo;s group at UPenn,
+with symmetric edit lenses looking promising. We have a few advantages of their usual approach, in particular that because
+we instrument users&amp;rsquo; code directly we don&amp;rsquo;t have to guess at intent &amp;ndash; we can instrument it.&lt;/p&gt;
+&lt;p&gt;As to the correctness problem, well, we&amp;rsquo;re trying something new based around a &lt;a href=&#34;../../designs/chitin-v4&#34;&gt;log of all operations&lt;/a&gt;. It seems 
+promising thus far, but we&amp;rsquo;re coming dangerously close to building a new CRDT on top of an existing one and so we need
+to reconcile that.&lt;/p&gt;
+&lt;h1 id=&#34;out--about&#34;&gt;Out &amp;amp; About&lt;/h1&gt;
+&lt;p&gt;We had a lovely audience for our last project demo from several folks who responded to an earlier update with interest in our work from their own past histories, including (alphabetically by author) &lt;a href=&#34;https://dcreager.net/publications/012-dphil-thesis/&#34;&gt;Douglas Creeger&amp;rsquo;s PhD&lt;/a&gt;, &lt;a href=&#34;https://github.com/deadwisdom/blazon&#34;&gt;Blazon&lt;/a&gt; (Brantley Harris), and &lt;a href=&#34;https://github.com/ipld/specs/tree/master/schemas&#34;&gt;IPLD Schemas&lt;/a&gt; (Eric Myhre).&lt;/p&gt;
+&lt;h1 id=&#34;q-how-do-you-track-time-to-live-for-a-version-so-you-know-when-you-can-retire-the-old-one&#34;&gt;Q: How do you track &amp;ldquo;time to live&amp;rdquo; for a version so you know when you can retire the old one?&lt;/h1&gt;
+&lt;p&gt;In a centralised system, you want to know when enough of your old clients are upgraded to the new version so you can 
+remove support for older versions. The Cambria library works more like an ActiveRecord migrations directory &amp;ndash; the code
+automatically migrates old data up to the new version when it encounters it, so you don&amp;rsquo;t need to think about deprecating old versions. It can also migrate the data down to older versions to ensure backwards support.&lt;/p&gt;
+&lt;h1 id=&#34;q-what-happens-when-youre-simply-missing-data-that-a-new-or-old-version-needs&#34;&gt;Q: What happens when you&amp;rsquo;re simply missing data that a new or old version needs?&lt;/h1&gt;
+&lt;p&gt;We can&amp;rsquo;t invent data for you, but we could detect, for example, if an older version of the software required a certain
+field and it has become optional in the new version. Cambria, by its nature, forces you to notice and think about this
+problem as you write your lens migration. You might choose to fill in a default value, or to deliberately crash the old
+program. You wouldn&amp;rsquo;t want to send a too-wide license plate to an old stamping machine, for example, or to map missing data to an arbitrary location.&lt;/p&gt;
+</content>
     </item>
     
     <item>
@@ -42,6 +231,43 @@ Once we&amp;rsquo;d managed to do that, we stepped back, squinted at what we&amp
       <description>This week we joined the two ends of the chunnel. The problem and the solution met in the middle and now we have a working system performing migrations on top of Cambria!
 Mostly.
 We do indeed have a working end-to-end system, with a rudimentary developer experience that allows developers to write migrations in a simple lens language and have their data automatically migrated to and from that format in any client.</description>
+      <content>&lt;p&gt;This week we joined the two ends of the chunnel. The problem and the solution met in the middle and now we have a working system performing migrations on top of Cambria!&lt;/p&gt;
+&lt;p&gt;Mostly.&lt;/p&gt;
+&lt;p&gt;We do indeed have a working end-to-end system, with a rudimentary developer experience that allows developers to write migrations in a simple lens language and have their data automatically migrated to and from that format in any client.&lt;/p&gt;
+&lt;p&gt;Of course, there are lots of missing pieces and problems, but we&amp;rsquo;ll come back to them in a minute. Let&amp;rsquo;s talk about how it works.&lt;/p&gt;
+&lt;h2 id=&#34;cloudina-the-patch-converter&#34;&gt;Cloudina: the patch-converter&lt;/h2&gt;
+&lt;p&gt;The last version of Chitin had two jobs &amp;ndash; converting data from one format to another, and storing that data in a sort of ur-file which incorporated enough information to manifest any version on demand. This week, having realized that this was two jobs, Geoffrey split the library into two pieces. Chitin &amp;ndash; which deals with the storage &amp;ndash; and Cloudina, which handles lensing data back and forth from one place to the next.&lt;/p&gt;
+&lt;p&gt;The new version of Chitin is not a svelte and efficient system at all. When a client makes a change, it causes a JSON Patch to be emitted. Cloudina then converts that patch into a patch on all the other neighboring data formats it knows about, and then those convert again, and again, until every format has a corresponding write.&lt;/p&gt;
+&lt;p&gt;This model is much easier to reason about the correctness of than our previous design, at the cost of having an incredible amount of file bloat. Every document version ever recorded stores a full independent copy of every document, which is, uh, obviously wrong.&lt;/p&gt;
+&lt;p&gt;That said, we haven&amp;rsquo;t worried too much about that problem because we know that efficient structure-sharing immutable data is a well-studied domain and we can probably draft off all that work to bring the size down. In other words, we suspect that although we have not implemented it, this is a low-risk problem to defer.&lt;/p&gt;
+&lt;p&gt;One other exciting thing about this change is that we&amp;rsquo;re no longer converting whole documents but just &lt;em&gt;patches&lt;/em&gt;. Patches have some limitations (though at the limit, you can always put a whole replacement document into a patch) but they have great potential to be very efficient in terms of network, compute, and storage once we sort out, the, er, network&amp;hellip; compute&amp;hellip; and&amp;hellip; storage.&lt;/p&gt;
+&lt;p&gt;We&amp;rsquo;re especially excited about Cloudina because it can be a very straightforward and accessible solution to a common problem. Perhaps it could even be of use independently, such as to folks who would like to solve the problem Stripe solved in their API. I suspect that if we can nail both the functionality and the developer experience, this could be a very useful tool to keep in the toolbelt of many developers.&lt;/p&gt;
+&lt;h2 id=&#34;chitin-v-2-3-4-whos-counting-anyway&#34;&gt;Chitin v&amp;hellip; 2? 3? 4? Who&amp;rsquo;s counting, anyway?&lt;/h2&gt;
+&lt;p&gt;This brings us back to the storage side of the equation. As you&amp;rsquo;ll see in this week&amp;rsquo;s demo, we wanted to wire the whole experience up end-to-end into a real Electron application that we actually use. (We&amp;rsquo;re writing a simple issue tracker that we use to work on the project as our technology test-bed.)&lt;/p&gt;
+&lt;p&gt;Because we want to support arbitrarily far-apart versions of a program to share data, we decided to try storing the lens definitions themselves into the document. This means that a V1 document can run the lens described by the V5 app to &amp;ldquo;upgrade&amp;rdquo; its writes into a format that program can read, even though that code hadn&amp;rsquo;t been imagined or implemented when it was written.&lt;/p&gt;
+&lt;p&gt;Pretty cool trick, right?&lt;/p&gt;
+&lt;h2 id=&#34;show-me-the-money-lebowski&#34;&gt;Show me the money, Lebowski!&lt;/h2&gt;
+&lt;p&gt;I think it&amp;rsquo;s in this demo. You&amp;rsquo;d better take a look.&lt;/p&gt;
+
+
+&lt;div style=&#34;position: relative; padding-bottom: 64.98194945848375%; height: 0;&#34;&gt;&lt;iframe src=&#34;https://www.loom.com/embed/d7c7548afcca48f58e00dc45e02b9782&#34; frameborder=&#34;0&#34; webkitallowfullscreen mozallowfullscreen allowfullscreen style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%;&#34;&gt;&lt;/iframe&gt;&lt;/div&gt;
+
+
+&lt;h2 id=&#34;researcher-experience-vs-developer-experience&#34;&gt;Researcher Experience vs. Developer Experience&lt;/h2&gt;
+&lt;p&gt;The other big realization for this week was that we&amp;rsquo;ve been allowing ourselves to get too cute with our demos. By building Arthropod to run against a whole suite of simultaneously-available software versions we were optimizing our library interfaces to support that. In fact, the simplest way to think about versioning your data is not to think about it at all.&lt;/p&gt;
+&lt;p&gt;As a result of this realization, we went back to the drawing board and started working out what the best &lt;em&gt;developer&lt;/em&gt; experience would be, instead of a fun-to-demo &lt;em&gt;researcher&lt;/em&gt; experience like we have right now.&lt;/p&gt;
+&lt;h2 id=&#34;whats-next&#34;&gt;What&amp;rsquo;s next?&lt;/h2&gt;
+&lt;p&gt;Well, everything works&amp;hellip; but nothing works very well. Now the long climb of the mountain begins in earnest. A brief list of things we don&amp;rsquo;t support very well right now:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;arrays or maps (other than at the root of a document)&lt;/li&gt;
+&lt;li&gt;merging writes originating from clients running different versions of the software (oh, the irony)&lt;/li&gt;
+&lt;li&gt;writing lenses is a pain&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And oh, plenty of other problems. That said, we&amp;rsquo;re probably not going to start with any of those (small) problems. We&amp;rsquo;re going to go try and add some features to our issue tracker.&lt;/p&gt;
+&lt;h2 id=&#34;hold-on-what&#34;&gt;Hold on. What!?&lt;/h2&gt;
+&lt;p&gt;By forcing ourselves to &amp;ldquo;eat the garbage&amp;rdquo; (as friend-of-the-lab Kevin Lynagh likes to say) and figure out how to use this library in earnest, we&amp;rsquo;ll naturally work through whichever of these issues is actually most annoying to a user, and undoubtedly discover some other problems along the way.&lt;/p&gt;
+&lt;p&gt;See you all next week!&lt;/p&gt;
+</content>
     </item>
     
     <item>
@@ -52,6 +278,85 @@ We do indeed have a working end-to-end system, with a rudimentary developer expe
       <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-2/</guid>
       <description>Last week we showed you a demo of a problem. We wanted to run two different versions of a program, both operating on different data types&amp;hellip; but with the same underlying document.
 This is a tricky problem! The old code doesn&amp;rsquo;t natively understand data written by the new system. The new system relies on data the old one doesn&amp;rsquo;t provide. Worst, even in our little toy example there is one field where the data type changes completely, going from a Boolean type to a string.</description>
+      <content>&lt;p&gt;&lt;!-- raw HTML omitted --&gt; Last week we showed you a demo of a problem. We wanted to run two different versions of a program, both operating on different data types&amp;hellip; but with the same underlying document.&lt;/p&gt;
+&lt;p&gt;This is a tricky problem! The old code doesn&amp;rsquo;t natively understand data written by the new system. The new system relies on data the old one doesn&amp;rsquo;t provide. Worst, even in our little toy example there is one field where the data type changes completely, going from a Boolean type to a string.&lt;/p&gt;
+&lt;p&gt;So, if last week was a prototype of a problem then this week is a prototype of a solution.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s see it in action.&lt;/p&gt;
+
+
+&lt;div style=&#34;position: relative; padding-bottom: 64.98194945848375%; height: 0;&#34;&gt;&lt;iframe src=&#34;https://www.loom.com/embed/8acc5f13e4d0443aab8fb08b026d4f97&#34; frameborder=&#34;0&#34; webkitallowfullscreen mozallowfullscreen allowfullscreen style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%;&#34;&gt;&lt;/iframe&gt;&lt;/div&gt;
+
+
+&lt;h1 id=&#34;a-prototype-of-a-solution&#34;&gt;A prototype of a solution&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;../week-1&#34;&gt;Last week&amp;rsquo;s&lt;/a&gt; &lt;a href=&#34;https://www.loom.com/share/9887a085895a4ce4a39f6e70ef90cb0b&#34;&gt;demo&lt;/a&gt; showed data flowing back and forth between two systems. The implementation was a
+giant soup of spaghetti code under the hood. This week we wanted to attempt a principled approach
+to implementing that code automatically, and to also think a bit about developer experience.&lt;/p&gt;
+&lt;p&gt;What we&amp;rsquo;ve got is a small library that can output JSON Schemas (to validate data), Typescript types,
+and a big JSON file that describes all the rules to convert data between types.&lt;/p&gt;
+&lt;p&gt;The results is that when you&amp;rsquo;re programming you have nice Typescript types to keep track of what
+you&amp;rsquo;re doing, and at runtime the system can handle all the conversions for you.&lt;/p&gt;
+&lt;h1 id=&#34;migrations-sounds-like-database-code&#34;&gt;Migrations? Sounds like database code.&lt;/h1&gt;
+&lt;p&gt;The big difference between our system and a traditional migration is that all of the versions exist
+simultaneously in a super-imposed state in the underlying document. At read time we pull out the bits
+of the underlying document that the running program needs and ignore the rest. When we write changes
+we carefully map them down into the document again to ensure that old versions of the code will still
+work, even if their documents have been edited by newer code.&lt;/p&gt;
+&lt;p&gt;Here&amp;rsquo;s how it looks to write one of those migrations. In this example we&amp;rsquo;ve decided that the status
+of an issue is no longer either complete or not, but can now be a string with several values, like
+&amp;ldquo;in progress&amp;rdquo;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;import&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;runMigration&lt;/span&gt; } &lt;span style=&#34;color:#a6e22e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;../chitin/migrationRunner&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;import&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;convertField&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;valueMapping&lt;/span&gt; } &lt;span style=&#34;color:#a6e22e&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;../chitin/migrations&amp;#39;&lt;/span&gt;
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;runMigration&lt;/span&gt;((&lt;span style=&#34;color:#a6e22e&#34;&gt;graph&lt;/span&gt;) =&amp;gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;graph&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;extendSchema&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ProjectV3&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ProjectV4&amp;#39;&lt;/span&gt;, [
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;convertField&lt;/span&gt;({
+      &lt;span style=&#34;color:#a6e22e&#34;&gt;from&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;complete&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;boolean&amp;#39;&lt;/span&gt; },
+      &lt;span style=&#34;color:#a6e22e&#34;&gt;to&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;status&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;string&amp;#39;&lt;/span&gt; },
+      &lt;span style=&#34;color:#a6e22e&#34;&gt;forwards&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;valueMapping&lt;/span&gt;({ &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;todo&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;done&amp;#39;&lt;/span&gt; }),
+      &lt;span style=&#34;color:#a6e22e&#34;&gt;backwards&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;valueMapping&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;todo&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;inProgress&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;done&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;default&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt; }),
+    }),
+  ])
+})
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You can see here that we&amp;rsquo;re defining a new version of the Project data type (V4), and describing how
+to map one field (and its data) back and forth between the two versions. This creates a link between
+those types that the system can traverse.&lt;/p&gt;
+&lt;h1 id=&#34;what-if-you-want-to-convert-data-between-systems&#34;&gt;What if you want to convert data between systems?&lt;/h1&gt;
+&lt;p&gt;We&amp;rsquo;ve also thought about that! In the case of an incremental change in a data format the above example
+is convenient. You take the old format, make some changes, and that&amp;rsquo;s the new format.&lt;/p&gt;
+&lt;p&gt;In our Arthropod test program we have a second, much simpler display for our Project data used in
+the title bar. That display just shows the title and the description, so we gave it a similar data format
+(HasTitle). In order to render the Project document there we need to define a conversion for that, too.&lt;/p&gt;
+&lt;p&gt;That looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;runMigration&lt;/span&gt;((&lt;span style=&#34;color:#a6e22e&#34;&gt;graph&lt;/span&gt;) =&amp;gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;graph&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;connectSchemas&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ProjectV2&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;HasTitleV1&amp;#39;&lt;/span&gt;, [
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;renameField&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;title&amp;#39;&lt;/span&gt;),
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;renameField&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;description&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;subtitle&amp;#39;&lt;/span&gt;),
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;removeField&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;tasks&amp;#39;&lt;/span&gt;),
+  ])
+})
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this case we&amp;rsquo;re not defining a new schema (ProjectV4), we&amp;rsquo;re just saying how to connect two existing
+ones.&lt;/p&gt;
+&lt;h1 id=&#34;wait-a-second-youre-connecting-an-older-version-to-the-title-thing&#34;&gt;Wait a second, you&amp;rsquo;re connecting an older version to the Title thing!&lt;/h1&gt;
+&lt;p&gt;Astute of you to observe that, but it still works! Because we can map from HasTitleV1 to ProjectV2
+and then on up from there through ProjectV3 and ProjectV4 the system finds a path and moves the data
+back and forth seamlessly. As long as there is a path, the system will find it! Even an old ProjectV1
+file could follow this path.&lt;/p&gt;
+&lt;h1 id=&#34;whats-next&#34;&gt;What&amp;rsquo;s next?&lt;/h1&gt;
+&lt;p&gt;Well, our more principled implementation has better &amp;ldquo;bones&amp;rdquo;, but it&amp;rsquo;s still missing some important pieces.
+First, it doesn&amp;rsquo;t handle nested data very well yet. If you want to rename a field and it&amp;rsquo;s not connected
+to the root of the document? Too bad. Orion&amp;rsquo;s working on that this week.&lt;/p&gt;
+&lt;p&gt;Next, our canonical representation has become increasingly difficult to reason about. We suspect that
+we can separate the conversion logic from the underlying storage layout, which will hopefully both 
+simplify each piece of the system and also make them more independently useful. Geoffrey is working 
+on exploring that.&lt;/p&gt;
+&lt;p&gt;Last, we&amp;rsquo;ve had a number of fascinating discussions about what the correct behavior &lt;em&gt;should&lt;/em&gt; be for 
+some of these cases. If you check and uncheck the &lt;code&gt;complete&lt;/code&gt; Boolean, what should happen to the 
+&lt;code&gt;status&lt;/code&gt; string?&lt;/p&gt;
+&lt;p&gt;Along with concrete progress in improving the capabilities of the system we also want to document our
+expectations for how various cases will behave in a test suite. Peter&amp;rsquo;s planning to focus on that to
+the extent that pandemic parenting allows.&lt;/p&gt;
+&lt;p&gt;No demo video this week. Maybe next week? We&amp;rsquo;ll see.&lt;/p&gt;
+</content>
     </item>
     
     <item>
@@ -62,6 +367,42 @@ This is a tricky problem! The old code doesn&amp;rsquo;t natively understand dat
       <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-1/</guid>
       <description>Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp;amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.
 What&amp;rsquo;s the problem? Cambria was motivated by some problems we kept seeing in our work.</description>
+      <content>&lt;p&gt;Welcome, one and all to the Cambria project. Cambria is an ongoing research project here at Ink &amp;amp; Switch exploring how we can operate on evolving data formats in a decentralized system. We hope this work will be exciting not just for folks working on decentralized systems but could also be applicable more broadly to other distributed systems.&lt;/p&gt;
+&lt;h2 id=&#34;whats-the-problem&#34;&gt;What&amp;rsquo;s the problem?&lt;/h2&gt;
+&lt;p&gt;Cambria was motivated by some problems we kept seeing in &lt;a href=&#34;https://www.inkandswitch.com/local-first.html#prototypes&#34;&gt;our work&lt;/a&gt;. The most common problem was that someone would add an array field to a document. New documents would work fine (the array would be added at document creation time) but existing documents, or documents shared by older clients, would cause Javascript runtime errors when the code would try to call Array methods on the object.&lt;/p&gt;
+&lt;p&gt;This is a very common problem in all kinds of distributed systems, and in a centralised system is mostly managed by locking down how the system works. Database schemas prevent writing bad data and guarantee the shape of data that comes back. Network-friendly data structures like ProtoBuf or Avro provide strong constraints around how data types evolve, but at the cost of severely constraining how these types can be changed. Finally, JSON responses from APIs are essentially the wild west. Cloud software everywhere crashes when APIs change and many blog posts have been written about how to manage deprecation of old versions. (Stripe is a notable bright light here, with an &lt;a href=&#34;https://stripe.com/blog/api-versioning&#34;&gt;inspiring system&lt;/a&gt; that supports change over time!)&lt;/p&gt;
+&lt;p&gt;Instead of trying to solve these problems by constraining what can be written, we&amp;rsquo;re embracing the uncertainty of the world and attempting to improve how we read data. This is especially important in truly decentralised systems where you may be collaborating with other nodes running older, newer, or simply differing versions of the program you have locally.&lt;/p&gt;
+&lt;p&gt;We draw on a number of influences in our work here, but our main influence is the &lt;a href=&#34;https://www.cis.upenn.edu/~bcpierce/papers/index.shtml#Lenses&#34;&gt;research on lenses from Benjamin Pierce&amp;rsquo;s group at UPenn&lt;/a&gt; (in particular we found the Boomerang paper quite exciting). Other notable influences include &lt;a href=&#34;https://thoughtbot.com/blog/getting-unstuck-with-elm-json-decoders&#34;&gt;elm decoders&lt;/a&gt; for demonstrating how to bridge untyped and strongly typed systems, and &lt;a href=&#34;https://stripe.com/blog/api-versioning&#34;&gt;Stripe&amp;rsquo;s API versioning strategy&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;sounds-vague-what-are-you-actually-doing&#34;&gt;Sounds&amp;hellip; vague. What are you actually doing?&lt;/h2&gt;
+&lt;p&gt;We wanted to get straight to work, so after considering a few other options, we&amp;rsquo;ve adopted a fork of the &lt;a href=&#34;https://github.com/automerge/pushpin&#34;&gt;PushPin&lt;/a&gt; project&amp;rsquo;s codebase. This gave us the ability to jump straight into building the part of the system we&amp;rsquo;re interested in (data structure versioning) without having to figure out other pieces like networking, storage, or rendering.&lt;/p&gt;
+&lt;p&gt;In brief, we&amp;rsquo;re building a React app that runs on your system (Electron) and communicates directly with other copies installed on other users&amp;rsquo; computers (&lt;a href=&#34;https://github.com/hyperswarm/hyperswarm&#34;&gt;hyperswarm&lt;/a&gt;, &lt;a href=&#34;https://github.com/hypercore-protocol/hypercore&#34;&gt;hypercore&lt;/a&gt;.) There are CRDTs in there, &lt;a href=&#34;https://github.com/automerge/automerge&#34;&gt;of course&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Our application of choice is an issue tracker, which we have named Arthropod. We chose it because it is&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;easy to implement a simple, usable example,&lt;/li&gt;
+&lt;li&gt;it&amp;rsquo;s inherently collaborative and offline friendly, and&lt;/li&gt;
+&lt;li&gt;we can dog-food it during the project to discover real-world problems.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Arthropod has already given us some great insights into managing real-world data migration challenges and Geoffrey has us far enough along to be usable as our issue tracker. Arthropod runs several versions of the actual issue tracking tool simultaneously in the same window so that we can be sure we&amp;rsquo;re not breaking anything as we go.&lt;/p&gt;
+&lt;p&gt;Enough talk though, here&amp;rsquo;s Geoffrey&amp;rsquo;s demo.&lt;/p&gt;
+
+
+&lt;div style=&#34;position: relative; padding-bottom: 64.98194945848375%; height: 0;&#34;&gt;&lt;iframe src=&#34;https://www.loom.com/embed/9887a085895a4ce4a39f6e70ef90cb0b&#34; frameborder=&#34;0&#34; webkitallowfullscreen mozallowfullscreen allowfullscreen style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%;&#34;&gt;&lt;/iframe&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In addition to Arthropod, we&amp;rsquo;ve also got a prototype of a migration library from Orion named Chitin which has helped us start figuring out problems like storage format and APIs.&lt;/p&gt;
+&lt;h2 id=&#34;what-have-you-learned-so-far&#34;&gt;What have you learned so far?&lt;/h2&gt;
+&lt;p&gt;We&amp;rsquo;ve identfied several interesting data migrations. Aside from basic cases of adding and removing fields from version to version, we&amp;rsquo;ve spotted two interesting migrations we believe can be supported in a bidirectional way:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;moving from a boolean &amp;ldquo;complete&amp;rdquo; field to a &amp;ldquo;status&amp;rdquo; enumeration (todo, in progress, done)&lt;/li&gt;
+&lt;li&gt;adding &amp;ldquo;archive&amp;rdquo; support in a new version and wanting to filter out &amp;ldquo;archived&amp;rdquo; items from showing in the older version at all&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;whats-up-next&#34;&gt;What&amp;rsquo;s up next?&lt;/h2&gt;
+&lt;p&gt;Last week we prototyped the problem. This week we prototype a solution. We hope to have a simple DSL that gives us insight into programmer-facing APIs and proves that some of these migrations can indeed be implemented as lenses.&lt;/p&gt;
+&lt;h2 id=&#34;one-last-thing-cambria-chitin-arthropod-are-you-paleontologists-now&#34;&gt;One last thing. Cambria? Chitin? Arthropod? Are you paleontologists now?&lt;/h2&gt;
+&lt;p&gt;The Cambrian period was when life began to develop skeletons. Prior to that, everything was just a big soup of cells. Arthropods were a particularly notable creature found in the fossil record from that period. Chitin is the organic material that forms exoskeletons.&lt;/p&gt;
+&lt;h2 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it!&lt;/h2&gt;
+&lt;p&gt;See you all next week. We&amp;rsquo;d love to hear from you about the project so feel free to &lt;a href=&#34;mailto:pvh@inkandswitch.com&#34;&gt;send me a note&lt;/a&gt;.&lt;/p&gt;
+</content>
     </item>
     
   </channel>

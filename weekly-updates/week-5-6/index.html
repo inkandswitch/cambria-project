@@ -32,30 +32,30 @@
     
     <meta property="og:title" content="Cambria, Weeks Five and Six: Nesting Instinct" />
 <meta property="og:description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+(If you feel like watching instead of reading, skip ahead to the video demo.)
 A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
-The simplest case to think about is renaming a property.
-graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction." />
+The simplest case to think about is renaming a property." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://inkandswitch.github.io/cambria/weekly-updates/week-5-6/" />
 <meta property="article:published_time" content="2020-07-17T12:05:58-07:00" />
 <meta property="article:modified_time" content="2020-07-17T12:05:58-07:00" />
 <meta itemprop="name" content="Cambria, Weeks Five and Six: Nesting Instinct">
 <meta itemprop="description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+(If you feel like watching instead of reading, skip ahead to the video demo.)
 A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
-The simplest case to think about is renaming a property.
-graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction.">
+The simplest case to think about is renaming a property.">
 <meta itemprop="datePublished" content="2020-07-17T12:05:58-07:00" />
 <meta itemprop="dateModified" content="2020-07-17T12:05:58-07:00" />
-<meta itemprop="wordCount" content="1210">
+<meta itemprop="wordCount" content="1279">
 
 
 
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Cambria, Weeks Five and Six: Nesting Instinct"/>
 <meta name="twitter:description" content="The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.
+(If you feel like watching instead of reading, skip ahead to the video demo.)
 A lens for every purpose Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
-The simplest case to think about is renaming a property.
-graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&rsquo;s easy to see how this lens could run in either direction."/>
+The simplest case to think about is renaming a property."/>
 
 	
   </head>
@@ -122,13 +122,14 @@ graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;
       
     </header>
     <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>The last two weeks have been incredibly busy. We&rsquo;ve spent a lot of time getting our foundations into better shape, so let&rsquo;s dive right into it.</p>
+<p>(If you feel like watching instead of reading, skip ahead to the <a href="#video-demo">video demo</a>.)</p>
 <h2 id="a-lens-for-every-purpose">A lens for every purpose</h2>
 <p>Conceptually, what we&rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.</p>
 <p>The simplest case to think about is renaming a property.</p>
 <div class="mermaid" align="center">
 graph LR
- d1("name: Get Milk") --"rename(name, title)"--> d2("title: Get Milk")
- d2 --"rename(title, name)"-->d1
+d1("name: Get Milk") --"rename(name, title)"--> d2("title: Get Milk")
+d2 --"rename(title, name)"-->d1
 
 </div>
 
@@ -162,8 +163,8 @@ d1("∅") --"add(name)"--> d2("name")
 <p>The lens-pair for this operation looks like this:</p>
 <div class="mermaid" align="center">
 graph LR
- d1("assignee: <br>'Peter'") --"wrap(assignee)"--> d2("assignees:<br/> ['Peter']")
- d2 --"head(assignees)"-->d1
+d1("assignee: <br>'Peter'") --"wrap(assignee)"--> d2("assignees:<br/> ['Peter']")
+d2 --"head(assignees)"-->d1
 
 </div>
 
@@ -190,34 +191,31 @@ graph LR
   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">lens</span>
     .<span style="color:#a6e22e">slice</span>()
     .<span style="color:#a6e22e">reverse</span>()
-    .<span style="color:#a6e22e">map</span>((<span style="color:#a6e22e">l</span>) =&gt; <span style="color:#a6e22e">reverseLensOp</span>(<span style="color:#a6e22e">l</span>))
+    .<span style="color:#a6e22e">map</span>((<span style="color:#a6e22e">l</span>) =&gt; <span style="color:#a6e22e">reverseLensOp</span>(<span style="color:#a6e22e">l</span>));
 }
 
 <span style="color:#75715e">// reverseLensOp is trivial.
 </span><span style="color:#75715e">// it does things like reversing the fields on a rename.
-</span><span style="color:#75715e"></span>
-</code></pre></div><p><em>This is really cool</em> and the simplicity of the implementation is evidence that our design is on the right track.</p>
+</span></code></pre></div><p><em>This is really cool</em> and the simplicity of the implementation is evidence that our design is on the right track.</p>
 <p>It&rsquo;s worth noting that we&rsquo;ve still got a few gremlinks to work through with our lenses. In particular, we recently realized that while we can support nested data formats, we don&rsquo;t support recursive ones. This doesn&rsquo;t seem too hard to fix, but we&rsquo;re living without it right now.</p>
 <h2 id="writing--running-lenses">Writing &amp; Running Lenses</h2>
 <p>General purpose document lenses are something we suspect many people might find useful, and since we haven&rsquo;t found an existing implementation that met our needs, we thought separating the lenses from the rest of the project for release would be a worthwhile step.</p>
 <p>As such, we&rsquo;ve separated the lens library (codenamed <code>cloudina</code>) into its own node module, added a simple CLI, and improved the experience of authoring lenses.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat github-issue.json | cloudina -l github-to-arthropod.yml &gt; arthropod-issue.json
 </code></pre></div><p>In past demos you might have caught a glimpse of a gnarly JSON format that we used to represent lenses. We&rsquo;ve retired that. For runtime creation of lenses (say during tests) we now have some convenience helpers which produce the necessary data structures and those look like this:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js">
-<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">lensSource</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">LensSource</span> <span style="color:#f92672">=</span> [
-  <span style="color:#a6e22e">renameProperty</span>(<span style="color:#e6db74">&#39;title&#39;</span>, <span style="color:#e6db74">&#39;name&#39;</span>),
-  <span style="color:#a6e22e">addProperty</span>({ <span style="color:#a6e22e">destination</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;description&#39;</span>, <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;string&#39;</span>, <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span> }),
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">lensSource</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">LensSource</span> <span style="color:#f92672">=</span> [
+  <span style="color:#a6e22e">renameProperty</span>(<span style="color:#e6db74">&#34;title&#34;</span>, <span style="color:#e6db74">&#34;name&#34;</span>),
+  <span style="color:#a6e22e">addProperty</span>({ <span style="color:#a6e22e">destination</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;description&#34;</span>, <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;string&#34;</span>, <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;&#34;</span> }),
   <span style="color:#a6e22e">convertValue</span>(
-    <span style="color:#e6db74">&#39;complete&#39;</span>,
+    <span style="color:#e6db74">&#34;complete&#34;</span>,
     [
-      { <span style="color:#66d9ef">false</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;todo&#39;</span>, <span style="color:#66d9ef">true</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;done&#39;</span> },
+      { <span style="color:#66d9ef">false</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;todo&#34;</span>, <span style="color:#66d9ef">true</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;done&#34;</span> },
       { <span style="color:#a6e22e">todo</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">inProgress</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">done</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span> },
     ],
-    <span style="color:#e6db74">&#39;boolean&#39;</span>,
-    <span style="color:#e6db74">&#39;string&#39;</span>
+    <span style="color:#e6db74">&#34;boolean&#34;</span>,
+    <span style="color:#e6db74">&#34;string&#34;</span>
   ),
-]
-
+];
 </code></pre></div><p>For lenses we want to keep around on disk we&rsquo;ve also added a YML dialect and a JSON Schema to add autocompletion hints, and that looks more like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">
 <span style="color:#66d9ef">lens</span>:
@@ -232,11 +230,19 @@ graph LR
       <span style="color:#66d9ef">name</span>: <span style="color:#e6db74">&#39;complete&#39;</span>,
       <span style="color:#66d9ef">sourceType</span>: boolean,
       <span style="color:#66d9ef">outputType</span>: string
-      <span style="color:#66d9ef">mapping</span>: 
+      <span style="color:#66d9ef">mapping</span>:
         - { <span style="color:#66d9ef">false: &#39;todo&#39;, true</span>: <span style="color:#e6db74">&#39;done&#39;</span> },
         - { <span style="color:#66d9ef">todo: false, inProgress: false, done</span>: <span style="color:#66d9ef">true</span> },
 </code></pre></div><p>This is vastly easier to read, write, and debug, but still a little rough around the edges.</p>
 <p>Now that we have a better and more complete lens language, we&rsquo;re exploring new ways of using it. More on that next time.</p>
+<h2 id="video-demo">Video demo</h2>
+<p>Here&rsquo;s a demo showing how it feels to write a structural transformation in this lens language. We write a lens to convert JSON output from the Github Issues API to a different simpler format. And then, because the lens is bidirectional, edits to the simpler structure flow back into the original JSON document.</p>
+
+
+
+<div style="position: relative; padding-bottom: 60.100166944908175%; height: 0;"><iframe src="https://www.loom.com/embed/f974ba7bb11e4f0c8d2637b44105b7d7" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+
 <h2 id="ongoing-problems">Ongoing problems</h2>
 <h3 id="missing-data-and-defaults">Missing data and defaults.</h3>
 <p>We&rsquo;re written a bit about this, but we&rsquo;re struggling a bit with different strategies for handling required, default, and missing data. As a general rule, not all data formats are compatible. No amount of cleverness will turn a recipe for brownies into the maintenance manual for a 1982 Volkswagen Vanagon. The problem of when and how to insert default data, and when and how to decide to fail on a conversion is an ongoing conversation we hope to return to soon.</p>
