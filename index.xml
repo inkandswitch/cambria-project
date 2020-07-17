@@ -6,10 +6,33 @@
     <description>Recent content in Cambria on Cambria Development Notes</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 07 Jul 2020 09:47:58 -0700</lastBuildDate>
+    <lastBuildDate>Fri, 17 Jul 2020 12:05:58 -0700</lastBuildDate>
     
 	<atom:link href="http://inkandswitch.github.io/cambria/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Cambria, Weeks Five and Six: Nesting Instinct</title>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-5-6/</link>
+      <pubDate>Fri, 17 Jul 2020 12:05:58 -0700</pubDate>
+      
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-5-6/</guid>
+      <description>The last two weeks have been incredibly busy. We&amp;rsquo;ve spent a lot of time getting our foundations into better shape, so let&amp;rsquo;s dive right into it.
+A lens for every purpose Conceptually, what we&amp;rsquo;re working on is connecting different data structures together while supporting bi-directional conversions.
+The simplest case to think about is renaming a property.
+graph LRd1(&#34;name: Get Milk&#34;) --&#34;rename(name, title)&#34;-- d2(&#34;title: Get Milk&#34;)d2 --&#34;rename(title, name)&#34;--d1It&amp;rsquo;s easy to see how this lens could run in either direction.</description>
+    </item>
+    
+    <item>
+      <title>Micromerge</title>
+      <link>http://inkandswitch.github.io/cambria/designs/micromerge/</link>
+      <pubDate>Fri, 17 Jul 2020 12:05:58 -0700</pubDate>
+      
+      <guid>http://inkandswitch.github.io/cambria/designs/micromerge/</guid>
+      <description>As part of designing the new integration between Chitin and our CRDTs, Martin wrote a tiny two-hundred line version of Automerge called Micromerge that displays the core behaviours of automerge with none of the additional complexity of production software.
+I have included it here in its complete form:
+const ROOT_ID = &amp;#39;00000000-0000-0000-0000-000000000000&amp;#39; /** * Miniature implementation of a subset of Automerge. Supports the following: * - only map, list, and primitive datatypes (no table, text, counter, or date objects) * - no undo/redo * - no conflicts on concurrent updates to the same field (uses last-writer-wins instead) * - no API for creating new changes (you need to create change objects yourself) * - no buffering of changes that are missing their causal dependencies * - no saving or loading in serialised form * - relies on object mutation (no immutability) */ class Micromerge { constructor() { this.</description>
+    </item>
     
     <item>
       <title>Chitin, v4: Op Log Example</title>
@@ -30,6 +53,19 @@ V1 {title: stringdescription: string}// - rename title to name// - add a co
       <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-4/</guid>
       <description>I wrote you a nice week three post but didn&amp;rsquo;t get around to sharing it. You can read it if you like, but briefly, in week three we managed to connect the two ends of the project: we managed to add features to our issue tracker using Cambria.
 Once we&amp;rsquo;d managed to do that, we stepped back, squinted at what we&amp;rsquo;d done and asked ourselves whether it was the right shape.</description>
+    </item>
+    
+    <item>
+      <title>On Scalar to Array Conversions</title>
+      <link>http://inkandswitch.github.io/cambria/designs/converting-scalar-to-arrays/</link>
+      <pubDate>Mon, 06 Jul 2020 16:47:58 -0700</pubDate>
+      
+      <guid>http://inkandswitch.github.io/cambria/designs/converting-scalar-to-arrays/</guid>
+      <description>Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array) What should happen when the two versions make writes?
+In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&amp;rsquo;s array (denoted []).
+Reads In the simplest case, both values are empty.
+[{}]With a single value, the read semantics are equivalent.
+[{&amp;quot;Alice&amp;quot;}]Given additional values added to the new version, the old version would see just the head of the list.</description>
     </item>
     
     <item>
