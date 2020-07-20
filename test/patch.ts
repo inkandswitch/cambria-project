@@ -712,11 +712,14 @@ describe('default value initialization', () => {
     ]),
   ]
 
-  const v1Schema = updateSchema({}, v1Lens)
+  const emptySchema = {
+    $schema: 'http://json-schema.org/draft-07/schema',
+    type: 'object' as const,
+    additionalProperties: false,
+  }
+  const v1Schema = updateSchema(emptySchema, v1Lens)
 
-  console.log({ v1Schema })
-
-  it('fills in defaults on a patch that adds a new array item', () => {
+  it.only('fills in defaults on a patch that adds a new array item', () => {
     const patchOp: PatchOp = {
       op: 'add',
       path: '/tags/123',

@@ -1,7 +1,8 @@
 import { Operation, compare, applyPatch } from 'fast-json-patch'
 import { LensSource, LensOp } from './lens-ops'
 import { reverseLens } from './reverse'
-import { defaultObjectForLens } from './defaults'
+import { defaultObjectForLens, addDefaultValues } from './defaults'
+import { JSONSchema7 } from 'json-schema'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
 // can we actually find a way to keep it around and typecheck patches against a type?
@@ -54,6 +55,23 @@ export function convertDoc(doc: any, lensSource: LensSource, baseDoc?: any) {
 export function applyLensToPatch(lensSource: LensSource, patch: Patch, destinationDoc: any): Patch {
   const expandedPatch: Patch = patch.map((op) => expandPatch(op)).flat()
   return noNulls<PatchOp>(expandedPatch.map((patchOp) => applyLensToPatchOp(lensSource, patchOp)))
+}
+
+export function applyLensToPatchWithSchema(
+  lensSource: LensSource,
+  patch: Patch,
+  readerSchema: JSONSchema7
+): Patch {
+  // expand patches that set nested objects into scalar patches
+  const expandedPatch: Patch = patch.map((op) => expandPatch(op)).flat()
+
+  // send everything through the lens
+  const lensedPatch = noNulls<PatchOp>(
+    expandedPatch.map((patchOp) => applyLensToPatchOp(lensSource, patchOp))
+  )
+  const lensedPatchWithDefaults = addDefaultValues(lensedPatch, readerSchema)
+
+  return lensedPatchWithDefaults
 }
 
 // todo: remove destinationDoc entirely
