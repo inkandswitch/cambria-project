@@ -1,6 +1,12 @@
 import assert from 'assert'
-import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
-import { convertDoc } from '../src/index'
+import {
+  Patch,
+  applyLensToPatch,
+  PatchOp,
+  expandPatch,
+  applyLensToPatchWithSchema,
+} from '../src/patch'
+import { convertDoc, updateSchema } from '../src/index'
 import { LensSource } from '../src/lens-ops'
 import {
   renameProperty,
@@ -686,4 +692,73 @@ describe('patch expander', () => {
       },
     ])
   })
+})
+
+describe('default value initialization', () => {
+  // one lens that creates objects inside of arrays and other objects
+  const v1Lens: LensSource = [
+    addProperty({ name: 'tags', type: 'array', arrayItemType: 'object', default: [] }),
+    inside('tags', [
+      map([
+        addProperty({ name: 'name', type: 'string', default: '' }),
+        addProperty({ name: 'color', type: 'string', default: '#ffffff' }),
+      ]),
+    ]),
+    addProperty({ name: 'metadata', type: 'object', default: {} }),
+    inside('metadata', [
+      addProperty({ name: 'title', type: 'string', default: '' }),
+      addProperty({ name: 'flags', type: 'object', default: {} }),
+      inside('flags', [addProperty({ name: 'O_CREATE', type: 'boolean', default: true })]),
+    ]),
+  ]
+
+  const v1Schema = updateSchema({}, v1Lens)
+
+  console.log({ v1Schema })
+
+  it('fills in defaults on a patch that adds a new array item', () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123',
+      value: { name: 'bug' },
+    }
+
+    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [
+      {
+        op: 'add',
+        path: '/tags/123',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/tags/123/name',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/tags/123/color',
+        value: '#ffffff',
+      },
+      {
+        op: 'add',
+        path: '/tags/123/name',
+        value: 'bug',
+      },
+    ])
+  })
+
+  it("doesn't expand a patch on an object key that already exists", () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123/name',
+      value: 'bug',
+    }
+
+    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [patchOp])
+  })
+
+  it('works correctly when properties are spread across multiple lenses')
+
+  // todo:
+  // - test multiple lenses
 })
