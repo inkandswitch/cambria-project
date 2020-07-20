@@ -757,8 +757,89 @@ describe('default value initialization', () => {
     assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [patchOp])
   })
 
-  it('works correctly when properties are spread across multiple lenses')
+  it('recursively fills in defaults from the root', () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '',
+      value: {},
+    }
 
-  // todo:
-  // - test multiple lenses
+    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [
+      {
+        op: 'add',
+        path: '',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/tags',
+        value: [],
+      },
+      {
+        op: 'add',
+        path: '/metadata',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/metadata/title',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/metadata/flags',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/metadata/flags/O_CREATE',
+        value: true,
+      },
+    ])
+  })
+
+  it('works correctly when properties are spread across multiple lenses', () => {
+    const v1Tov2Lens = [
+      renameProperty('tags', 'labels'),
+      inside('labels', [
+        map([addProperty({ name: 'important', type: 'boolean', default: false })]),
+      ]),
+    ]
+
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123',
+      value: { name: 'bug' },
+    }
+
+    const v2Schema = updateSchema(v1Schema, v1Tov2Lens)
+
+    assert.deepEqual(applyLensToPatchWithSchema(v1Tov2Lens, [patchOp], v2Schema), [
+      {
+        op: 'add',
+        path: '/labels/123',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/labels/123/name',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/labels/123/color',
+        value: '#ffffff',
+      },
+      {
+        op: 'add',
+        path: '/labels/123/important',
+        value: false,
+      },
+      {
+        op: 'add',
+        path: '/labels/123/name',
+        value: 'bug',
+      },
+    ])
+  })
 })
