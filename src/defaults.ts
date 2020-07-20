@@ -1,7 +1,7 @@
 import { deepClone } from 'fast-json-patch'
 import { LensSource } from './lens-ops'
 import { Patch } from './patch'
-import { JSONSchema7 } from 'json-schema'
+import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
 
 // XXX: ... do we want to keep this?
 export const defaultValuesByType = {
@@ -74,14 +74,24 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
 
       if (!isMakeMap) return op
 
+      const objectProperties = getPropertiesForPath(schema, op.path)
+
       return [
         op,
         // fill in default values for each property on the object
-        ...Object.entries(getPropertiesForPath(schema, op.path)).map(([propName, propSchema]) => {
+        ...Object.entries(objectProperties).map(([propName, propSchema]) => {
+          if (typeof propSchema !== 'object') throw new Error('expected object schema')
           const path = `${op.path}/${propName}`
-          const value = propSchema.hasOwnProperty('default')
-            ? propSchema.default
-            : defaultValuesByType[propSchema.type]
+
+          let value
+
+          if (propSchema.hasOwnProperty('default')) {
+            value = propSchema.default
+          } else {
+            if (typeof propSchema.type !== 'string')
+              throw new Error('only support simple types, no arrays or undefined')
+            value = defaultValuesByType[propSchema.type]
+          }
 
           return { ...op, path, value }
         }),
@@ -92,16 +102,28 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
 
 // given a json schema and a json path to an object field somewhere in that schema,
 // return the json schema for the object being pointed to
-function getPropertiesForPath(schema: JSONSchema7, path: string): JSONSchema7 {
+function getPropertiesForPath(
+  schema: JSONSchema7,
+  path: string
+): { [key: string]: JSONSchema7Definition } {
   const pathComponents = path.split('/').slice(1)
-  return pathComponents.reduce((schema, pathSegment) => {
+  const properties = pathComponents.reduce((schema: JSONSchema7, pathSegment: string) => {
     if (schema.type === 'object') {
-      return schema[pathSegment]
+      const schemaForProperty = schema.properties && schema.properties[pathSegment]
+      if (typeof schemaForProperty !== 'object') throw new Error('Expected object')
+      return schemaForProperty
     } else if (schema.type === 'array') {
       // throw away the array index, just return the schema for array items
-      return schema.items
+      if (!schema.items || typeof schema.items !== 'object')
+        throw new Error('Expected array items to have types')
+
+      // todo: revisit this "as", was a huge pain to get this past TS
+      return schema.items as JSONSchema7
     } else {
       throw new Error('Expected object or array in schema based on JSON Pointer')
     }
-  }, schema)
+  }, schema).properties
+
+  if (properties === undefined) return {}
+  return properties
 }

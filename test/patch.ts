@@ -719,7 +719,7 @@ describe('default value initialization', () => {
   }
   const v1Schema = updateSchema(emptySchema, v1Lens)
 
-  it.only('fills in defaults on a patch that adds a new array item', () => {
+  it('fills in defaults on a patch that adds a new array item', () => {
     const patchOp: PatchOp = {
       op: 'add',
       path: '/tags/123',
