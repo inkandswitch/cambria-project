@@ -1,11 +1,5 @@
 import assert from 'assert'
-import {
-  Patch,
-  applyLensToPatch,
-  PatchOp,
-  expandPatch,
-  applyLensToPatchWithSchema,
-} from '../src/patch'
+import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
 import { convertDoc, updateSchema } from '../src/index'
 import { LensSource } from '../src/lens-ops'
 import {
@@ -734,7 +728,7 @@ describe('default value initialization', () => {
       value: { name: 'bug' },
     }
 
-    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
       {
         op: 'add',
         path: '/tags/123',
@@ -765,7 +759,7 @@ describe('default value initialization', () => {
       value: 'bug',
     }
 
-    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [patchOp])
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [patchOp])
   })
 
   it('recursively fills in defaults from the root', () => {
@@ -775,7 +769,7 @@ describe('default value initialization', () => {
       value: {},
     }
 
-    assert.deepEqual(applyLensToPatchWithSchema([], [patchOp], v1Schema), [
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
       {
         op: 'add',
         path: '',
@@ -825,7 +819,7 @@ describe('default value initialization', () => {
 
     const v2Schema = updateSchema(v1Schema, v1Tov2Lens)
 
-    assert.deepEqual(applyLensToPatchWithSchema(v1Tov2Lens, [patchOp], v2Schema), [
+    assert.deepEqual(applyLensToPatch(v1Tov2Lens, [patchOp], v2Schema), [
       {
         op: 'add',
         path: '/labels/123',
