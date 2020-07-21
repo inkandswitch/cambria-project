@@ -51,24 +51,29 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
           if (typeof propSchema !== 'object') throw new Error('expected object schema')
           const path = `${op.path}/${propName}`
 
-          let value
-
-          if (propSchema.hasOwnProperty('default')) {
-            value = propSchema.default
-          } else {
-            if (typeof propSchema.type !== 'string')
-              throw new Error('only support simple types, no arrays or undefined')
-
-            // TODO: actually, seems like we shouldn't do this --
-            // we should only fill in defaults if they are in the json schema.
-            // (should we also only fill in for required fields?)
-            value = defaultValuesByType[propSchema.type]
+          // Fill in a default iff:
+          // 1) it's an object or array: init to empty
+          // 2) it's another type and there's a default value set.
+          // TODO: is this right?
+          // Should we allow defaulting containers to non-empty? seems like no.
+          // Should we fill in "default defaults" like empty string?
+          // I think better to let the json schema explicitly define defaults
+          let defaultValue
+          if (propSchema.type === 'object') {
+            defaultValue = {}
+          } else if (propSchema.type === 'array') {
+            defaultValue = []
+          } else if (propSchema.hasOwnProperty('default')) {
+            defaultValue = propSchema.default
           }
 
-          // todo: how can we remove this type assertion?
-          // we already know this at this point, but typescript forgets it.
-          if (op.op !== 'add' && op.op !== 'replace') throw new Error('')
-          return addDefaultValues([{ ...op, path, value }], schema)
+          if (defaultValue !== undefined) {
+            // todo: this is a TS hint, see if we can remove
+            if (op.op !== 'add' && op.op !== 'replace') throw new Error('')
+            return addDefaultValues([{ ...op, path, value: defaultValue }], schema)
+          } else {
+            return []
+          }
         }),
       ].flat(Infinity)
     })

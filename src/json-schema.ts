@@ -44,6 +44,9 @@ function addProperty(schema: JSONSchema7, property: Property) {
 }
 
 function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSchema7 {
+  if (typeof schema !== 'object') {
+    throw new Error('expected schema object')
+  }
   const { properties = {}, required = [] } = schema // extract properties with default of empty
   const { [from]: propDetails, ...rest } = properties // pull out the old value
 

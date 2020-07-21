@@ -44,18 +44,25 @@ export function convertDoc(
   const patchForOriginalDoc = compare({}, inputDoc)
 
   // convert the patch through the lens
+  const outputPatch = applyLensToPatch(lensSource, patchForOriginalDoc, inputSchema)
   const outputSchema = updateSchema(inputSchema, lensSource)
-  const outputPatch = applyLensToPatch(lensSource, patchForOriginalDoc, outputSchema)
+
+  // construct the "base" upon which we will apply the patches from doc.
+  // We start with the default object for the output schema,
+  // then we add in any existing fields on the target doc.
+  // TODO: I think we need to deep merge here, can't just shallow merge?
+  const base = Object.assign(defaultObjectForSchema(outputSchema), targetDoc || {})
 
   // return a doc based on the converted patch.
   // (start with either a specified baseDoc, or just empty doc)
-  return applyPatch(targetDoc || {}, outputPatch).newDocument
+  return applyPatch(base, outputPatch).newDocument
 }
 
+// given a patch, returns a new patch that has had the lens applied to it.
 export function applyLensToPatch(
   lensSource: LensSource,
   patch: Patch,
-  readerSchema: JSONSchema7
+  patchSchema: JSONSchema7 // the json schema for the doc the patch was operating on
 ): Patch {
   // expand patches that set nested objects into scalar patches
   const expandedPatch: Patch = patch.map((op) => expandPatch(op)).flat()
@@ -64,6 +71,9 @@ export function applyLensToPatch(
   const lensedPatch = noNulls<PatchOp>(
     expandedPatch.map((patchOp) => applyLensToPatchOp(lensSource, patchOp))
   )
+
+  // add in default values needed (based on the new schema after lensing)
+  const readerSchema = updateSchema(patchSchema, lensSource)
   const lensedPatchWithDefaults = addDefaultValues(lensedPatch, readerSchema)
 
   return lensedPatchWithDefaults
