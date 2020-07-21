@@ -5,7 +5,7 @@
 export { updateSchema } from './json-schema'
 export { compile, convertDoc, applyLensToPatch, Patch, CompiledLens } from './patch'
 export { LensSource, LensOp, Property } from './lens-ops'
-export { defaultObjectForLens } from './defaults'
+export { defaultObjectForSchema } from './defaults'
 export { reverseLens } from './reverse'
 
 // TODO: delete js syntax, remove these

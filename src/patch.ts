@@ -1,8 +1,9 @@
 import { Operation, compare, applyPatch } from 'fast-json-patch'
 import { LensSource, LensOp } from './lens-ops'
 import { reverseLens } from './reverse'
-import { defaultObjectForLens, addDefaultValues } from './defaults'
+import { addDefaultValues, defaultObjectForSchema } from './defaults'
 import { JSONSchema7 } from 'json-schema'
+import { updateSchema } from './json-schema'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
 // can we actually find a way to keep it around and typecheck patches against a type?
@@ -33,23 +34,28 @@ export function compile(lensSource: LensSource): { right: CompiledLens; left: Co
 }
 
 // utility function: converts a document (rather than a patch) through a lens
-export function convertDoc(doc: any, lensSource: LensSource, baseDoc?: any) {
+export function convertDoc(
+  inputDoc: any,
+  inputSchema: JSONSchema7,
+  lensSource: LensSource,
+  targetDoc?: any
+) {
   // build up a patch that creates the document
-  const patchForOriginalDoc = compare({}, doc)
+  const patchForOriginalDoc = compare({}, inputDoc)
 
   // convert the patch through the lens
-  const convertedPatch = applyLensToPatch(lensSource, patchForOriginalDoc, {})
+  const outputPatch = applyLensToPatch(lensSource, patchForOriginalDoc, {})
+  const outputSchema = updateSchema(inputSchema, lensSource)
 
   // construct the "base" upon which we will apply the patches from doc.
-  // it's a combination of default fields for the lens,
-  // and an existing "base doc" which we merge the converted doc into.
-  // base doc is helpful in cases where, for example, doc doesn't have all the fields in the
-  // target schema, so baseDoc needs to define those missing fields.
-  const base = Object.assign(defaultObjectForLens(lensSource), baseDoc || {})
+  // We start with the default object for the output schema,
+  // then we add in any existing fields on the target doc.
+  // TODO: I think we need to deep merge here, can't just shallow merge?
+  const base = Object.assign(defaultObjectForSchema(outputSchema), targetDoc || {})
 
   // return a doc based on the converted patch.
   // (start with either a specified baseDoc, or just empty doc)
-  return applyPatch(base, convertedPatch).newDocument
+  return applyPatch(base, outputPatch).newDocument
 }
 
 export function applyLensToPatch(lensSource: LensSource, patch: Patch, destinationDoc: any): Patch {

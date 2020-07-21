@@ -227,3 +227,13 @@ export function updateSchema(schema: JSONSchema7, lens: LensSource): JSONSchema7
     schema as JSONSchema7
   )
 }
+
+export function schemaForLens(lens: LensSource) {
+  const emptySchema = {
+    $schema: 'http://json-schema.org/draft-07/schema',
+    type: 'object' as const,
+    additionalProperties: false,
+  }
+
+  return updateSchema(emptySchema, lens)
+}
