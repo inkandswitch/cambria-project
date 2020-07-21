@@ -2,7 +2,7 @@
 // partially because schema graph traversal still lives outside in Chitin.
 // See how much we can narrow this.
 
-export { updateSchema } from './json-schema'
+export { updateSchema, schemaForLens } from './json-schema'
 export { compile, convertDoc, applyLensToPatch, Patch, CompiledLens } from './patch'
 export { LensSource, LensOp, Property } from './lens-ops'
 export { defaultObjectForSchema } from './defaults'
