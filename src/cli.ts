@@ -53,6 +53,9 @@ if (program.reverse) {
   lens = reverseLens(lens)
 }
 
-const newDoc = convertDoc(doc, lens, baseDoc)
+// TODO: need to actually use an input schema here --
+// either 1) take it as an arg, 2) generate it from the data
+const inputSchema = {}
+const newDoc = convertDoc(doc, inputSchema, lens, baseDoc)
 
 console.log(JSON.stringify(newDoc, null, 4))
