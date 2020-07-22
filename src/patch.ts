@@ -4,6 +4,7 @@ import { reverseLens } from './reverse'
 import { addDefaultValues, defaultObjectForSchema } from './defaults'
 import { JSONSchema7 } from 'json-schema'
 import { updateSchema } from './json-schema'
+import GenerateSchema from 'generate-schema'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
 // can we actually find a way to keep it around and typecheck patches against a type?
@@ -33,15 +34,24 @@ export function compile(lensSource: LensSource): { right: CompiledLens; left: Co
   }
 }
 
+// generate an inferred JSON Schema for a document
+function generateSchema(doc): JSONSchema7 {
+  return GenerateSchema.json(doc)
+}
+
 // utility function: converts a document (rather than a patch) through a lens
 export function applyLensToDoc(
   lensSource: LensSource,
   inputDoc: any,
-  inputSchema: JSONSchema7,
+  inputSchema?: JSONSchema7,
   targetDoc?: any
 ) {
   // build up a patch that creates the document
   const patchForOriginalDoc = compare({}, inputDoc)
+
+  if (inputSchema === undefined || inputSchema === null) {
+    inputSchema = generateSchema(inputDoc)
+  }
 
   // convert the patch through the lens
   const outputPatch = applyLensToPatch(lensSource, patchForOriginalDoc, inputSchema)

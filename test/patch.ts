@@ -926,9 +926,7 @@ describe('default value initialization', () => {
       value: { name: 'bug' },
     }
 
-    const v2Schema = updateSchema(v1Schema, v1Tov2Lens)
-
-    assert.deepEqual(applyLensToPatch(v1Tov2Lens, [patchOp], v2Schema), [
+    assert.deepEqual(applyLensToPatch(v1Tov2Lens, [patchOp], v1Schema), [
       {
         op: 'add',
         path: '/labels/123',
@@ -955,5 +953,42 @@ describe('default value initialization', () => {
         value: 'bug',
       },
     ])
+  })
+})
+
+describe('inferring schemas from documents', () => {
+  const doc = {
+    name: 'hello',
+    details: {
+      age: 23,
+      height: 64,
+    },
+  }
+
+  it('infers a schema when converting a doc', () => {
+    const lens = [inside('details', [renameProperty('height', 'heightInches')])]
+
+    assert.deepEqual(applyLensToDoc(lens, doc), {
+      ...doc,
+      details: {
+        age: 23,
+        heightInches: 64,
+      },
+    })
+  })
+
+  // We should do more here, but this is the bare minimum test of whether schema inference
+  // is actually working at all.
+  // If our lens tries to rename a nonexistent field, it should throw an error.
+  it("throws if the lens doesn't match the doc's inferred schema", () => {
+    const lens = [renameProperty('nonexistent', 'ghost')]
+    assert.throws(
+      () => {
+        applyLensToDoc(lens, doc)
+      },
+      {
+        message: /Rename error/,
+      }
+    )
   })
 })

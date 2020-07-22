@@ -12,6 +12,7 @@
   "dependencies": {
     "commander": "^5.1.0",
     "fast-json-patch": "^3.0.0-1",
+    "generate-schema": "^2.6.0",
     "is-url": "^1.2.4",
     "js-yaml": "^3.14.0",
     "json-schema": "^0.2.5",

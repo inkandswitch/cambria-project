@@ -50,6 +50,8 @@ function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSche
   const { properties = {}, required = [] } = schema // extract properties with default of empty
   const { [from]: propDetails, ...rest } = properties // pull out the old value
 
+  if (propDetails === undefined) throw new Error(`Rename error: missing expected property ${from}`)
+
   return {
     ...schema,
     properties: { [to]: propDetails, ...rest },
@@ -108,7 +110,6 @@ function mapSchema(schema: JSONSchema7, lens: LensSource) {
 }
 
 function wrapProperty(schema, op: WrapProperty) {
-  console.log('wrap')
   // create an array property, stuff the existing schema info inside the array type
   return addProperty(schema, {
     name: op.name,

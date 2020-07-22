@@ -49,7 +49,7 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
         op,
         // fill in default values for each property on the object
         ...Object.entries(objectProperties).map(([propName, propSchema]) => {
-          if (typeof propSchema !== 'object') throw new Error('expected object schema')
+          if (typeof propSchema !== 'object') throw new Error(`Missing property ${propName}`)
           const path = `${op.path}/${propName}`
 
           // Fill in a default iff:
