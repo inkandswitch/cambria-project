@@ -37,6 +37,7 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
     .map((op) => {
       const isMakeMap =
         (op.op === 'add' || op.op === 'replace') &&
+        op.value !== null &&
         typeof op.value === 'object' &&
         Object.entries(op.value).length === 0
 

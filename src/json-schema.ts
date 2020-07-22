@@ -75,12 +75,19 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
 
 function inSchema(schema: JSONSchema7, name: string, lens: LensSource) {
   const { properties = {} } = schema
+
+  const host = properties[name] as JSONSchema7
+
+  if (host === undefined) {
+    throw new Error(`Expected to find property ${name} in ${Object.keys(schema.properties || {})}`)
+  }
+
   return {
     ...schema,
     properties: {
       ...properties,
       // XXX: This cast is WRONGBAD, remove it and figure out why we needed it
-      [name]: updateSchema(properties[name] as JSONSchema7, lens),
+      [name]: updateSchema(host, lens),
     },
   }
 }
@@ -225,10 +232,10 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
   }
 }
 export function updateSchema(schema: JSONSchema7, lens: LensSource): JSONSchema7 {
-  return lens.reduce<JSONSchema7>(
-    (schema: JSONSchema7, op: LensOp) => applyLensOperation(schema, op),
-    schema as JSONSchema7
-  )
+  return lens.reduce<JSONSchema7>((schema: JSONSchema7, op: LensOp) => {
+    if (schema === undefined) throw new Error("Can't update undefined schema")
+    return applyLensOperation(schema, op)
+  }, schema as JSONSchema7)
 }
 
 export function schemaForLens(lens: LensSource) {

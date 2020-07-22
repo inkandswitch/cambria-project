@@ -68,6 +68,13 @@ const projectV1Schema = <const>{
       },
     },
     complete: { type: 'boolean' as const },
+    metadata: {
+      type: 'object',
+      properties: {
+        createdAt: { type: 'number', default: 123 },
+        updatedAt: { type: 'number', default: 123 },
+      },
+    },
   },
 }
 
@@ -145,6 +152,10 @@ describe('field rename', () => {
       description: '',
       name: 'hello',
       tasks: [],
+      metadata: {
+        createdAt: 123,
+        updatedAt: 123,
+      },
     })
   })
 })
@@ -395,111 +406,146 @@ describe('hoist (object)', () => {
   })
 })
 
-// describe('plunge (object)', () => {
-//   const lensSource: LensSource = [plungeProperty('metadata', 'title')]
+describe('plunge (object)', () => {
+  const lensSource: LensSource = [plungeProperty('metadata', 'title')]
 
-//   it('pushes a field into its child', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(
-//         lensSource,
-//         [
-//           {
-//             op: 'replace' as const,
-//             path: '/title',
-//             value: 'Fun project',
-//           },
-//         ],
-//         projectV1Schema
-//       ),
-//       [{ op: 'replace' as const, path: '/metadata/title', value: 'Fun project' }]
-//     )
-//   })
-// })
+  it('pushes a field into its child', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/title',
+            value: 'Fun project',
+          },
+        ],
+        projectV1Schema
+      ),
+      [{ op: 'replace' as const, path: '/metadata/title', value: 'Fun project' }]
+    )
+  })
+})
 
-// describe('wrap (scalar to array)', () => {
-//   const lensSource: LensSource = [wrapProperty('assignee')]
+describe('wrap (scalar to array)', () => {
+  const docSchema = <const>{
+    $schema: 'http://json-schema.org/draft-07/schema',
+    type: 'object' as const,
+    additionalProperties: false,
+    properties: {
+      assignee: { type: 'string' },
+    },
+  }
+  const lensSource: LensSource = [wrapProperty('assignee')]
 
-//   it('converts head set value into 0th element writes into its child', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee',
-//           value: 'July 7th, 2020',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' }]
-//     )
-//   })
+  it('converts head set value into 0th element writes into its child', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee',
+            value: 'July 7th, 2020',
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' }]
+    )
+  })
 
-//   // todo: many possible options for how to handle this.
-//   // We've chosen this one for now based on implementation simplicity.
-//   // Consider other options:
-//   // https://github.com/inkandswitch/cambria/blob/default/conversations/converting-scalar-to-arrays.md
-//   it('converts head null write into a null write on first element', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee',
-//           value: null,
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignee/0', value: null }]
-//     )
-//   })
+  // todo: many possible options for how to handle this.
+  // We've chosen this one for now based on implementation simplicity.
+  // Consider other options:
+  // https://github.com/inkandswitch/cambria/blob/default/conversations/converting-scalar-to-arrays.md
+  it('converts head null write into a null write on first element', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee',
+            value: null,
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee/0', value: null }]
+    )
+  })
 
-//   it('handles a wrap followed by a rename', () => {
-//     const lensSource: LensSource = [
-//       wrapProperty('assignee'),
-//       renameProperty('assignee', 'assignees'),
-//     ]
+  it('handles a wrap followed by a rename', () => {
+    const lensSource: LensSource = [
+      wrapProperty('assignee'),
+      renameProperty('assignee', 'assignees'),
+    ]
 
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee',
-//           value: 'pvh',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignees/0', value: 'pvh' }]
-//     )
-//   })
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee',
+            value: 'pvh',
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignees/0', value: 'pvh' }]
+    )
+  })
 
-//   it('converts nested values into 0th element writes into its child', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee/name',
-//           value: 'Orion',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignee/0/name', value: 'Orion' }]
-//     )
-//   })
+  it('converts nested values into 0th element writes into its child', () => {
+    const docSchema = <const>{
+      $schema: 'http://json-schema.org/draft-07/schema',
+      type: 'object' as const,
+      additionalProperties: false,
+      properties: {
+        assignee: { type: 'object', properties: { name: { type: 'string' } } },
+      },
+    }
 
-//   describe('reverse direction', () => {
-//     // this duplicates the tests of head;
-//     // and is just a sanity check that the reverse isn't totally broken.
-//     // (could be also tested independently, but this is a nice backup)
-//     it('converts array first element write into a write on the scalar', () => {
-//       assert.deepEqual(
-//         applyLensToPatch(reverseLens(lensSource), [
-//           { op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' },
-//         ]),
-//         [
-//           {
-//             op: 'replace' as const,
-//             path: '/assignee',
-//             value: 'July 7th, 2020',
-//           },
-//         ]
-//       )
-//     })
-//   })
-// })
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee/name',
+            value: 'Orion',
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee/0/name', value: 'Orion' }]
+    )
+  })
+
+  describe('reverse direction', () => {
+    // this duplicates the tests of head;
+    // and is just a sanity check that the reverse isn't totally broken.
+    // (could be also tested independently, but this is a nice backup)
+    it('converts array first element write into a write on the scalar', () => {
+      assert.deepEqual(
+        applyLensToPatch(
+          reverseLens(lensSource),
+          [{ op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' }],
+          updateSchema(docSchema, lensSource)
+        ),
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee',
+            value: 'July 7th, 2020',
+          },
+        ]
+      )
+    })
+  })
+})
 
 // describe('head (array to nullable scalar)', () => {
 //   const lensSource: LensSource = [headProperty('assignee')]
