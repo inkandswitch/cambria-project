@@ -19,15 +19,23 @@ import { schemaForLens } from '../src/json-schema'
 
 export interface ProjectV1 {
   title: string
-  tasks: string[]
+  tasks: { title: string }[]
   complete: boolean
+  metadata: {
+    createdAt: number
+    updatedAt: number
+  }
 }
 
 export interface ProjectV2 {
   name: string
   description: string
-  issues: string[]
+  issues: { title: string }[]
   status: string
+  metadata: {
+    createdAt: number
+    updatedAt: number
+  }
 }
 
 const lensSource: LensSource = [
@@ -44,18 +52,24 @@ const lensSource: LensSource = [
   ),
 ]
 
-const projectV1Schema = {
+const projectV1Schema = <const>{
   $schema: 'http://json-schema.org/draft-07/schema',
   type: 'object' as const,
   additionalProperties: false,
   properties: {
     title: { type: 'string' as const },
-    tasks: { type: 'array' as const, items: { type: 'string' as const } },
+    tasks: {
+      type: 'array' as const,
+      items: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+        },
+      },
+    },
     complete: { type: 'boolean' as const },
   },
 }
-
-const projectV2Schema = updateSchema(projectV1Schema, lensSource)
 
 // ======================================
 // Create some documents
@@ -64,14 +78,22 @@ const projectV2Schema = updateSchema(projectV1Schema, lensSource)
 // Start with two project documents in the corresponding formats
 const projectV1: ProjectV1 = {
   title: 'hello',
-  tasks: ['walk dog', 'do laundry'],
+  tasks: [{ title: 'walk dog' }, { title: 'do laundry' }],
   complete: false,
+  metadata: {
+    createdAt: 0,
+    updatedAt: 1,
+  },
 }
 const projectV2: ProjectV2 = {
   name: 'hello',
-  issues: ['walk dog', 'do laundry'],
+  issues: [{ title: 'walk dog' }, { title: 'do laundry' }],
   description: 'a great project',
   status: 'todo',
+  metadata: {
+    createdAt: 0,
+    updatedAt: 1,
+  },
 }
 
 // ======================================
@@ -106,9 +128,14 @@ describe('field rename', () => {
       },
     ]
 
-    assert.deepEqual(applyLensToPatch(reverseLens(lensSource), editNameV2, projectV2Schema), [
-      { op: 'replace', path: '/title', value: 'new name' },
-    ])
+    assert.deepEqual(
+      applyLensToPatch(
+        reverseLens(lensSource),
+        editNameV2,
+        updateSchema(projectV1Schema, lensSource)
+      ),
+      [{ op: 'replace', path: '/title', value: 'new name' }]
+    )
   })
 
   it('works with whole doc conversion too', () => {
@@ -132,7 +159,11 @@ describe('add field', () => {
       },
     ]
     assert.deepEqual(
-      applyLensToPatch(reverseLens(lensSource), editDescription, projectV2Schema),
+      applyLensToPatch(
+        reverseLens(lensSource),
+        editDescription,
+        updateSchema(projectV1Schema, lensSource)
+      ),
       []
     )
   })
@@ -166,9 +197,14 @@ describe('value conversion', () => {
       },
     ]
 
-    assert.deepEqual(applyLensToPatch(reverseLens(lensSource), setStatus, projectV2Schema), [
-      { op: 'replace', path: '/complete', value: false },
-    ])
+    assert.deepEqual(
+      applyLensToPatch(
+        reverseLens(lensSource),
+        setStatus,
+        updateSchema(projectV1Schema, lensSource)
+      ),
+      [{ op: 'replace', path: '/complete', value: false }]
+    )
   })
 
   it('handles a value conversion and a rename in the same lens', () => {
@@ -299,67 +335,83 @@ describe('nested objects', () => {
   })
 })
 
-// describe('arrays', () => {
-//   // renaming tasks/n/title to tasks/n/name
-//   const lensSource: LensSource = [inside('tasks', [map([renameProperty('title', 'name')])])]
+describe('arrays', () => {
+  // renaming tasks/n/title to tasks/n/name
+  const lensSource: LensSource = [inside('tasks', [map([renameProperty('title', 'name')])])]
 
-//   it('renames a field in an array element', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/tasks/23/title',
-//           value: 'hello',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/tasks/23/name', value: 'hello' }]
-//     )
-//   })
+  it('renames a field in an array element', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/tasks/23/title',
+            value: 'hello',
+          },
+        ],
+        projectV1Schema
+      ),
+      [{ op: 'replace' as const, path: '/tasks/23/name', value: 'hello' }]
+    )
+  })
 
-//   it('renames a field in the left direction', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(reverseLens(lensSource), [
-//         {
-//           op: 'replace' as const,
-//           path: '/tasks/23/name',
-//           value: 'hello',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/tasks/23/title', value: 'hello' }]
-//     )
-//   })
-// })
+  it('renames a field in the left direction', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        reverseLens(lensSource),
+        [
+          {
+            op: 'replace' as const,
+            path: '/tasks/23/name',
+            value: 'hello',
+          },
+        ],
+        updateSchema(projectV1Schema, lensSource)
+      ),
+      [{ op: 'replace' as const, path: '/tasks/23/title', value: 'hello' }]
+    )
+  })
+})
 
-// describe('hoist (object)', () => {
-//   const lensSource: LensSource = [hoistProperty('metadata', 'created_at')]
+describe('hoist (object)', () => {
+  const lensSource: LensSource = [hoistProperty('metadata', 'created_at')]
 
-//   it('pulls a field up to its parent', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/metadata/created_at',
-//           value: 'July 7th, 2020',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/created_at', value: 'July 7th, 2020' }]
-//     )
-//   })
-// })
+  it('pulls a field up to its parent', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/metadata/created_at',
+            value: 'July 7th, 2020',
+          },
+        ],
+        projectV1Schema
+      ),
+      [{ op: 'replace' as const, path: '/created_at', value: 'July 7th, 2020' }]
+    )
+  })
+})
 
 // describe('plunge (object)', () => {
-//   const lensSource: LensSource = [plungeProperty('metadata', 'created_at')]
+//   const lensSource: LensSource = [plungeProperty('metadata', 'title')]
 
 //   it('pushes a field into its child', () => {
 //     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/created_at',
-//           value: 'July 7th, 2020',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/metadata/created_at', value: 'July 7th, 2020' }]
+//       applyLensToPatch(
+//         lensSource,
+//         [
+//           {
+//             op: 'replace' as const,
+//             path: '/title',
+//             value: 'Fun project',
+//           },
+//         ],
+//         projectV1Schema
+//       ),
+//       [{ op: 'replace' as const, path: '/metadata/title', value: 'Fun project' }]
 //     )
 //   })
 // })
