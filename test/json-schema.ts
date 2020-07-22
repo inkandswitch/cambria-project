@@ -306,6 +306,32 @@ describe('transforming a json schema', () => {
         },
       })
     })
+
+    it('can wrap an object into an array', () => {
+      const newSchema = updateSchema(v1Schema, [
+        addProperty({ name: 'assignee', type: 'object' }),
+        inside('assignee', [
+          addProperty({ name: 'id', type: 'string' }),
+          addProperty({ name: 'name', type: 'string' }),
+        ]),
+        wrapProperty('assignee'),
+      ])
+
+      assert.deepEqual(newSchema.properties, {
+        ...v1Schema.properties,
+        assignee: {
+          type: 'array',
+          default: [],
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', default: '' },
+              id: { type: 'string', default: '' },
+            },
+          },
+        },
+      })
+    })
   })
 
   describe('hoistProperty', () => {
@@ -335,6 +361,36 @@ describe('transforming a json schema', () => {
         createdAt: {
           type: 'number',
           default: 0,
+        },
+      })
+    })
+
+    it('hoists up an object with child properties', () => {
+      // hoist up a details object out of metadata
+      const newSchema = updateSchema(v1Schema, [
+        addProperty({ name: 'metadata', type: 'object' }),
+        inside('metadata', [
+          addProperty({ name: 'details', type: 'object' }),
+          inside('details', [addProperty({ name: 'title', type: 'string' })]),
+        ]),
+        hoistProperty('metadata', 'details'),
+      ])
+
+      assert.deepEqual(newSchema.properties, {
+        ...v1Schema.properties,
+        metadata: {
+          type: 'object',
+          default: {},
+          properties: {},
+          required: [],
+        },
+        details: {
+          type: 'object',
+          default: {},
+          properties: {
+            title: { type: 'string', default: '' },
+          },
+          required: ['title'],
         },
       })
     })
@@ -372,6 +428,45 @@ describe('transforming a json schema', () => {
             },
           },
           required: ['createdAt', 'editedAt', 'summary'],
+        },
+      })
+    })
+
+    it('plunges an object down with its child properties', () => {
+      // plunge metadata object into a container object
+      const newSchema = updateSchema(v1Schema, [
+        addProperty({ name: 'container', type: 'object' }),
+        addProperty({ name: 'metadata', type: 'object' }),
+        inside('metadata', [
+          addProperty({ name: 'createdAt', type: 'number' }),
+          addProperty({ name: 'editedAt', type: 'number' }),
+        ]),
+        plungeProperty('container', 'metadata'),
+      ])
+
+      assert.deepEqual(newSchema.properties, {
+        ...v1Schema.properties,
+        container: {
+          type: 'object',
+          default: {},
+          required: ['metadata'],
+          properties: {
+            metadata: {
+              type: 'object',
+              default: {},
+              properties: {
+                createdAt: {
+                  type: 'number',
+                  default: 0,
+                },
+                editedAt: {
+                  type: 'number',
+                  default: 0,
+                },
+              },
+              required: ['createdAt', 'editedAt', 'summary'],
+            },
+          },
         },
       })
     })
