@@ -4,8 +4,9 @@
 import githubIssue from './github-issue.json'
 import { applyLensToDoc } from '../src/patch'
 import assert from 'assert'
+import { reverseLens } from '../src/reverse'
 
-describe('converting github issue to arthropod format', () => {
+describe('renaming title, and hoisting label name to category', () => {
   const lens = [
     { op: 'rename' as const, source: 'title', destination: 'name' },
     { op: 'head' as const, name: 'labels' },
@@ -23,12 +24,32 @@ describe('converting github issue to arthropod format', () => {
     },
   ]
 
-  it('converts the doc', () => {
+  it('converts the doc forwards', () => {
     const { title: _title, labels: _labels, ...rest } = githubIssue
     assert.deepEqual(applyLensToDoc(lens, githubIssue), {
       ...rest,
       name: githubIssue.title,
       category: githubIssue.labels[0].name,
+    })
+  })
+
+  it('converts the doc backwards, merging with the original doc', () => {
+    const newArthropod = {
+      name: 'Changed the name',
+      category: 'Bug',
+    }
+
+    const newGithub = applyLensToDoc(reverseLens(lens), newArthropod, undefined, githubIssue)
+
+    assert.deepEqual(newGithub, {
+      ...githubIssue,
+      title: 'Changed the name',
+      labels: [
+        {
+          ...githubIssue.labels[0],
+          name: 'Bug',
+        },
+      ],
     })
   })
 })
