@@ -125,6 +125,18 @@ describe('field rename', () => {
     ])
   })
 
+  it('does not rename another property that starts with same string', () => {
+    const editTitleBla: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/title_bla',
+        value: 'new title',
+      },
+    ]
+
+    assert.deepEqual(applyLensToPatch(lensSource, editTitleBla, projectV1Schema), editTitleBla)
+  })
+
   it('converts downwards', () => {
     // We can also use the left lens to convert a v2 patch into a v1 patch
     const editNameV2: Patch = [

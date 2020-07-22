@@ -5,6 +5,7 @@ import { addDefaultValues, defaultObjectForSchema } from './defaults'
 import { JSONSchema7 } from 'json-schema'
 import { updateSchema } from './json-schema'
 import GenerateSchema from 'generate-schema'
+import { inspect } from 'util'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
 // can we actually find a way to keep it around and typecheck patches against a type?
@@ -107,7 +108,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
         // TODO: what about other JSON patch op types?
         // (consider other parts of JSON patch: move / copy / test / remove ?)
         (patchOp.op === 'replace' || patchOp.op === 'add') &&
-        patchOp.path.startsWith(`/${lensOp.source}`)
+        patchOp.path.split('/')[1] === lensOp.source
       ) {
         const path = patchOp.path.replace(lensOp.source, lensOp.destination)
         return { ...patchOp, path }
@@ -148,7 +149,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
 
     case 'head': {
       // break early if we're not handling a write to the array handled by this lens
-      const arrayMatch = patchOp.path.match(new RegExp(`^/${lensOp.name}(.*)`))
+      const arrayMatch = patchOp.path.split('/')[1] === lensOp.name
       if (!arrayMatch) break
 
       // We only care about writes to the head element, nothing else matters
@@ -182,7 +183,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       break
 
     case 'remove':
-      if (patchOp.path.startsWith(`/${lensOp.name}`)) return null
+      if (patchOp.path.split('/')[1] === lensOp.name) return null
       break
 
     case 'in': {
