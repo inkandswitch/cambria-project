@@ -69,7 +69,13 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   const removed = removedPointer
   // we don't care about the `discarded` variable...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+  if (!properties.hasOwnProperty(removed)) {
+    throw new Error(`Attempting to remove nonexistent property: ${removed}`)
+  }
+
   const { [removed]: discarded, ...rest } = properties
+
   return {
     ...schema,
     properties: rest,
