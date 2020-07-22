@@ -143,8 +143,9 @@ function headProperty(schema, op: HeadProperty) {
 function hoistProperty(schema: JSONSchema7, host: string, name: string) {
   const { properties = {} } = schema
 
+  if (!properties.hasOwnProperty(host)) throw new Error(`Missing property to hoist: ${host}`)
   const sourceSchema = properties[host] || {}
-  // we can throw an error here if things are missing?
+
   if (sourceSchema === true || sourceSchema.properties === undefined) {
     // errrr... complain?
     return schema
@@ -157,10 +158,13 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
   }
 
   // add the property to the root schema
-  schema = addProperty(schema, {
-    ...(destinationProperties as Property),
-    name, // bleh, adding the / here is bad...
-  })
+  schema = {
+    ...schema,
+    properties: {
+      ...schema.properties,
+      [name]: sourceSchema.properties[name],
+    },
+  }
 
   // remove it from its current parent
   // PS: ugh
