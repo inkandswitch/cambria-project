@@ -34,10 +34,10 @@ export function compile(lensSource: LensSource): { right: CompiledLens; left: Co
 }
 
 // utility function: converts a document (rather than a patch) through a lens
-export function convertDoc(
+export function applyLensToDoc(
+  lensSource: LensSource,
   inputDoc: any,
   inputSchema: JSONSchema7,
-  lensSource: LensSource,
   targetDoc?: any
 ) {
   // build up a patch that creates the document

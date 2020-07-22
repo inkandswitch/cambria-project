@@ -3,7 +3,7 @@
 // See how much we can narrow this.
 
 export { updateSchema, schemaForLens } from './json-schema'
-export { compile, convertDoc, applyLensToPatch, Patch, CompiledLens } from './patch'
+export { compile, applyLensToDoc, applyLensToPatch, Patch, CompiledLens } from './patch'
 export { LensSource, LensOp, Property } from './lens-ops'
 export { defaultObjectForSchema } from './defaults'
 export { reverseLens } from './reverse'

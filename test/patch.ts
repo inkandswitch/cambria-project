@@ -1,6 +1,6 @@
 import assert from 'assert'
-import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
-import { convertDoc, updateSchema } from '../src/index'
+import { Patch, applyLensToPatch, applyLensToDoc, PatchOp, expandPatch } from '../src/patch'
+import { updateSchema } from '../src/json-schema'
 import { LensSource } from '../src/lens-ops'
 import {
   renameProperty,
@@ -44,6 +44,19 @@ const lensSource: LensSource = [
   ),
 ]
 
+const projectV1Schema = {
+  $schema: 'http://json-schema.org/draft-07/schema',
+  type: 'object' as const,
+  additionalProperties: false,
+  properties: {
+    title: { type: 'string' as const },
+    tasks: { type: 'array' as const, items: { type: 'string' as const } },
+    complete: { type: 'boolean' as const },
+  },
+}
+
+const projectV2Schema = updateSchema(projectV1Schema, lensSource)
+
 // ======================================
 // Create some documents
 // ======================================
@@ -65,134 +78,126 @@ const projectV2: ProjectV2 = {
 // Try sending a patch through the lens
 // ======================================
 
-// describe('field rename', () => {
-//   it('converts upwards', () => {
-//     // Generate an edit from V1: setting the title field
-//     // (todo: try the json patch library's observer as an ergonomic interface?)
-//     const editTitleV1: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/title',
-//         value: 'new title',
-//       },
-//     ]
-//     // test the converted patch
+describe('field rename', () => {
+  it('converts upwards', () => {
+    // Generate an edit from V1: setting the title field
+    // (todo: try the json patch library's observer as an ergonomic interface?)
+    const editTitleV1: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/title',
+        value: 'new title',
+      },
+    ]
+    // test the converted patch
 
-//     assert.deepEqual(applyLensToPatch(lensSource, editTitleV1), [
-//       { op: 'replace', path: '/name', value: 'new title' },
-//     ])
-//   })
+    assert.deepEqual(applyLensToPatch(lensSource, editTitleV1, projectV1Schema), [
+      { op: 'replace', path: '/name', value: 'new title' },
+    ])
+  })
 
-//   it('converts downwards', () => {
-//     // We can also use the left lens to convert a v2 patch into a v1 patch
-//     const editNameV2: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/name',
-//         value: 'new name',
-//       },
-//     ]
+  it('converts downwards', () => {
+    // We can also use the left lens to convert a v2 patch into a v1 patch
+    const editNameV2: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/name',
+        value: 'new name',
+      },
+    ]
 
-//     assert.deepEqual(applyLensToPatch(reverseLens(lensSource), editNameV2), [
-//       { op: 'replace', path: '/title', value: 'new name' },
-//     ])
-//   })
+    assert.deepEqual(applyLensToPatch(reverseLens(lensSource), editNameV2, projectV2Schema), [
+      { op: 'replace', path: '/title', value: 'new name' },
+    ])
+  })
 
-//   it('works with whole doc conversion too', () => {
-//     const v1Schema = {
-//       $schema: 'http://json-schema.org/draft-07/schema',
-//       type: 'object' as const,
-//       additionalProperties: false,
-//       properties: {
-//         title: { type: 'string' as const },
-//         tasks: { type: 'array' as const, items: { type: 'string' as const } },
-//         complete: { type: 'boolean' as const },
-//       },
-//     }
+  it('works with whole doc conversion too', () => {
+    // fills in default values for missing fields
+    assert.deepEqual(applyLensToDoc(lensSource, { title: 'hello' }, projectV1Schema), {
+      complete: '',
+      description: '',
+      name: 'hello',
+      tasks: [],
+    })
+  })
+})
 
-//     // fills in default values for missing fields
-//     assert.deepEqual(convertDoc({ title: 'hello' }, v1Schema, lensSource), {
-//       complete: '',
-//       description: '',
-//       name: 'hello',
-//       tasks: [],
-//     })
-//   })
-// })
+describe('add field', () => {
+  it('becomes an empty patch when reversed', () => {
+    const editDescription: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/description',
+        value: 'going swimmingly',
+      },
+    ]
+    assert.deepEqual(
+      applyLensToPatch(reverseLens(lensSource), editDescription, projectV2Schema),
+      []
+    )
+  })
+})
 
-// describe('add field', () => {
-//   it('becomes an empty patch when reversed', () => {
-//     const editDescription: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/description',
-//         value: 'going swimmingly',
-//       },
-//     ]
-//     assert.deepEqual(applyLensToPatch(reverseLens(lensSource), editDescription), [])
-//   })
-// })
+// ======================================
+// Demo more complex conversions than a rename: todo boolean case
+// ======================================
 
-// // ======================================
-// // Demo more complex conversions than a rename: todo boolean case
-// // ======================================
+describe('value conversion', () => {
+  it('converts from a boolean to a string enum', () => {
+    const setComplete: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/complete',
+        value: true,
+      },
+    ]
 
-// describe('value conversion', () => {
-//   it('converts from a boolean to a string enum', () => {
-//     const setComplete: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/complete',
-//         value: true,
-//       },
-//     ]
+    assert.deepEqual(applyLensToPatch(lensSource, setComplete, projectV1Schema), [
+      { op: 'replace', path: '/complete', value: 'done' },
+    ])
+  })
 
-//     assert.deepEqual(applyLensToPatch(lensSource, setComplete), [
-//       { op: 'replace', path: '/complete', value: 'done' },
-//     ])
-//   })
+  it('reverse converts from a string enum to a boolean', () => {
+    const setStatus: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/complete',
+        value: 'inProgress',
+      },
+    ]
 
-//   it('reverse converts from a string enum to a boolean', () => {
-//     const setStatus: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/complete',
-//         value: 'inProgress',
-//       },
-//     ]
+    assert.deepEqual(applyLensToPatch(reverseLens(lensSource), setStatus, projectV2Schema), [
+      { op: 'replace', path: '/complete', value: false },
+    ])
+  })
 
-//     assert.deepEqual(applyLensToPatch(reverseLens(lensSource), setStatus), [
-//       { op: 'replace', path: '/complete', value: false },
-//     ])
-//   })
+  it('handles a value conversion and a rename in the same lens', () => {
+    const lensSource = [
+      renameProperty('complete', 'status'),
+      convertValue(
+        'status',
+        [
+          { false: 'todo', true: 'done' },
+          { todo: false, inProgress: false, done: true },
+        ],
+        'boolean',
+        'string'
+      ),
+    ]
 
-//   it('handles a value conversion and a rename in the same lens', () => {
-//     const lensSource = [
-//       renameProperty('complete', 'status'),
-//       convertValue(
-//         'status',
-//         [
-//           { false: 'todo', true: 'done' },
-//           { todo: false, inProgress: false, done: true },
-//         ],
-//         'boolean',
-//         'string'
-//       ),
-//     ]
+    const setComplete: Patch = [
+      {
+        op: 'replace' as const,
+        path: '/complete',
+        value: true,
+      },
+    ]
 
-//     const setComplete: Patch = [
-//       {
-//         op: 'replace' as const,
-//         path: '/complete',
-//         value: true,
-//       },
-//     ]
-
-//     assert.deepEqual(applyLensToPatch(lensSource, setComplete), [
-//       { op: 'replace', path: '/status', value: 'done' },
-//     ])
-//   })
-// })
+    assert.deepEqual(applyLensToPatch(lensSource, setComplete, projectV1Schema), [
+      { op: 'replace', path: '/status', value: 'done' },
+    ])
+  })
+})
 
 describe('nested objects', () => {
   describe('singly nested object', () => {
@@ -234,8 +239,8 @@ describe('nested objects', () => {
       ])
     })
 
-    it.only('works with whole doc conversion', () => {
-      assert.deepEqual(convertDoc({ metadata: { title: 'hello' } }, docSchema, lensSource), {
+    it('works with whole doc conversion', () => {
+      assert.deepEqual(applyLensToDoc(lensSource, { metadata: { title: 'hello' } }, docSchema), {
         metadata: { name: 'hello' },
         otherparent: { title: '' },
       })
