@@ -125,10 +125,13 @@ function wrapProperty(schema, op: WrapProperty) {
 }
 
 function headProperty(schema, op: HeadProperty) {
-  return addProperty(schema, {
-    name: op.name,
-    ...schema.properties[op.name].items,
-  })
+  return {
+    ...schema,
+    properties: {
+      ...schema.properties,
+      [op.name]: schema.properties[op.name].items,
+    },
+  }
 }
 
 function hoistProperty(schema: JSONSchema7, host: string, name: string) {

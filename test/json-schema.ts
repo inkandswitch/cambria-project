@@ -262,7 +262,7 @@ describe('transforming a json schema', () => {
 
       assert.deepEqual(newSchema.properties, {
         ...v1Schema.properties,
-        assignees: { type: 'string', default: '' },
+        assignees: { type: 'string' },
       })
     })
 
@@ -273,16 +273,18 @@ describe('transforming a json schema', () => {
         headProperty('assignees'),
       ])
 
-      assert.deepEqual(newSchema.properties, {
+      const expectedSchema = {
         ...v1Schema.properties,
         assignees: {
           type: 'object',
-          default: {},
           properties: {
-            name: 'string',
+            name: { type: 'string', default: '' },
           },
+          required: ['name'],
         },
-      })
+      }
+
+      assert.deepEqual(newSchema.properties, expectedSchema)
     })
   })
 
