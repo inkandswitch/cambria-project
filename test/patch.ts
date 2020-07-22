@@ -398,7 +398,7 @@ describe('arrays', () => {
 })
 
 describe('hoist (object)', () => {
-  const lensSource: LensSource = [hoistProperty('metadata', 'created_at')]
+  const lensSource: LensSource = [hoistProperty('metadata', 'createdAt')]
 
   it('pulls a field up to its parent', () => {
     assert.deepEqual(
@@ -407,13 +407,13 @@ describe('hoist (object)', () => {
         [
           {
             op: 'replace' as const,
-            path: '/metadata/created_at',
+            path: '/metadata/createdAt',
             value: 'July 7th, 2020',
           },
         ],
         projectV1Schema
       ),
-      [{ op: 'replace' as const, path: '/created_at', value: 'July 7th, 2020' }]
+      [{ op: 'replace' as const, path: '/createdAt', value: 'July 7th, 2020' }]
     )
   })
 })
