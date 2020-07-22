@@ -50,7 +50,9 @@ function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSche
   const { properties = {}, required = [] } = schema // extract properties with default of empty
   const { [from]: propDetails, ...rest } = properties // pull out the old value
 
-  if (propDetails === undefined) throw new Error(`Rename error: missing expected property ${from}`)
+  if (propDetails === undefined) {
+    throw new Error(`Rename error: missing expected property ${from}`)
+  }
 
   return {
     ...schema,

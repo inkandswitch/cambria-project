@@ -265,6 +265,25 @@ describe('transforming a json schema', () => {
         assignees: { type: 'string', default: '' },
       })
     })
+
+    it('can preserve schema information for an array of objects becoming a single object', () => {
+      const newSchema = updateSchema(v1Schema, [
+        addProperty({ name: 'assignees', type: 'array', arrayItemType: 'object' }),
+        inside('assignees', [map([addProperty({ name: 'name', type: 'string' })])]),
+        headProperty('assignees'),
+      ])
+
+      assert.deepEqual(newSchema.properties, {
+        ...v1Schema.properties,
+        assignees: {
+          type: 'object',
+          default: {},
+          properties: {
+            name: 'string',
+          },
+        },
+      })
+    })
   })
 
   describe('wrapProperty', () => {

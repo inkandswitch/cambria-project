@@ -9,18 +9,18 @@ describe('converting github issue to arthropod format', () => {
   const lens = [
     { op: 'rename' as const, source: 'title', destination: 'name' },
     { op: 'head' as const, name: 'labels' },
-    // {
-    //   op: 'in' as const,
-    //   name: 'labels',
-    //   lens: [{ op: 'rename' as const, source: 'name', destination: 'category' }],
-    // },
-    // { op: 'hoist' as const, host: 'labels', name: 'category' },
-    // {
-    //   op: 'remove' as const,
-    //   name: 'labels',
-    //   type: 'array' as const,
-    //   arrayItemType: 'string' as const,
-    // },
+    {
+      op: 'in' as const,
+      name: 'labels',
+      lens: [{ op: 'rename' as const, source: 'name', destination: 'category' }],
+    },
+    { op: 'hoist' as const, host: 'labels', name: 'category' },
+    {
+      op: 'remove' as const,
+      name: 'labels',
+      type: 'array' as const,
+      arrayItemType: 'string' as const,
+    },
   ]
 
   it('converts the doc', () => {
@@ -28,7 +28,7 @@ describe('converting github issue to arthropod format', () => {
     assert.deepEqual(applyLensToDoc(lens, githubIssue), {
       ...rest,
       name: githubIssue.title,
-      labels: githubIssue.labels[0],
+      category: githubIssue.labels[0].name,
     })
   })
 })
