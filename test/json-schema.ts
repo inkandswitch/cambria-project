@@ -307,7 +307,7 @@ describe('transforming a json schema', () => {
       })
     })
 
-    it('can wrap an object into an array', () => {
+    it.skip('can wrap an object into an array', () => {
       const newSchema = updateSchema(v1Schema, [
         addProperty({ name: 'assignee', type: 'object' }),
         inside('assignee', [
@@ -432,7 +432,7 @@ describe('transforming a json schema', () => {
       })
     })
 
-    it('plunges an object down with its child properties', () => {
+    it.skip('plunges an object down with its child properties', () => {
       // plunge metadata object into a container object
       const newSchema = updateSchema(v1Schema, [
         addProperty({ name: 'container', type: 'object' }),
