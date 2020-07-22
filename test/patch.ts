@@ -547,378 +547,413 @@ describe('wrap (scalar to array)', () => {
   })
 })
 
-// describe('head (array to nullable scalar)', () => {
-//   const lensSource: LensSource = [headProperty('assignee')]
+describe('head (array to nullable scalar)', () => {
+  const docSchema = <const>{
+    $schema: 'http://json-schema.org/draft-07/schema',
+    type: 'object' as const,
+    additionalProperties: false,
+    properties: {
+      assignee: { type: 'array', items: { type: 'string' } },
+    },
+  }
+  const lensSource: LensSource = [headProperty('assignee')]
 
-//   it('converts head set value into 0th element writes into its child', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee/0',
-//           value: 'Peter',
-//         },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignee', value: 'Peter' }]
-//     )
-//   })
+  it('converts head set value into 0th element writes into its child', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee/0',
+            value: 'Peter',
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee', value: 'Peter' }]
+    )
+  })
 
-//   it('converts a write on other elements to a no-op', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee/1',
-//           value: 'Peter',
-//         },
-//       ]),
-//       []
-//     )
-//   })
+  it('converts a write on other elements to a no-op', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'replace' as const,
+            path: '/assignee/1',
+            value: 'Peter',
+          },
+        ],
+        docSchema
+      ),
+      []
+    )
+  })
 
-//   it('converts array first element delete into a null write on the scalar', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [{ op: 'remove' as const, path: '/assignee/0' }]),
-//       [{ op: 'replace' as const, path: '/assignee', value: null }]
-//     )
-//   })
+  it('converts array first element delete into a null write on the scalar', () => {
+    assert.deepEqual(
+      applyLensToPatch(lensSource, [{ op: 'remove' as const, path: '/assignee/0' }], docSchema),
+      [{ op: 'replace' as const, path: '/assignee', value: null }]
+    )
+  })
 
-//   it('preserves the rest of the path after the array index', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         { op: 'replace' as const, path: '/assignee/0/age', value: 23 },
-//       ]),
-//       [{ op: 'replace' as const, path: '/assignee/age', value: 23 }]
-//     )
-//   })
+  it('preserves the rest of the path after the array index', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [{ op: 'replace' as const, path: '/assignee/0/age', value: 23 }],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee/age', value: 23 }]
+    )
+  })
 
-//   it('correctly handles a sequence of array writes', () => {
-//     assert.deepEqual(
-//       applyLensToPatch(lensSource, [
-//         // set array to ['geoffrey', 'orion']
-//         { op: 'add' as const, path: '/assignee/0', value: 'geoffrey' },
-//         { op: 'add' as const, path: '/assignee/1', value: 'orion' },
+  it('correctly handles a sequence of array writes', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          // set array to ['geoffrey', 'orion']
+          { op: 'add' as const, path: '/assignee/0', value: 'geoffrey' },
+          { op: 'add' as const, path: '/assignee/1', value: 'orion' },
 
-//         // remove geoffrey from the array
-//         // in our current naive json patch observer, this comes out as below.
-//         // (this isn't a good patch format given crdt problems, but it's convenient for now
-//         // because the patch itself gives us the new head value)
-//         { op: 'remove' as const, path: '/assignee/1' },
-//         { op: 'replace' as const, path: '/assignee/0', value: 'orion' },
-//       ]),
-//       [
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee',
-//           value: 'geoffrey',
-//         },
-//         {
-//           op: 'replace' as const,
-//           path: '/assignee',
-//           value: 'orion',
-//         },
-//       ]
-//     )
-//   })
+          // remove geoffrey from the array
+          // in our current naive json patch observer, this comes out as below.
+          // (this isn't a good patch format given crdt problems, but it's convenient for now
+          // because the patch itself gives us the new head value)
+          { op: 'remove' as const, path: '/assignee/1' },
+          { op: 'replace' as const, path: '/assignee/0', value: 'orion' },
+        ],
+        docSchema
+      ),
+      [
+        {
+          op: 'replace' as const,
+          path: '/assignee',
+          value: 'geoffrey',
+        },
+        {
+          op: 'replace' as const,
+          path: '/assignee',
+          value: 'orion',
+        },
+      ]
+    )
+  })
 
-//   describe('reverse direction', () => {
-//     // this duplicates the tests of head;
-//     // and is just a sanity check that the reverse isn't totally broken.
-//     // (could be also tested independently, but this is a nice backup)
+  describe('reverse direction', () => {
+    // this duplicates the tests of wrap;
+    // and is just a sanity check that the reverse isn't totally broken.
+    // (could be also tested independently, but this is a nice backup)
 
-//     it('converts head set value into 0th element writes into its child', () => {
-//       assert.deepEqual(
-//         applyLensToPatch(reverseLens(lensSource), [
-//           {
-//             op: 'replace' as const,
-//             path: '/assignee',
-//             value: 'July 7th, 2020',
-//           },
-//         ]),
-//         [{ op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' }]
-//       )
-//     })
-//   })
-// })
+    const docSchema = <const>{
+      $schema: 'http://json-schema.org/draft-07/schema',
+      type: 'object' as const,
+      additionalProperties: false,
+      properties: {
+        assignee: { type: 'string' },
+      },
+    }
 
-// describe('patch expander', () => {
-//   it('expands a patch that sets an object', () => {
-//     const setObject: PatchOp = {
-//       op: 'replace' as const,
-//       path: '/obj',
-//       value: { a: { b: 5 } },
-//     }
+    it('converts head set value into 0th element writes into its child', () => {
+      assert.deepEqual(
+        applyLensToPatch(
+          reverseLens(lensSource),
+          [
+            {
+              op: 'replace' as const,
+              path: '/assignee',
+              value: 'July 7th, 2020',
+            },
+          ],
+          docSchema
+        ),
+        [{ op: 'replace' as const, path: '/assignee/0', value: 'July 7th, 2020' }]
+      )
+    })
+  })
+})
 
-//     assert.deepEqual(expandPatch(setObject), [
-//       {
-//         op: 'replace' as const,
-//         path: '/obj',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a/b',
-//         value: 5,
-//       },
-//     ])
-//   })
+describe('patch expander', () => {
+  it('expands a patch that sets an object', () => {
+    const setObject: PatchOp = {
+      op: 'replace' as const,
+      path: '/obj',
+      value: { a: { b: 5 } },
+    }
 
-//   it('works with multiple keys', () => {
-//     const setObject: PatchOp = {
-//       op: 'replace' as const,
-//       path: '/obj',
-//       value: { a: { b: 5, c: { d: 6 } } },
-//     }
+    assert.deepEqual(expandPatch(setObject), [
+      {
+        op: 'replace' as const,
+        path: '/obj',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a/b',
+        value: 5,
+      },
+    ])
+  })
 
-//     assert.deepEqual(expandPatch(setObject), [
-//       {
-//         op: 'replace' as const,
-//         path: '/obj',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a/b',
-//         value: 5,
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a/c',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/a/c/d',
-//         value: 6,
-//       },
-//     ])
-//   })
+  it('works with multiple keys', () => {
+    const setObject: PatchOp = {
+      op: 'replace' as const,
+      path: '/obj',
+      value: { a: { b: 5, c: { d: 6 } } },
+    }
 
-//   it('expands a patch that sets an array', () => {
-//     const setObject: PatchOp = {
-//       op: 'replace' as const,
-//       path: '/obj',
-//       value: ['hello', 'world'],
-//     }
+    assert.deepEqual(expandPatch(setObject), [
+      {
+        op: 'replace' as const,
+        path: '/obj',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a/b',
+        value: 5,
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a/c',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/a/c/d',
+        value: 6,
+      },
+    ])
+  })
 
-//     assert.deepEqual(expandPatch(setObject), [
-//       {
-//         op: 'replace' as const,
-//         path: '/obj',
-//         value: [],
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/0',
-//         value: 'hello',
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/obj/1',
-//         value: 'world',
-//       },
-//     ])
+  it('expands a patch that sets an array', () => {
+    const setObject: PatchOp = {
+      op: 'replace' as const,
+      path: '/obj',
+      value: ['hello', 'world'],
+    }
 
-//     // deepEqual returns true for {} === []; so we need to double check ourselves
-//     assert(Array.isArray(expandPatch(setObject)[0].value))
-//   })
+    assert.deepEqual(expandPatch(setObject), [
+      {
+        op: 'replace' as const,
+        path: '/obj',
+        value: [],
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/0',
+        value: 'hello',
+      },
+      {
+        op: 'replace' as const,
+        path: '/obj/1',
+        value: 'world',
+      },
+    ])
 
-//   it('works recursively with objects and arrays', () => {
-//     const setObject: PatchOp = {
-//       op: 'replace' as const,
-//       path: '',
-//       value: { tasks: [{ name: 'hello' }, { name: 'world' }] },
-//     }
+    // deepEqual returns true for {} === []; so we need to double check ourselves
+    assert(Array.isArray(expandPatch(setObject)[0].value))
+  })
 
-//     assert.deepEqual(expandPatch(setObject), [
-//       {
-//         op: 'replace' as const,
-//         path: '',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/tasks',
-//         value: [],
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/tasks/0',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/tasks/0/name',
-//         value: 'hello',
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/tasks/1',
-//         value: {},
-//       },
-//       {
-//         op: 'replace' as const,
-//         path: '/tasks/1/name',
-//         value: 'world',
-//       },
-//     ])
-//   })
-// })
+  it('works recursively with objects and arrays', () => {
+    const setObject: PatchOp = {
+      op: 'replace' as const,
+      path: '',
+      value: { tasks: [{ name: 'hello' }, { name: 'world' }] },
+    }
 
-// describe('default value initialization', () => {
-//   // one lens that creates objects inside of arrays and other objects
-//   const v1Lens: LensSource = [
-//     addProperty({ name: 'tags', type: 'array', arrayItemType: 'object', default: [] }),
-//     inside('tags', [
-//       map([
-//         addProperty({ name: 'name', type: 'string', default: '' }),
-//         addProperty({ name: 'color', type: 'string', default: '#ffffff' }),
-//       ]),
-//     ]),
-//     addProperty({ name: 'metadata', type: 'object', default: {} }),
-//     inside('metadata', [
-//       addProperty({ name: 'title', type: 'string', default: '' }),
-//       addProperty({ name: 'flags', type: 'object', default: {} }),
-//       inside('flags', [addProperty({ name: 'O_CREATE', type: 'boolean', default: true })]),
-//     ]),
-//   ]
+    assert.deepEqual(expandPatch(setObject), [
+      {
+        op: 'replace' as const,
+        path: '',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/tasks',
+        value: [],
+      },
+      {
+        op: 'replace' as const,
+        path: '/tasks/0',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/tasks/0/name',
+        value: 'hello',
+      },
+      {
+        op: 'replace' as const,
+        path: '/tasks/1',
+        value: {},
+      },
+      {
+        op: 'replace' as const,
+        path: '/tasks/1/name',
+        value: 'world',
+      },
+    ])
+  })
+})
 
-//   const v1Schema = schemaForLens(v1Lens)
+describe('default value initialization', () => {
+  // one lens that creates objects inside of arrays and other objects
+  const v1Lens: LensSource = [
+    addProperty({ name: 'tags', type: 'array', arrayItemType: 'object', default: [] }),
+    inside('tags', [
+      map([
+        addProperty({ name: 'name', type: 'string', default: '' }),
+        addProperty({ name: 'color', type: 'string', default: '#ffffff' }),
+      ]),
+    ]),
+    addProperty({ name: 'metadata', type: 'object', default: {} }),
+    inside('metadata', [
+      addProperty({ name: 'title', type: 'string', default: '' }),
+      addProperty({ name: 'flags', type: 'object', default: {} }),
+      inside('flags', [addProperty({ name: 'O_CREATE', type: 'boolean', default: true })]),
+    ]),
+  ]
 
-//   it('fills in defaults on a patch that adds a new array item', () => {
-//     const patchOp: PatchOp = {
-//       op: 'add',
-//       path: '/tags/123',
-//       value: { name: 'bug' },
-//     }
+  const v1Schema = schemaForLens(v1Lens)
 
-//     assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
-//       {
-//         op: 'add',
-//         path: '/tags/123',
-//         value: {},
-//       },
-//       {
-//         op: 'add',
-//         path: '/tags/123/name',
-//         value: '',
-//       },
-//       {
-//         op: 'add',
-//         path: '/tags/123/color',
-//         value: '#ffffff',
-//       },
-//       {
-//         op: 'add',
-//         path: '/tags/123/name',
-//         value: 'bug',
-//       },
-//     ])
-//   })
+  it('fills in defaults on a patch that adds a new array item', () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123',
+      value: { name: 'bug' },
+    }
 
-//   it("doesn't expand a patch on an object key that already exists", () => {
-//     const patchOp: PatchOp = {
-//       op: 'add',
-//       path: '/tags/123/name',
-//       value: 'bug',
-//     }
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
+      {
+        op: 'add',
+        path: '/tags/123',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/tags/123/name',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/tags/123/color',
+        value: '#ffffff',
+      },
+      {
+        op: 'add',
+        path: '/tags/123/name',
+        value: 'bug',
+      },
+    ])
+  })
 
-//     assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [patchOp])
-//   })
+  it("doesn't expand a patch on an object key that already exists", () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123/name',
+      value: 'bug',
+    }
 
-//   it('recursively fills in defaults from the root', () => {
-//     const patchOp: PatchOp = {
-//       op: 'add',
-//       path: '',
-//       value: {},
-//     }
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [patchOp])
+  })
 
-//     assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
-//       {
-//         op: 'add',
-//         path: '',
-//         value: {},
-//       },
-//       {
-//         op: 'add',
-//         path: '/tags',
-//         value: [],
-//       },
-//       {
-//         op: 'add',
-//         path: '/metadata',
-//         value: {},
-//       },
-//       {
-//         op: 'add',
-//         path: '/metadata/title',
-//         value: '',
-//       },
-//       {
-//         op: 'add',
-//         path: '/metadata/flags',
-//         value: {},
-//       },
-//       {
-//         op: 'add',
-//         path: '/metadata/flags/O_CREATE',
-//         value: true,
-//       },
-//     ])
-//   })
+  it('recursively fills in defaults from the root', () => {
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '',
+      value: {},
+    }
 
-//   it('works correctly when properties are spread across multiple lenses', () => {
-//     const v1Tov2Lens = [
-//       renameProperty('tags', 'labels'),
-//       inside('labels', [
-//         map([addProperty({ name: 'important', type: 'boolean', default: false })]),
-//       ]),
-//     ]
+    assert.deepEqual(applyLensToPatch([], [patchOp], v1Schema), [
+      {
+        op: 'add',
+        path: '',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/tags',
+        value: [],
+      },
+      {
+        op: 'add',
+        path: '/metadata',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/metadata/title',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/metadata/flags',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/metadata/flags/O_CREATE',
+        value: true,
+      },
+    ])
+  })
 
-//     const patchOp: PatchOp = {
-//       op: 'add',
-//       path: '/tags/123',
-//       value: { name: 'bug' },
-//     }
+  it('works correctly when properties are spread across multiple lenses', () => {
+    const v1Tov2Lens = [
+      renameProperty('tags', 'labels'),
+      inside('labels', [
+        map([addProperty({ name: 'important', type: 'boolean', default: false })]),
+      ]),
+    ]
 
-//     const v2Schema = updateSchema(v1Schema, v1Tov2Lens)
+    const patchOp: PatchOp = {
+      op: 'add',
+      path: '/tags/123',
+      value: { name: 'bug' },
+    }
 
-//     assert.deepEqual(applyLensToPatch(v1Tov2Lens, [patchOp], v2Schema), [
-//       {
-//         op: 'add',
-//         path: '/labels/123',
-//         value: {},
-//       },
-//       {
-//         op: 'add',
-//         path: '/labels/123/name',
-//         value: '',
-//       },
-//       {
-//         op: 'add',
-//         path: '/labels/123/color',
-//         value: '#ffffff',
-//       },
-//       {
-//         op: 'add',
-//         path: '/labels/123/important',
-//         value: false,
-//       },
-//       {
-//         op: 'add',
-//         path: '/labels/123/name',
-//         value: 'bug',
-//       },
-//     ])
-//   })
-// })
+    const v2Schema = updateSchema(v1Schema, v1Tov2Lens)
+
+    assert.deepEqual(applyLensToPatch(v1Tov2Lens, [patchOp], v2Schema), [
+      {
+        op: 'add',
+        path: '/labels/123',
+        value: {},
+      },
+      {
+        op: 'add',
+        path: '/labels/123/name',
+        value: '',
+      },
+      {
+        op: 'add',
+        path: '/labels/123/color',
+        value: '#ffffff',
+      },
+      {
+        op: 'add',
+        path: '/labels/123/important',
+        value: false,
+      },
+      {
+        op: 'add',
+        path: '/labels/123/name',
+        value: 'bug',
+      },
+    ])
+  })
+})
