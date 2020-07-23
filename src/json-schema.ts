@@ -8,6 +8,7 @@ import {
   AddProperty,
   HeadProperty,
   WrapProperty,
+  LensIn,
 } from './lens-ops'
 
 // add a property to a schema
@@ -87,8 +88,13 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   }
 }
 
-function inSchema(schema: JSONSchema7, name: string, lens: LensSource) {
+function inSchema(schema: JSONSchema7, op: LensIn) {
   const { properties = {} } = schema
+  const { name, lens } = op
+
+  if (!name) {
+    throw new Error(`Expected to find property ${name} in ${Object.keys(op || {})}`)
+  }
 
   const host = properties[name] as JSONSchema7
 
@@ -172,7 +178,7 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
 
   // remove it from its current parent
   // PS: ugh
-  schema = inSchema(schema, host, [{ op: 'remove', name, type: 'null' }])
+  schema = inSchema(schema, { op: 'in', name: host, lens: [{ op: 'remove', name, type: 'null' }] })
 
   return schema
 }
@@ -189,13 +195,17 @@ function plungeProperty(schema: JSONSchema7, host: string, name: string) {
   }
 
   // add the property to the root schema
-  schema = inSchema(schema, host, [
-    {
-      op: 'add',
-      ...(destinationTypeProperties as Property),
-      name,
-    },
-  ])
+  schema = inSchema(schema, {
+    op: 'in',
+    name: host,
+    lens: [
+      {
+        op: 'add',
+        ...(destinationTypeProperties as Property),
+        name,
+      },
+    ],
+  })
 
   // remove it from its current parent
   // PS: ugh
@@ -241,7 +251,7 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
     case 'rename':
       return renameProperty(schema, op.source, op.destination)
     case 'in':
-      return inSchema(schema, op.name, op.lens)
+      return inSchema(schema, op)
     case 'map':
       return mapSchema(schema, op.lens)
     case 'wrap':
