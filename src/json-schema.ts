@@ -106,7 +106,6 @@ function inSchema(schema: JSONSchema7, op: LensIn) {
     ...schema,
     properties: {
       ...properties,
-      // XXX: This cast is WRONGBAD, remove it and figure out why we needed it
       [name]: updateSchema(host, lens),
     },
   }
