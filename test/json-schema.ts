@@ -132,6 +132,13 @@ describe('transforming a json schema', () => {
 
       assert.deepEqual(newSchema, v1Schema)
     })
+
+    it('fails when presented with invalid data', () => {
+      const badData: any = { garbage: 'input' }
+      assert.throws(() => {
+        updateSchema(v1Schema, [addProperty(badData)])
+      }, `Missing property destinationType in 'convert'.\nFound:\n${JSON.stringify(badData)}`)
+    })
   })
 
   describe('inside', () => {

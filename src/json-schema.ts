@@ -205,16 +205,24 @@ function plungeProperty(schema: JSONSchema7, host: string, name: string) {
 }
 
 function convertValue(schema: JSONSchema7, lensOp: ConvertValue) {
-  // if there's no type conversion, nothing to do on the schema
-  if (!lensOp.destinationType) return schema
+  const { name, destinationType, mapping } = lensOp
+  if (!destinationType) {
+    return schema
+  }
+  if (!name) {
+    throw new Error(`Missing property name in 'convert'.\nFound:\n${JSON.stringify(lensOp)}`)
+  }
+  if (!mapping) {
+    throw new Error(`Missing mapping for 'convert'.\nFound:\n${JSON.stringify(lensOp)}`)
+  }
 
   return {
     ...schema,
     properties: {
       ...schema.properties,
-      [lensOp.name]: {
-        type: lensOp.destinationType,
-        default: defaultValuesByType[lensOp.destinationType],
+      [name]: {
+        type: destinationType,
+        default: defaultValuesByType[destinationType],
       },
     },
   }
