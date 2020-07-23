@@ -69,6 +69,13 @@ describe('transforming a json schema', () => {
 
       assert.deepEqual(newSchema.required, [...(v1Schema.required || []), 'description'])
     })
+
+    it('fails when presented with invalid data', () => {
+      const badData: any = { garbage: 'input' }
+      assert.throws(() => {
+        updateSchema(v1Schema, [addProperty(badData)])
+      }, `Missing property name in addProperty.\nFound:\n${JSON.stringify(badData)}`)
+    })
   })
 
   describe('renameProperty', () => {

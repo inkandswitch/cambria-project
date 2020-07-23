@@ -20,6 +20,10 @@ function addProperty(schema: JSONSchema7, property: Property) {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
   const { name, type, arrayItemType, required: isPropertyRequired } = property
 
+  if (!name || !type) {
+    throw new Error(`Missing property name in addProperty.\nFound:\n${JSON.stringify(property)}`)
+  }
+
   const arraylessPropertyDefinition = {
     type,
     default: property.default || defaultValuesByType[type], // default is a reserved keyword
