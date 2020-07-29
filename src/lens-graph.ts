@@ -22,6 +22,13 @@ export function registerLens({ graph }: LensGraph, from: string, to: string, len
     throw new RangeError(`unknown schema ${from}`)
   }
 
+  const existingLens = graph.edge({ v: from, w: to })
+  if (existingLens) {
+    // we could assert this? assert.deepEqual(existingLens, lenses)
+    // we've already registered a lens on this edge, hope it's the same one!
+    return { graph }
+  }
+
   if (graph.node(to)) {
     throw new RangeError(`already have a schema named ${to}`)
   }
