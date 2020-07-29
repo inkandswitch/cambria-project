@@ -11,6 +11,12 @@ import {
   LensIn,
 } from './lens-ops'
 
+export const emptySchema = {
+  $schema: 'http://json-schema.org/draft-07/schema',
+  type: 'object' as const,
+  additionalProperties: false,
+}
+
 // add a property to a schema
 // note: property names are in json pointer with leading /
 // (because that's how our Property types work for now)
