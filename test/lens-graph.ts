@@ -55,9 +55,10 @@ describe('registering lenses', () => {
   })
 
   it('should compose a lens from a path', () => {
-    const graph = Lenses.reduce<LensGraph>((graph, { from, to, lens }) => {
-      return registerLens(graph, from, to, lens)
-    }, initLensGraph())
+    const graph = Lenses.reduce<LensGraph>(
+      (graph, { from, to, lens }) => registerLens(graph, from, to, lens),
+      initLensGraph()
+    )
 
     const lens = lensFromTo(graph, 'V1', 'V3')
     assert.deepEqual(lens, [...LensV1toV2, ...LensV2toV3])
