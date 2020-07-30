@@ -156,6 +156,18 @@ function headProperty(schema, op: HeadProperty) {
 }
 
 function hoistProperty(schema: JSONSchema7, host: string, name: string) {
+  if (schema.properties === undefined) {
+    throw new Error(`Can't hoist when root schema isn't an object`)
+  }
+
+  if (schema.properties[host] === undefined) {
+    throw new Error(`Can't hoist out of nonexistent host property: ${host}`)
+  }
+
+  if (schema.properties[host][name] === undefined) {
+    throw new Error(`Can't hoist nonexistent property: ${host}/${name}`)
+  }
+
   const { properties = {} } = schema
 
   if (!properties.hasOwnProperty(host)) throw new Error(`Missing property to hoist: ${host}`)
@@ -183,6 +195,7 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
 
   // remove it from its current parent
   // PS: ugh
+
   schema = inSchema(schema, { op: 'in', name: host, lens: [{ op: 'remove', name, type: 'null' }] })
 
   return schema
