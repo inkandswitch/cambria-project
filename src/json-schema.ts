@@ -160,11 +160,18 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
     throw new Error(`Can't hoist when root schema isn't an object`)
   }
 
-  if (schema.properties[host] === undefined) {
+  const hostSchema = schema.properties[host]
+
+  if (hostSchema === undefined) {
     throw new Error(`Can't hoist out of nonexistent host property: ${host}`)
   }
 
-  if (schema.properties[host][name] === undefined) {
+  if (
+    typeof hostSchema === 'boolean' ||
+    hostSchema === undefined ||
+    hostSchema.properties === undefined ||
+    hostSchema.properties[name] === undefined
+  ) {
     throw new Error(`Can't hoist nonexistent property: ${host}/${name}`)
   }
 
