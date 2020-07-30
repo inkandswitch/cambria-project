@@ -446,6 +446,12 @@ describe('transforming a json schema', () => {
       })
     })
 
+    it('fails when presented with invalid data', () => {
+      assert.throws(() => {
+        updateSchema(v1Schema, [plungeProperty('metadata', 'nosaj-thing')])
+      }, /Could not find a property called nosaj-thing among/)
+    })
+
     it.skip('plunges an object down with its child properties', () => {
       // plunge metadata object into a container object
       const newSchema = updateSchema(v1Schema, [

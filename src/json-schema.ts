@@ -192,7 +192,12 @@ function plungeProperty(schema: JSONSchema7, host: string, name: string) {
   // XXXX what should we do for missing child properties? error?
   const { properties = {} } = schema
 
-  const destinationTypeProperties = properties[name] || {}
+  const destinationTypeProperties = properties[name]
+
+  if (!destinationTypeProperties) {
+    throw new Error(`Could not find a property called ${name} among ${properties}`)
+  }
+
   // we can throw an error here if things are missing?
   if (destinationTypeProperties === true) {
     // errrr... complain?
