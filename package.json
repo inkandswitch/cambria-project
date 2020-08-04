@@ -17,9 +17,7 @@
     "is-url": "^1.2.4",
     "js-yaml": "^3.14.0",
     "json-schema": "^0.2.5",
-    "quicktype-core": "^6.0.66",
-    "tsc": "^1.20150623.0",
-    "typescript": "^3.9.6"
+    "quicktype-core": "^6.0.66"
   },
   "devDependencies": {
     "@types/graphlib": "^2.1.6",
@@ -35,6 +33,7 @@
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-prettier": "^3.1.4",
     "mocha": "^8.0.1",
-    "ts-node": "^8.10.2"
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
   }
 }
