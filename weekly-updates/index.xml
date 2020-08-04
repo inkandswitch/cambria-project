@@ -156,7 +156,10 @@ Raw op log  ─────┤  key: &#34;title&#34;,   ├───┤  key: &#
 &lt;li&gt;&lt;strong&gt;Incremental op application:&lt;/strong&gt; Automerge batches individual &amp;ldquo;operations&amp;rdquo; on a document into &amp;ldquo;changes&amp;rdquo; which are applied atomically. The trouble is, in order to convert a change with a lens, sometimes operations need to reference structures that were created earlier in the change. We deal with this by maintaining special forked Automerge documents where we apply each operation as its own change.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;CRDTs and type conversions?&lt;/strong&gt; One area we haven&amp;rsquo;t fully explored yet is the intersection of CRDT properties with structure-converting lenses. For example, when a lens converts a list to a scalar property, how does concurrent edit resolution behave?&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;That&amp;rsquo;s it for this week. Only two weeks left in the project, so look forward to a fuller writeup in the near future!&lt;/p&gt;
+&lt;h2 id=&#34;bringing-it-all-together&#34;&gt;Bringing it all together&lt;/h2&gt;
+&lt;p&gt;OK, that&amp;rsquo;s it for this week. Time flies, two weeks left in the project!&lt;/p&gt;
+&lt;p&gt;In the final stretch, we&amp;rsquo;re aiming to bring together all the ingredients we&amp;rsquo;ve developed over the past eight weeks into a compelling demo of &lt;a href=&#34;../week-1&#34;&gt;the original project vision&lt;/a&gt;. To do that, we&amp;rsquo;re migrating our Arthropod issue tracker sample app to sit on top of these new foundations, which in turn requires rewiring &lt;a href=&#34;https://github.com/automerge/hypermerge&#34;&gt;Hypermerge&lt;/a&gt; to talk to this new lens-augmented Automerge. Once we have that up and running, our plan is to collect examples of how lens conversions and distributed editing come together in useful ways.&lt;/p&gt;
+&lt;p&gt;Our other focus will be putting together a writeup that explains the whole project with more detail and clarity than these weekly updates, so look forward to that soon.&lt;/p&gt;
 </content>
     </item>
     

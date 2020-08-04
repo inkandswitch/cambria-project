@@ -42,7 +42,7 @@ Previously, on Cambria In our last update, we shared some details on the lens la
 Previously, on Cambria In our last update, we shared some details on the lens language we&rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format.">
 <meta itemprop="datePublished" content="2020-08-02T12:05:58-07:00" />
 <meta itemprop="dateModified" content="2020-08-02T12:05:58-07:00" />
-<meta itemprop="wordCount" content="2045">
+<meta itemprop="wordCount" content="2154">
 
 
 
@@ -252,7 +252,10 @@ Raw op log  ─────┤  key: "title",   ├───┤  key: "name",   
 <li><strong>Incremental op application:</strong> Automerge batches individual &ldquo;operations&rdquo; on a document into &ldquo;changes&rdquo; which are applied atomically. The trouble is, in order to convert a change with a lens, sometimes operations need to reference structures that were created earlier in the change. We deal with this by maintaining special forked Automerge documents where we apply each operation as its own change.</li>
 <li><strong>CRDTs and type conversions?</strong> One area we haven&rsquo;t fully explored yet is the intersection of CRDT properties with structure-converting lenses. For example, when a lens converts a list to a scalar property, how does concurrent edit resolution behave?</li>
 </ul>
-<p>That&rsquo;s it for this week. Only two weeks left in the project, so look forward to a fuller writeup in the near future!</p>
+<h2 id="bringing-it-all-together">Bringing it all together</h2>
+<p>OK, that&rsquo;s it for this week. Time flies, two weeks left in the project!</p>
+<p>In the final stretch, we&rsquo;re aiming to bring together all the ingredients we&rsquo;ve developed over the past eight weeks into a compelling demo of <a href="../week-1">the original project vision</a>. To do that, we&rsquo;re migrating our Arthropod issue tracker sample app to sit on top of these new foundations, which in turn requires rewiring <a href="https://github.com/automerge/hypermerge">Hypermerge</a> to talk to this new lens-augmented Automerge. Once we have that up and running, our plan is to collect examples of how lens conversions and distributed editing come together in useful ways.</p>
+<p>Our other focus will be putting together a writeup that explains the whole project with more detail and clarity than these weekly updates, so look forward to that soon.</p>
 <ul class="pa0">
   
 </ul>
