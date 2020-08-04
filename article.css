@@ -88,3 +88,10 @@ aside, figcaption, nav, header>ul li, h1, h2, h3, h4, blockquote, figure table, 
 pre, code {
   font-family: 'Fira Mono', monospace;
 }
+
+pre.ascii-diagram {
+  background: none;
+  color: inherit;
+  overflow: visible;
+  line-height: 1em;
+}

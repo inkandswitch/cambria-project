@@ -6,10 +6,159 @@
     <description>Recent content in Cambria on Cambria Development Notes</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Jul 2020 12:05:58 -0700</lastBuildDate>
+    <lastBuildDate>Sun, 02 Aug 2020 12:05:58 -0700</lastBuildDate>
     
 	<atom:link href="http://inkandswitch.github.io/cambria/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Cambria, Weeks Seven and Eight: Final Countdown</title>
+      <link>http://inkandswitch.github.io/cambria/weekly-updates/week-7-8/</link>
+      <pubDate>Sun, 02 Aug 2020 12:05:58 -0700</pubDate>
+      
+      <guid>http://inkandswitch.github.io/cambria/weekly-updates/week-7-8/</guid>
+      <description>Over the last two weeks, we&amp;rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&amp;rsquo;re converging on a working solution.
+Previously, on Cambria In our last update, we shared some details on the lens language we&amp;rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format.</description>
+      <content>&lt;p&gt;Over the last two weeks, we&amp;rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&amp;rsquo;re converging on a working solution.&lt;/p&gt;
+&lt;h2 id=&#34;previously-on-cambria&#34;&gt;Previously, on Cambria&lt;/h2&gt;
+&lt;p&gt;In our &lt;a href=&#34;../week-5-6&#34;&gt;last update&lt;/a&gt;, we shared some details on the lens language we&amp;rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format.&lt;/p&gt;
+&lt;p&gt;Cloudina works well for locally converting a single document, but on its own it doesn&amp;rsquo;t answer &lt;a href=&#34;../week-1&#34;&gt;the broader question&lt;/a&gt; we&amp;rsquo;re interested in: &lt;strong&gt;how can multiple users asynchronously edit the same document, with each client reading/writing in a different schema?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;After a few iterations, around Week 4 we converged on &lt;a href=&#34;../../designs/chitin-v4&#34;&gt;a solution&lt;/a&gt; for this that worked pretty well, except for one fatal flaw: it assumed edits were always applied in the same order on all clients, and had no ability to deal with distributed editing. After considering various options for addressing this, we ultimately decided to integrate our solution with the existing &lt;a href=&#34;https://github.com/automerge/automerge/&#34;&gt;Automerge CRDT system&lt;/a&gt;, which guarantees eventual consistency in the presence of distributed edits.&lt;/p&gt;
+&lt;h2 id=&#34;wrapping-the-automerge-backend&#34;&gt;Wrapping the Automerge Backend&lt;/h2&gt;
+&lt;p&gt;Automerge has a frontend and a backend layer: the frontend sends local change requests to the backend, and receives remote updates from the backend to maintain an up-to-date view of the document. The backend handles all the CRDT logic of processing and resolving changes from collaborators, producing patches for the frontend to apply.&lt;/p&gt;
+&lt;p&gt;We&amp;rsquo;ve added a new Cambria layer in between the frontend and backend. The design goal is to expose (mostly) the same API as the existing Automerge backend to maintain compatibility with the frontend. From the frontend&amp;rsquo;s perspective, there&amp;rsquo;s only a single schema—it sends local changes in that schema and receives patches from remote collaborators in that schema. The Cambria wrapper handles lens conversion, and calls out to the normal Automerge backend for handling CRDT logic.&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+                ┌─────────────────────────────┐               
+                │         Application         │               
+                └────────────────┬────────────┘               
+                            ▲    │                            
+              live updated  │    │  local                     
+             document state │    │ changes                    
+                            │    ▼                            
+                ┌───────────┴─────────────────┐               
+                │     Automerge frontend      │               
+                └────────────────┬────────────┘               
+                            ▲    │                            
+  changes, lensed into this │    │   local                    
+   client&#39;s active schema   │    │  changes                   
+                            │    ▼                            
+           ┏━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━┓         
+           ┃   use Cloudina ▲    │                  ┃         
+           ┃  to convert raw│    │ wrap changes     ┃ Cambria 
+           ┃    changes to  │    │  in schema       ┃ backend 
+           ┃  this client&#39;s │    │   metadata       ┃ wrapper 
+           ┃      schema    │    ▼                  ┃         
+           ┗━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┛         
+                            ▲    │                            
+ raw schema-tagged changes  │    │  schema-tagged changes     
+  and lenses (from remote   │    │     (and lens code)        
+      collaborators)        │    ▼                            
+                ┌───────────┴─────────────────┐               
+                │      Automerge backend      │               
+                └─────────────────────────────┘               
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;Let&amp;rsquo;s explore in more detail what the Cambria wrapper does in each direction.&lt;/p&gt;
+&lt;h2 id=&#34;schema-tagged-writes&#34;&gt;Schema-tagged writes&lt;/h2&gt;
+&lt;p&gt;First, a quick refresher on Automerge. Automerge stores an &amp;ldquo;op log&amp;rdquo; &amp;ndash; a history of all the change operations that have been made to a document. By playing all the changes forward in time, you can recreate the current state of the document. The useful thing that Automerge does on top of this—the reason for its existence—is to ensure that, as long as two users see the same ops on their computers, they will end up seeing the same document state, regardless of the order the ops were played in.&lt;/p&gt;
+&lt;p&gt;In our system, we keep that core idea of an op log, but with a couple small additions.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;We tag changes with schemas. Changes are schema-specific: they refer to property names and object IDs within the data structure they&amp;rsquo;re modifying. So, to be able to convert the change later on, we need to record which schema was used to make the change. To do this, we wrap each change with some metadata recording the ID of the schema used for the write.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;We also store lenses in the document itself. A lens can be expressed as a JSON structure, so we simply record it in the document as a special kind of change. This is critical so that collaborators can share lenses—if Alice starts writing to the document through a new lens, Bob needs a way to retrieve that lens and use it to convert Alice&amp;rsquo;s changes to a format his client understands.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;That&amp;rsquo;s all we do on write. Keeping the write side of the system simple maximizes future flexibility, like lensing into new formats which didn&amp;rsquo;t even exist yet when the change was written. Most of the interesting conversion work happens on read.&lt;/p&gt;
+&lt;h2 id=&#34;lensing-on-read&#34;&gt;Lensing on read&lt;/h2&gt;
+&lt;p&gt;The basic idea for reading out documents is simple: we use Cloudina to lens each change into a corresponding Automerge change in the desired reader schema, to obtain a &amp;ldquo;lensed op log&amp;rdquo; that looks as if all the writers were using the reader schema. Then, we play that op log into a document shaped in the reader schema. The lensed op log still uses Automerge change operations, so we generally preserve Automerge&amp;rsquo;s CRDT capabilities.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s see a simple example. We&amp;rsquo;ll skip over some details and just focus on the main idea.&lt;/p&gt;
+&lt;p&gt;Say we have two schemas. Schema A has a single &lt;code&gt;title&lt;/code&gt; property, with documents like &lt;code&gt;{ title: &#39;hello&#39; }&lt;/code&gt;. In Schema B, that property was moved inside of a nested map called &lt;code&gt;details&lt;/code&gt;, and renamed to &lt;code&gt;name&lt;/code&gt;, so the same document in B looks like &lt;code&gt;{ details: { name: &#39;hello&#39; } }&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In our raw op log, we have writes in both schemas. Alice wrote a change in Schema A, setting the title property on the root object to &amp;ldquo;Cambria&amp;rdquo;. Later, Bob wrote a change in Schema B, setting the name to &amp;ldquo;Arthropod&amp;rdquo;. Note how Bob&amp;rsquo;s change references the property &lt;code&gt;name&lt;/code&gt; on object &lt;code&gt;abc123&lt;/code&gt;, which is an Automerge identifier for the map stored at the &lt;code&gt;details&lt;/code&gt; key in Schema B.&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+                  Schema A               Schema B                                          
+                 ┌──────────────────┐   ┌─────────────────────┐                            
+                 │{                 │   │{                    │                            
+                 │  action: &#34;set&#34;,  │   │  action: &#34;set&#34;,     │                            
+                 │  obj: ROOT,      │   │  obj: &#34;abc123&#34;,     │                            
+Raw op log  ─────┤  key: &#34;title&#34;,   ├───┤  key: &#34;name&#34;,       ├───▶                        
+                 │  value: &#34;Cambria&#34;│   │  value: &#34;Arthropod&#34; │                            
+                 │}                 │   │}                    │                            
+                 └──────────────────┘   └─────────────────────┘                            
+                           │                       │                                       
+                           ▼                       ▼                                       
+                 ┌──────────────────┐   ┌─────────────────────┐                            
+                 │{                 │   │{                    │                            
+                 │  action: &#34;set&#34;,  │   │  action: &#34;set&#34;,     │                            
+    Lensed       │  obj: ROOT       │   │  obj: ROOT,         │      {                     
+   Schema A ─────┤  key: &#34;title&#34;,   ├───┤  key: &#34;title&#34;,      ├───▶    &#34;title&#34;: &#34;Arthropod&#34;
+    op log       │  value: &#34;Cambria&#34;│   │  value: &#34;Arthropod&#34; │      }                     
+                 │}                 │   │}                    │                            
+                 └──────────────────┘   └─────────────────────┘                            
+                  Schema A               Schema A                                          
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;Now, Alice wants to read the document in Schema A, incorporating Bob&amp;rsquo;s change.&lt;/p&gt;
+&lt;p&gt;First, we apply Alice&amp;rsquo;s own change. It was already in terms of Schema A, so we just apply it as-is. The doc state becomes &lt;code&gt;{ title: &amp;quot;Cambria&amp;quot; }&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Then, to apply Bob&amp;rsquo;s change, we need to use a Cloudina lens to convert the Schema B change into a Schema A change. This is a 3 step process: first we convert the Automerge op into a JSON patch describing the same change. Once we&amp;rsquo;ve spanned that gap, we can use Cloudina to lens our JSON Patch from Schema B to Schema A. Finally, we convert that JSON Patch back to an Automerge op, and we&amp;rsquo;ve obtained an Automerge op that we can apply to our Automerge document. We apply the converted Automerge op, and end up with the correct final document: &lt;code&gt;{ title: &amp;quot;Arthropod&amp;quot;&lt;/code&gt;&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+ Schema B Automerge Op                                                        
+┌─────────────────────┐                              Schema B JSON Patch      
+│{                    │                            ┌─────────────────────────┐
+│  action: &#34;set&#34;,     │                            │{                        │
+│  obj: &#34;abc123&#34;,     │ 1) Convert to JSON Patch   │  op: &#34;set&#34;,             │
+│  key: &#34;name&#34;,       │───────────────────────────&gt;│  path: &#34;/details/name&#34;, │
+│  value: &#34;Arthropod&#34; │                            │  value: &#34;Arthropod&#34;     │
+│}                    │                            │}                        │
+└─────────────────────┘                            └─────────────────────────┘
+                                                                │             
+                                             2) Lens JSON Patch │             
+                                               from Schema B to │             
+                                                       Schema A │             
+┌─────────────────────┐                                         v             
+│{                    │                            ┌─────────────────────────┐
+│  action: &#34;set&#34;,     │                            │{                        │
+│  obj: ROOT,         │                            │  op: &#34;set&#34;,             │
+│  key: &#34;title&#34;,      │&lt;───────────────────────────│  path: &#34;/title&#34;,        │
+│  value: &#34;Arthropod&#34; │    3) Convert back to      │  value: &#34;Arthropod&#34;     │
+│}                    │       Automerge Op         │}                        │
+└─────────────────────┘                            └─────────────────────────┘
+ Schema A Automerge Op                               Schema A JSON Patch      
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;Steps 1 and 3 are a bit tricky and relate to some of the core integration challenges between Cloudina and Automerge. Let&amp;rsquo;s zoom in there.&lt;/p&gt;
+&lt;h3 id=&#34;lenses-all-the-way-down&#34;&gt;Lenses all the way down&lt;/h3&gt;
+&lt;p&gt;Cloudina uses JSON Patch as a patch format. In addition to being an open standard that works well with a broader ecosystem outside of Automerge, this format is also convenient because it&amp;rsquo;s directly connected to the structure of the document being edited: for example, it uses the path &lt;code&gt;/details/name&lt;/code&gt; to describe where Bob&amp;rsquo;s write is targeted. The Automerge patch format is different; as part of preserving CRDT properties, it uses more indirection when referring to parts of an object (note how Bob&amp;rsquo;s original write is targeted at the object &lt;code&gt;abc123&lt;/code&gt;.)&lt;/p&gt;
+&lt;p&gt;In this example these two formats are essentially equivalent, but when dealing with lists, the differences become larger. JSON Patch directly references array indexes like &lt;code&gt;/tasks/1&lt;/code&gt;, which is a sensible format for individual patches, but breaks down in the presence of distributed edits—if Alice makes a change to the first element in a list, Bob might end up applying that change to a different element that happens to be in that position in the list from his point of view. Automerge associates changes with object IDs rather than array indices to avoid these kinds of problems.&lt;/p&gt;
+&lt;p&gt;In this simple example we don&amp;rsquo;t have any lists, but we still do have an object ID translation to do: we need to resolve the object ID into a JSON Path relative to the current document state, aka turn &lt;code&gt;abc123&lt;/code&gt; into &lt;code&gt;/details&lt;/code&gt;. This isn&amp;rsquo;t possible to determine just from looking at the change alone; we need to know the document state at the time of the change. To recover this state, we can replay the document state &lt;em&gt;in Schema B&lt;/em&gt; up to the point of Bob&amp;rsquo;s write. Then we can look inside &lt;em&gt;that&lt;/em&gt; document state and figure out that the object ID &lt;code&gt;abc123&lt;/code&gt; corresponds to the path &lt;code&gt;/details&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;We&amp;rsquo;ve now encountered a recursive problem. We started out wanting to read the doc in Schema A; now as part of that process, we need to read an earlier state of the doc in Schema B. This in turn might require reading even earlier states of the doc in other writer schemas. (The recursion is guaranteed to terminate eventually because we&amp;rsquo;ll reach the initial state of the empty doc.)&lt;/p&gt;
+&lt;p&gt;Performance is worth paying attention to here: if there are lots of schemas being written to, applying a single change might require simultaneously playing forward many different schemas. We haven&amp;rsquo;t put work into optimization yet, but an easy step would be to snapshot the state of various schemas at various points in time, reducing incremental replay cost. In fact, we might even be able to do this in a memory-efficient way because Automerge uses persistent data structures, meaning different schemas could share parts of their replayed state. Also, we think some workloads might avoid these replay costs in practice—each schema only needs to be played forward as far as its last write, so if an old schema hasn&amp;rsquo;t been making writes recently, there&amp;rsquo;s no need to keep playing it forward as the document evolves.&lt;/p&gt;
+&lt;h3 id=&#34;subtleties&#34;&gt;Subtleties&lt;/h3&gt;
+&lt;p&gt;That&amp;rsquo;s a high level summary of the approach we&amp;rsquo;re taking to integrating Automerge and Cloudina. We think the conceptual design has turned out cleanly, but as usual, the devil is in the details. Here&amp;rsquo;s a brief mention of some details which have been challenging in practice:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Default values:&lt;/strong&gt; Our schema system introduces the notion of default values, which is particularly useful for initializing structures like an empty list. The problem is, default values weren&amp;rsquo;t actually written by any actor, and are schema-specific. We solve this by having a special virtual actor apply changes to the document as changes are being played back, to fill in default values as needed.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Incremental op application:&lt;/strong&gt; Automerge batches individual &amp;ldquo;operations&amp;rdquo; on a document into &amp;ldquo;changes&amp;rdquo; which are applied atomically. The trouble is, in order to convert a change with a lens, sometimes operations need to reference structures that were created earlier in the change. We deal with this by maintaining special forked Automerge documents where we apply each operation as its own change.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CRDTs and type conversions?&lt;/strong&gt; One area we haven&amp;rsquo;t fully explored yet is the intersection of CRDT properties with structure-converting lenses. For example, when a lens converts a list to a scalar property, how does concurrent edit resolution behave?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That&amp;rsquo;s it for this week. Only two weeks left in the project, so look forward to a fuller writeup in the near future!&lt;/p&gt;
+</content>
+    </item>
     
     <item>
       <title>Cambria, Weeks Five and Six: Nesting Instinct</title>
@@ -371,7 +520,7 @@ const ROOT_ID = &amp;#39;00000000-0000-0000-0000-000000000000&amp;#39; /** * Min
       <guid>http://inkandswitch.github.io/cambria/designs/chitin-v4/</guid>
       <description>Here&amp;rsquo;s a concrete example to illustrate how the &amp;ldquo;op log&amp;rdquo; based Chitin 4 system works, and then some brief explanation of why it&amp;rsquo;s better than our previous iterations.
 Let&amp;rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
-V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &amp;quot;status&amp;quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward.</description>
+V1 { title: string description: string } // - rename title to name // - add a complete boolean V2 { name: string description: string complete: boolean } // - change the complete boolean to a 3-valued &amp;quot;status&amp;quot; field V3 { name: string description: string status: string } In Chitin 4, writes are straightforward.</description>
       <content>&lt;p&gt;Here&amp;rsquo;s a concrete example to illustrate how the &amp;ldquo;op log&amp;rdquo; based Chitin 4 system works, and then some brief explanation of why it&amp;rsquo;s better than our previous iterations.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;V1 {
@@ -395,15 +544,27 @@ V3 {
   description: string
   status: string
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In Chitin 4, writes are straightforward. When a client writes a change, we append an operation to an append-only stream, containing the content of the edit and some metadata about which schema they used. The edit contents are described from the perspective of the writer&amp;rsquo;s schema;  for example, the first patch, from a client using the v1 schema, sets the &amp;ldquo;title&amp;rdquo; property because that&amp;rsquo;s the name of the property for that client.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;            set title to      set description     set complete       
-             &amp;quot;laundry&amp;quot;       to &amp;quot;wash clothes&amp;quot;       to true         
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In Chitin 4, writes are straightforward. When a client writes a change, we append an operation to an append-only stream, containing the content of the edit and some metadata about which schema they used. The edit contents are described from the perspective of the writer&amp;rsquo;s schema; for example, the first patch, from a client using the v1 schema, sets the &amp;ldquo;title&amp;rdquo; property because that&amp;rsquo;s the name of the property for that client.&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+             set title to      set description     set complete       
+             &#34;laundry&#34;       to &#34;wash clothes&#34;       to true         
                 ┌────┐            ┌────┐             ┌────┐          
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
                 └────┘            └────┘             └────┘          
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, let&amp;rsquo;s say we want to read this document using the v3 schema. We map over the log of patches and create a new log of corresponding patches in the v3 schema. Notice how the first patch changed a property name, and the third patch converted &lt;code&gt;complete: true&lt;/code&gt; to &lt;code&gt;status: &amp;quot;done&amp;quot;&lt;/code&gt;.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;            set title to      set description     set complete       
-             &amp;quot;laundry&amp;quot;       to &amp;quot;wash clothes&amp;quot;       to true         
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;Now, let&amp;rsquo;s say we want to read this document using the v3 schema. We map over the log of patches and create a new log of corresponding patches in the v3 schema. Notice how the first patch changed a property name, and the third patch converted &lt;code&gt;complete: true&lt;/code&gt; to &lt;code&gt;status: &amp;quot;done&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+             set title to      set description     set complete       
+             &#34;laundry&#34;       to &#34;wash clothes&#34;       to true         
                 ┌────┐            ┌────┐             ┌────┐          
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
                 └────┘            └────┘             └────┘          
@@ -414,38 +575,58 @@ Raw patches ────┤ v1 ├────────────┤ v3 ├
  V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶
                 └────┘            └────┘             └────┘          
              set name to       set description     set status        
-              &amp;quot;laundry&amp;quot;       to &amp;quot;wash clothes&amp;quot;    to &amp;quot;done&amp;quot;         
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As a brief aside, this process of mapping patches is handled by the Cloudina lens library. We won&amp;rsquo;t go into deep detail on that part here, but some basics:&lt;/p&gt;
+              &#34;laundry&#34;       to &#34;wash clothes&#34;    to &#34;done&#34;        
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;As a brief aside, this process of mapping patches is handled by the Cloudina lens library. We won&amp;rsquo;t go into deep detail on that part here, but some basics:&lt;/p&gt;
 &lt;p&gt;The user defined some &lt;em&gt;lenses&lt;/em&gt;: logic for converting patches between pairs of schemas, and we use those lenses in the conversion process.&lt;/p&gt;
 &lt;p&gt;Sometimes a patch needs to be converted across more than one lens. The first patch in this example had to be converted from v1 to v3, but there&amp;rsquo;s no lens directly connecting those two schemas. So we find a path between them, by converting the patch first from a v1 patch to a v2 patch (applying a property rename), and then from a v2 patch to a v3 patch (doing nothing to the patch, because the name field is left untouched in that lens).&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;set title to ┌────┐
- &amp;quot;laundry&amp;quot;   │ v1 │
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+set title to ┌────┐
+ &#34;laundry&#34;   │ v1 │
              └────┘
                 │  
                 ▼  
  set name to ┌────┐
-  &amp;quot;laundry&amp;quot;  │ v2 │
+  &#34;laundry&#34;  │ v2 │
              └────┘
                 │  
                 ▼  
  set name to ┌────┐
-  &amp;quot;laundry&amp;quot;  │ v3 │
+  &#34;laundry&#34;  │ v3 │
              └────┘
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Alright, so now we have a stream of patches to a V3 document. All that&amp;rsquo;s left is to reduce over the stream of patches, to produce a final document in the V3 schema!&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;            set title to      set description     set complete                                           
-             &amp;quot;laundry&amp;quot;       to &amp;quot;wash clothes&amp;quot;       to true                                             
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;Alright, so now we have a stream of patches to a V3 document. All that&amp;rsquo;s left is to reduce over the stream of patches, to produce a final document in the V3 schema!&lt;/p&gt;
+
+
+
+&lt;pre class=&#39;ascii-diagram&#39;&gt;
+            set title to      set description     set complete                                           
+             &#34;laundry&#34;       to &#34;wash clothes&#34;       to true                                             
                 ┌────┐            ┌────┐             ┌────┐                                              
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶                                    
                 └────┘            └────┘             └────┘                                              
                    │                 │                  │               V3 Document                      
                    │                 │                  │             ┌─────────────────────────────────┐
                    ▼                 ▼                  ▼             │{                                │
-                ┌────┐            ┌────┐             ┌────┐           │  name: &amp;quot;laundry&amp;quot;,               │
- V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶ │  description: &amp;quot;wash clothes&amp;quot;,   │
-                └────┘            └────┘             └────┘           │  status: &amp;quot;todo&amp;quot;                 │
+                ┌────┐            ┌────┐             ┌────┐           │  name: &#34;laundry&#34;,               │
+ V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶ │  description: &#34;wash clothes&#34;,   │
+                └────┘            └────┘             └────┘           │  status: &#34;todo&#34;                 │
              set name to       set description     set status         │}                                │
-              &amp;quot;laundry&amp;quot;       to &amp;quot;wash clothes&amp;quot;    to &amp;quot;done&amp;quot;          └─────────────────────────────────┘
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We&amp;rsquo;ve found that this design combines a number of desirable characteristics. Here are two of the more subtle ones.&lt;/p&gt;
+              &#34;laundry&#34;       to &#34;wash clothes&#34;    to &#34;done&#34;          └─────────────────────────────────┘
+&lt;/pre&gt;
+
+
+
+&lt;p&gt;We&amp;rsquo;ve found that this design combines a number of desirable characteristics. Here are two of the more subtle ones.&lt;/p&gt;
 &lt;h2 id=&#34;reinterpreting-the-past&#34;&gt;Reinterpreting the past&lt;/h2&gt;
 &lt;p&gt;Because no conversions happen on write, it&amp;rsquo;s always possible to go back and reinterpret the history of edits through a different set of lenses. This turns out to be important in asynchronous collaboration. Let&amp;rsquo;s say Alice goes offline and makes some edits, while Bob is adding new lenses and schemas. When Alice comes back online and her edits appear, Bob should be able to read them through his new schema, even though Alice&amp;rsquo;s client didn&amp;rsquo;t have access to his new lenses when it was making writes. This design supports that use case great, because Bob&amp;rsquo;s client is free to interpret Alice&amp;rsquo;s writes through any set of lenses available on his client.&lt;/p&gt;
 &lt;h2 id=&#34;patches-not-documents&#34;&gt;Patches, not documents&lt;/h2&gt;
@@ -495,13 +676,13 @@ collaborators, and that didn&amp;rsquo;t really work &lt;em&gt;at all&lt;/em&gt;
 &lt;p&gt;We&amp;rsquo;d optimized for the experience of our demos (which we took to calling the Researcher Experience, or RX) instead of the
 developer experience (DX) of building real software.&lt;/p&gt;
 &lt;p&gt;We made a few changes to fix this, but the biggest was that we now treat our lenses more like a migrations directory,
-and produce the types your program will use by summing up all the lenses found there. This means that if you pull a 
+and produce the types your program will use by summing up all the lenses found there. This means that if you pull a
 branch in from a collaborator you shouldn&amp;rsquo;t have to take any manual fix-up steps to get their code working.&lt;/p&gt;
 &lt;p&gt;As we thought through the consequences of this change we realized that our current propagating-lens-patches model was
-not going to work. It would incorrectly orphan some changes, and worse, the same problem meant that async collaboration 
+not going to work. It would incorrectly orphan some changes, and worse, the same problem meant that async collaboration
 was broken too.&lt;/p&gt;
 &lt;h1 id=&#34;fixing-cambria&#34;&gt;Fixing Cambria&lt;/h1&gt;
-&lt;p&gt;The current version of Cambria is becoming increasingly ergonomic. At this point, we think we&amp;rsquo;re close to solving a 
+&lt;p&gt;The current version of Cambria is becoming increasingly ergonomic. At this point, we think we&amp;rsquo;re close to solving a
 useful problem and having a good interface to do so. Therefore, we&amp;rsquo;ll be returning our attention to the functioning of
 the system along two key axes:&lt;/p&gt;
 &lt;ol&gt;
@@ -513,13 +694,13 @@ Chitin (storage format, distribution, types) and Cloudina (lenses and patch tran
 &lt;p&gt;Our plan for fixing nesting documents looks a lot like work we&amp;rsquo;ve seen coming out of Benjamin Pierce&amp;rsquo;s group at UPenn,
 with symmetric edit lenses looking promising. We have a few advantages of their usual approach, in particular that because
 we instrument users&amp;rsquo; code directly we don&amp;rsquo;t have to guess at intent &amp;ndash; we can instrument it.&lt;/p&gt;
-&lt;p&gt;As to the correctness problem, well, we&amp;rsquo;re trying something new based around a &lt;a href=&#34;../../designs/chitin-v4&#34;&gt;log of all operations&lt;/a&gt;. It seems 
+&lt;p&gt;As to the correctness problem, well, we&amp;rsquo;re trying something new based around a &lt;a href=&#34;../../designs/chitin-v4&#34;&gt;log of all operations&lt;/a&gt;. It seems
 promising thus far, but we&amp;rsquo;re coming dangerously close to building a new CRDT on top of an existing one and so we need
 to reconcile that.&lt;/p&gt;
 &lt;h1 id=&#34;out--about&#34;&gt;Out &amp;amp; About&lt;/h1&gt;
 &lt;p&gt;We had a lovely audience for our last project demo from several folks who responded to an earlier update with interest in our work from their own past histories, including (alphabetically by author) &lt;a href=&#34;https://dcreager.net/publications/012-dphil-thesis/&#34;&gt;Douglas Creeger&amp;rsquo;s PhD&lt;/a&gt;, &lt;a href=&#34;https://github.com/deadwisdom/blazon&#34;&gt;Blazon&lt;/a&gt; (Brantley Harris), and &lt;a href=&#34;https://github.com/ipld/specs/tree/master/schemas&#34;&gt;IPLD Schemas&lt;/a&gt; (Eric Myhre).&lt;/p&gt;
 &lt;h1 id=&#34;q-how-do-you-track-time-to-live-for-a-version-so-you-know-when-you-can-retire-the-old-one&#34;&gt;Q: How do you track &amp;ldquo;time to live&amp;rdquo; for a version so you know when you can retire the old one?&lt;/h1&gt;
-&lt;p&gt;In a centralised system, you want to know when enough of your old clients are upgraded to the new version so you can 
+&lt;p&gt;In a centralised system, you want to know when enough of your old clients are upgraded to the new version so you can
 remove support for older versions. The Cambria library works more like an ActiveRecord migrations directory &amp;ndash; the code
 automatically migrates old data up to the new version when it encounters it, so you don&amp;rsquo;t need to think about deprecating old versions. It can also migrate the data down to older versions to ensure backwards support.&lt;/p&gt;
 &lt;h1 id=&#34;q-what-happens-when-youre-simply-missing-data-that-a-new-or-old-version-needs&#34;&gt;Q: What happens when you&amp;rsquo;re simply missing data that a new or old version needs?&lt;/h1&gt;
@@ -539,8 +720,8 @@ program. You wouldn&amp;rsquo;t want to send a too-wide license plate to an old 
       <description>Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array) What should happen when the two versions make writes?
 In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&amp;rsquo;s array (denoted []).
 Reads In the simplest case, both values are empty.
-[{}]With a single value, the read semantics are equivalent.
-[{&amp;quot;Alice&amp;quot;}]Given additional values added to the new version, the old version would see just the head of the list.</description>
+[{}] With a single value, the read semantics are equivalent.
+[{&amp;quot;Alice&amp;quot;}] Given additional values added to the new version, the old version would see just the head of the list.</description>
       <content>&lt;p&gt;Imagine an issue tracker which has gone from 0-1 assignees (nullable scalar) to 0-n (array)
 What should happen when the two versions make writes?&lt;/p&gt;
 &lt;p&gt;In general, we can consider the old version (denoted {} in examples) as a window onto the head of the new version&amp;rsquo;s array (denoted []).&lt;/p&gt;
@@ -720,11 +901,11 @@ file could follow this path.&lt;/p&gt;
 First, it doesn&amp;rsquo;t handle nested data very well yet. If you want to rename a field and it&amp;rsquo;s not connected
 to the root of the document? Too bad. Orion&amp;rsquo;s working on that this week.&lt;/p&gt;
 &lt;p&gt;Next, our canonical representation has become increasingly difficult to reason about. We suspect that
-we can separate the conversion logic from the underlying storage layout, which will hopefully both 
-simplify each piece of the system and also make them more independently useful. Geoffrey is working 
+we can separate the conversion logic from the underlying storage layout, which will hopefully both
+simplify each piece of the system and also make them more independently useful. Geoffrey is working
 on exploring that.&lt;/p&gt;
-&lt;p&gt;Last, we&amp;rsquo;ve had a number of fascinating discussions about what the correct behavior &lt;em&gt;should&lt;/em&gt; be for 
-some of these cases. If you check and uncheck the &lt;code&gt;complete&lt;/code&gt; Boolean, what should happen to the 
+&lt;p&gt;Last, we&amp;rsquo;ve had a number of fascinating discussions about what the correct behavior &lt;em&gt;should&lt;/em&gt; be for
+some of these cases. If you check and uncheck the &lt;code&gt;complete&lt;/code&gt; Boolean, what should happen to the
 &lt;code&gt;status&lt;/code&gt; string?&lt;/p&gt;
 &lt;p&gt;Along with concrete progress in improving the capabilities of the system we also want to document our
 expectations for how various cases will behave in a test suite. Peter&amp;rsquo;s planning to focus on that to

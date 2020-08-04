@@ -33,7 +33,7 @@
     <meta property="og:title" content="Chitin, v4: Op Log Example" />
 <meta property="og:description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
 Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
-V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward." />
+V1 { title: string description: string } // - rename title to name // - add a complete boolean V2 { name: string description: string complete: boolean } // - change the complete boolean to a 3-valued &quot;status&quot; field V3 { name: string description: string status: string } In Chitin 4, writes are straightforward." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://inkandswitch.github.io/cambria/designs/chitin-v4/" />
 <meta property="article:published_time" content="2020-07-07T09:47:58-07:00" />
@@ -41,7 +41,7 @@ V1 {title: stringdescription: string}// - rename title to name// - add a co
 <meta itemprop="name" content="Chitin, v4: Op Log Example">
 <meta itemprop="description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
 Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
-V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward.">
+V1 { title: string description: string } // - rename title to name // - add a complete boolean V2 { name: string description: string complete: boolean } // - change the complete boolean to a 3-valued &quot;status&quot; field V3 { name: string description: string status: string } In Chitin 4, writes are straightforward.">
 <meta itemprop="datePublished" content="2020-07-07T09:47:58-07:00" />
 <meta itemprop="dateModified" content="2020-07-07T09:47:58-07:00" />
 <meta itemprop="wordCount" content="981">
@@ -52,7 +52,7 @@ V1 {title: stringdescription: string}// - rename title to name// - add a co
 <meta name="twitter:title" content="Chitin, v4: Op Log Example"/>
 <meta name="twitter:description" content="Here&rsquo;s a concrete example to illustrate how the &ldquo;op log&rdquo; based Chitin 4 system works, and then some brief explanation of why it&rsquo;s better than our previous iterations.
 Let&rsquo;s say we have three related schemas for a Task (listed below), which have evolved as we develop the app. Our goal is that clients can read/write to the same document using any of the schemas.
-V1 {title: stringdescription: string}// - rename title to name// - add a complete booleanV2 {name: stringdescription: stringcomplete: boolean}// - change the complete boolean to a 3-valued &quot;status&quot; fieldV3 {name: stringdescription: stringstatus: string}In Chitin 4, writes are straightforward."/>
+V1 { title: string description: string } // - rename title to name // - add a complete boolean V2 { name: string description: string complete: boolean } // - change the complete boolean to a 3-valued &quot;status&quot; field V3 { name: string description: string status: string } In Chitin 4, writes are straightforward."/>
 
 	
   </head>
@@ -141,15 +141,27 @@ V3 {
   description: string
   status: string
 }
-</code></pre><p>In Chitin 4, writes are straightforward. When a client writes a change, we append an operation to an append-only stream, containing the content of the edit and some metadata about which schema they used. The edit contents are described from the perspective of the writer&rsquo;s schema;  for example, the first patch, from a client using the v1 schema, sets the &ldquo;title&rdquo; property because that&rsquo;s the name of the property for that client.</p>
-<pre><code>            set title to      set description     set complete       
-             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true         
+</code></pre><p>In Chitin 4, writes are straightforward. When a client writes a change, we append an operation to an append-only stream, containing the content of the edit and some metadata about which schema they used. The edit contents are described from the perspective of the writer&rsquo;s schema; for example, the first patch, from a client using the v1 schema, sets the &ldquo;title&rdquo; property because that&rsquo;s the name of the property for that client.</p>
+
+
+
+<pre class='ascii-diagram'>
+             set title to      set description     set complete       
+             "laundry"       to "wash clothes"       to true         
                 ┌────┐            ┌────┐             ┌────┐          
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
                 └────┘            └────┘             └────┘          
-</code></pre><p>Now, let&rsquo;s say we want to read this document using the v3 schema. We map over the log of patches and create a new log of corresponding patches in the v3 schema. Notice how the first patch changed a property name, and the third patch converted <code>complete: true</code> to <code>status: &quot;done&quot;</code>.</p>
-<pre><code>            set title to      set description     set complete       
-             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true         
+</pre>
+
+
+
+<p>Now, let&rsquo;s say we want to read this document using the v3 schema. We map over the log of patches and create a new log of corresponding patches in the v3 schema. Notice how the first patch changed a property name, and the third patch converted <code>complete: true</code> to <code>status: &quot;done&quot;</code>.</p>
+
+
+
+<pre class='ascii-diagram'>
+             set title to      set description     set complete       
+             "laundry"       to "wash clothes"       to true         
                 ┌────┐            ┌────┐             ┌────┐          
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶
                 └────┘            └────┘             └────┘          
@@ -160,38 +172,58 @@ Raw patches ────┤ v1 ├────────────┤ v3 ├
  V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶
                 └────┘            └────┘             └────┘          
              set name to       set description     set status        
-              &quot;laundry&quot;       to &quot;wash clothes&quot;    to &quot;done&quot;         
-</code></pre><p>As a brief aside, this process of mapping patches is handled by the Cloudina lens library. We won&rsquo;t go into deep detail on that part here, but some basics:</p>
+              "laundry"       to "wash clothes"    to "done"        
+</pre>
+
+
+
+<p>As a brief aside, this process of mapping patches is handled by the Cloudina lens library. We won&rsquo;t go into deep detail on that part here, but some basics:</p>
 <p>The user defined some <em>lenses</em>: logic for converting patches between pairs of schemas, and we use those lenses in the conversion process.</p>
 <p>Sometimes a patch needs to be converted across more than one lens. The first patch in this example had to be converted from v1 to v3, but there&rsquo;s no lens directly connecting those two schemas. So we find a path between them, by converting the patch first from a v1 patch to a v2 patch (applying a property rename), and then from a v2 patch to a v3 patch (doing nothing to the patch, because the name field is left untouched in that lens).</p>
-<pre><code>set title to ┌────┐
- &quot;laundry&quot;   │ v1 │
+
+
+
+<pre class='ascii-diagram'>
+set title to ┌────┐
+ "laundry"   │ v1 │
              └────┘
                 │  
                 ▼  
  set name to ┌────┐
-  &quot;laundry&quot;  │ v2 │
+  "laundry"  │ v2 │
              └────┘
                 │  
                 ▼  
  set name to ┌────┐
-  &quot;laundry&quot;  │ v3 │
+  "laundry"  │ v3 │
              └────┘
-</code></pre><p>Alright, so now we have a stream of patches to a V3 document. All that&rsquo;s left is to reduce over the stream of patches, to produce a final document in the V3 schema!</p>
-<pre><code>            set title to      set description     set complete                                           
-             &quot;laundry&quot;       to &quot;wash clothes&quot;       to true                                             
+</pre>
+
+
+
+<p>Alright, so now we have a stream of patches to a V3 document. All that&rsquo;s left is to reduce over the stream of patches, to produce a final document in the V3 schema!</p>
+
+
+
+<pre class='ascii-diagram'>
+            set title to      set description     set complete                                           
+             "laundry"       to "wash clothes"       to true                                             
                 ┌────┐            ┌────┐             ┌────┐                                              
 Raw patches ────┤ v1 ├────────────┤ v3 ├─────────────┤ v2 ├─────────▶                                    
                 └────┘            └────┘             └────┘                                              
                    │                 │                  │               V3 Document                      
                    │                 │                  │             ┌─────────────────────────────────┐
                    ▼                 ▼                  ▼             │{                                │
-                ┌────┐            ┌────┐             ┌────┐           │  name: &quot;laundry&quot;,               │
- V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶ │  description: &quot;wash clothes&quot;,   │
-                └────┘            └────┘             └────┘           │  status: &quot;todo&quot;                 │
+                ┌────┐            ┌────┐             ┌────┐           │  name: "laundry",               │
+ V3 Patches ────┤ v3 ├────────────┤ v3 ├─────────────┤ v3 ├─────────▶ │  description: "wash clothes",   │
+                └────┘            └────┘             └────┘           │  status: "todo"                 │
              set name to       set description     set status         │}                                │
-              &quot;laundry&quot;       to &quot;wash clothes&quot;    to &quot;done&quot;          └─────────────────────────────────┘
-</code></pre><p>We&rsquo;ve found that this design combines a number of desirable characteristics. Here are two of the more subtle ones.</p>
+              "laundry"       to "wash clothes"    to "done"          └─────────────────────────────────┘
+</pre>
+
+
+
+<p>We&rsquo;ve found that this design combines a number of desirable characteristics. Here are two of the more subtle ones.</p>
 <h2 id="reinterpreting-the-past">Reinterpreting the past</h2>
 <p>Because no conversions happen on write, it&rsquo;s always possible to go back and reinterpret the history of edits through a different set of lenses. This turns out to be important in asynchronous collaboration. Let&rsquo;s say Alice goes offline and makes some edits, while Bob is adding new lenses and schemas. When Alice comes back online and her edits appear, Bob should be able to read them through his new schema, even though Alice&rsquo;s client didn&rsquo;t have access to his new lenses when it was making writes. This design supports that use case great, because Bob&rsquo;s client is free to interpret Alice&rsquo;s writes through any set of lenses available on his client.</p>
 <h2 id="patches-not-documents">Patches, not documents</h2>

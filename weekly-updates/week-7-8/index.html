@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Cambria, Weeks Seven and Eight: Final Countdown | Cambria Development Notes</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.73.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/cambria/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css" rel="stylesheet">
+    
+
+    <link href="/cambria/article.css"/>
+
+    
+      <link rel="stylesheet" href="/cambria/article.css">
+    
+
+    
+      
+
+    
+
+    
+    
+    <meta property="og:title" content="Cambria, Weeks Seven and Eight: Final Countdown" />
+<meta property="og:description" content="Over the last two weeks, we&rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&rsquo;re converging on a working solution.
+Previously, on Cambria In our last update, we shared some details on the lens language we&rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://inkandswitch.github.io/cambria/weekly-updates/week-7-8/" />
+<meta property="article:published_time" content="2020-08-02T12:05:58-07:00" />
+<meta property="article:modified_time" content="2020-08-02T12:05:58-07:00" />
+<meta itemprop="name" content="Cambria, Weeks Seven and Eight: Final Countdown">
+<meta itemprop="description" content="Over the last two weeks, we&rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&rsquo;re converging on a working solution.
+Previously, on Cambria In our last update, we shared some details on the lens language we&rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format.">
+<meta itemprop="datePublished" content="2020-08-02T12:05:58-07:00" />
+<meta itemprop="dateModified" content="2020-08-02T12:05:58-07:00" />
+<meta itemprop="wordCount" content="2045">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cambria, Weeks Seven and Eight: Final Countdown"/>
+<meta name="twitter:description" content="Over the last two weeks, we&rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&rsquo;re converging on a working solution.
+Previously, on Cambria In our last update, we shared some details on the lens language we&rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format."/>
+
+	
+  </head>
+
+  <body class="ma0 bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="/cambria/" class="f3 fw2 hover-white no-underline white-90 dib">
+      
+        Cambria Development Notes
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        WEEKLY UPDATES
+      </aside>
+      <h1 class="f1 mt3 mb1">Cambria, Weeks Seven and Eight: Final Countdown</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-08-02T12:05:58-07:00">August 2, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>Over the last two weeks, we&rsquo;ve arrived at the heart of the project: combining JSON data transformations with concurrent multi-user editing. After a couple weeks of intense programming we&rsquo;re converging on a working solution.</p>
+<h2 id="previously-on-cambria">Previously, on Cambria</h2>
+<p>In our <a href="../week-5-6">last update</a>, we shared some details on the lens language we&rsquo;ve been developing for translating between different JSON formats. We showed a demo of using a little CLI tool called Cloudina to lens a document into a different format.</p>
+<p>Cloudina works well for locally converting a single document, but on its own it doesn&rsquo;t answer <a href="../week-1">the broader question</a> we&rsquo;re interested in: <strong>how can multiple users asynchronously edit the same document, with each client reading/writing in a different schema?</strong></p>
+<p>After a few iterations, around Week 4 we converged on <a href="../../designs/chitin-v4">a solution</a> for this that worked pretty well, except for one fatal flaw: it assumed edits were always applied in the same order on all clients, and had no ability to deal with distributed editing. After considering various options for addressing this, we ultimately decided to integrate our solution with the existing <a href="https://github.com/automerge/automerge/">Automerge CRDT system</a>, which guarantees eventual consistency in the presence of distributed edits.</p>
+<h2 id="wrapping-the-automerge-backend">Wrapping the Automerge Backend</h2>
+<p>Automerge has a frontend and a backend layer: the frontend sends local change requests to the backend, and receives remote updates from the backend to maintain an up-to-date view of the document. The backend handles all the CRDT logic of processing and resolving changes from collaborators, producing patches for the frontend to apply.</p>
+<p>We&rsquo;ve added a new Cambria layer in between the frontend and backend. The design goal is to expose (mostly) the same API as the existing Automerge backend to maintain compatibility with the frontend. From the frontend&rsquo;s perspective, there&rsquo;s only a single schema—it sends local changes in that schema and receives patches from remote collaborators in that schema. The Cambria wrapper handles lens conversion, and calls out to the normal Automerge backend for handling CRDT logic.</p>
+
+
+
+<pre class='ascii-diagram'>
+                ┌─────────────────────────────┐               
+                │         Application         │               
+                └────────────────┬────────────┘               
+                            ▲    │                            
+              live updated  │    │  local                     
+             document state │    │ changes                    
+                            │    ▼                            
+                ┌───────────┴─────────────────┐               
+                │     Automerge frontend      │               
+                └────────────────┬────────────┘               
+                            ▲    │                            
+  changes, lensed into this │    │   local                    
+   client's active schema   │    │  changes                   
+                            │    ▼                            
+           ┏━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━┓         
+           ┃   use Cloudina ▲    │                  ┃         
+           ┃  to convert raw│    │ wrap changes     ┃ Cambria 
+           ┃    changes to  │    │  in schema       ┃ backend 
+           ┃  this client's │    │   metadata       ┃ wrapper 
+           ┃      schema    │    ▼                  ┃         
+           ┗━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┛         
+                            ▲    │                            
+ raw schema-tagged changes  │    │  schema-tagged changes     
+  and lenses (from remote   │    │     (and lens code)        
+      collaborators)        │    ▼                            
+                ┌───────────┴─────────────────┐               
+                │      Automerge backend      │               
+                └─────────────────────────────┘               
+</pre>
+
+
+
+<p>Let&rsquo;s explore in more detail what the Cambria wrapper does in each direction.</p>
+<h2 id="schema-tagged-writes">Schema-tagged writes</h2>
+<p>First, a quick refresher on Automerge. Automerge stores an &ldquo;op log&rdquo; &ndash; a history of all the change operations that have been made to a document. By playing all the changes forward in time, you can recreate the current state of the document. The useful thing that Automerge does on top of this—the reason for its existence—is to ensure that, as long as two users see the same ops on their computers, they will end up seeing the same document state, regardless of the order the ops were played in.</p>
+<p>In our system, we keep that core idea of an op log, but with a couple small additions.</p>
+<ol>
+<li>
+<p>We tag changes with schemas. Changes are schema-specific: they refer to property names and object IDs within the data structure they&rsquo;re modifying. So, to be able to convert the change later on, we need to record which schema was used to make the change. To do this, we wrap each change with some metadata recording the ID of the schema used for the write.</p>
+</li>
+<li>
+<p>We also store lenses in the document itself. A lens can be expressed as a JSON structure, so we simply record it in the document as a special kind of change. This is critical so that collaborators can share lenses—if Alice starts writing to the document through a new lens, Bob needs a way to retrieve that lens and use it to convert Alice&rsquo;s changes to a format his client understands.</p>
+</li>
+</ol>
+<p>That&rsquo;s all we do on write. Keeping the write side of the system simple maximizes future flexibility, like lensing into new formats which didn&rsquo;t even exist yet when the change was written. Most of the interesting conversion work happens on read.</p>
+<h2 id="lensing-on-read">Lensing on read</h2>
+<p>The basic idea for reading out documents is simple: we use Cloudina to lens each change into a corresponding Automerge change in the desired reader schema, to obtain a &ldquo;lensed op log&rdquo; that looks as if all the writers were using the reader schema. Then, we play that op log into a document shaped in the reader schema. The lensed op log still uses Automerge change operations, so we generally preserve Automerge&rsquo;s CRDT capabilities.</p>
+<p>Let&rsquo;s see a simple example. We&rsquo;ll skip over some details and just focus on the main idea.</p>
+<p>Say we have two schemas. Schema A has a single <code>title</code> property, with documents like <code>{ title: 'hello' }</code>. In Schema B, that property was moved inside of a nested map called <code>details</code>, and renamed to <code>name</code>, so the same document in B looks like <code>{ details: { name: 'hello' } }</code>.</p>
+<p>In our raw op log, we have writes in both schemas. Alice wrote a change in Schema A, setting the title property on the root object to &ldquo;Cambria&rdquo;. Later, Bob wrote a change in Schema B, setting the name to &ldquo;Arthropod&rdquo;. Note how Bob&rsquo;s change references the property <code>name</code> on object <code>abc123</code>, which is an Automerge identifier for the map stored at the <code>details</code> key in Schema B.</p>
+
+
+
+<pre class='ascii-diagram'>
+                  Schema A               Schema B                                          
+                 ┌──────────────────┐   ┌─────────────────────┐                            
+                 │{                 │   │{                    │                            
+                 │  action: "set",  │   │  action: "set",     │                            
+                 │  obj: ROOT,      │   │  obj: "abc123",     │                            
+Raw op log  ─────┤  key: "title",   ├───┤  key: "name",       ├───▶                        
+                 │  value: "Cambria"│   │  value: "Arthropod" │                            
+                 │}                 │   │}                    │                            
+                 └──────────────────┘   └─────────────────────┘                            
+                           │                       │                                       
+                           ▼                       ▼                                       
+                 ┌──────────────────┐   ┌─────────────────────┐                            
+                 │{                 │   │{                    │                            
+                 │  action: "set",  │   │  action: "set",     │                            
+    Lensed       │  obj: ROOT       │   │  obj: ROOT,         │      {                     
+   Schema A ─────┤  key: "title",   ├───┤  key: "title",      ├───▶    "title": "Arthropod"
+    op log       │  value: "Cambria"│   │  value: "Arthropod" │      }                     
+                 │}                 │   │}                    │                            
+                 └──────────────────┘   └─────────────────────┘                            
+                  Schema A               Schema A                                          
+</pre>
+
+
+
+<p>Now, Alice wants to read the document in Schema A, incorporating Bob&rsquo;s change.</p>
+<p>First, we apply Alice&rsquo;s own change. It was already in terms of Schema A, so we just apply it as-is. The doc state becomes <code>{ title: &quot;Cambria&quot; }</code></p>
+<p>Then, to apply Bob&rsquo;s change, we need to use a Cloudina lens to convert the Schema B change into a Schema A change. This is a 3 step process: first we convert the Automerge op into a JSON patch describing the same change. Once we&rsquo;ve spanned that gap, we can use Cloudina to lens our JSON Patch from Schema B to Schema A. Finally, we convert that JSON Patch back to an Automerge op, and we&rsquo;ve obtained an Automerge op that we can apply to our Automerge document. We apply the converted Automerge op, and end up with the correct final document: <code>{ title: &quot;Arthropod&quot;</code></p>
+
+
+
+<pre class='ascii-diagram'>
+ Schema B Automerge Op                                                        
+┌─────────────────────┐                              Schema B JSON Patch      
+│{                    │                            ┌─────────────────────────┐
+│  action: "set",     │                            │{                        │
+│  obj: "abc123",     │ 1) Convert to JSON Patch   │  op: "set",             │
+│  key: "name",       │───────────────────────────>│  path: "/details/name", │
+│  value: "Arthropod" │                            │  value: "Arthropod"     │
+│}                    │                            │}                        │
+└─────────────────────┘                            └─────────────────────────┘
+                                                                │             
+                                             2) Lens JSON Patch │             
+                                               from Schema B to │             
+                                                       Schema A │             
+┌─────────────────────┐                                         v             
+│{                    │                            ┌─────────────────────────┐
+│  action: "set",     │                            │{                        │
+│  obj: ROOT,         │                            │  op: "set",             │
+│  key: "title",      │<───────────────────────────│  path: "/title",        │
+│  value: "Arthropod" │    3) Convert back to      │  value: "Arthropod"     │
+│}                    │       Automerge Op         │}                        │
+└─────────────────────┘                            └─────────────────────────┘
+ Schema A Automerge Op                               Schema A JSON Patch      
+</pre>
+
+
+
+<p>Steps 1 and 3 are a bit tricky and relate to some of the core integration challenges between Cloudina and Automerge. Let&rsquo;s zoom in there.</p>
+<h3 id="lenses-all-the-way-down">Lenses all the way down</h3>
+<p>Cloudina uses JSON Patch as a patch format. In addition to being an open standard that works well with a broader ecosystem outside of Automerge, this format is also convenient because it&rsquo;s directly connected to the structure of the document being edited: for example, it uses the path <code>/details/name</code> to describe where Bob&rsquo;s write is targeted. The Automerge patch format is different; as part of preserving CRDT properties, it uses more indirection when referring to parts of an object (note how Bob&rsquo;s original write is targeted at the object <code>abc123</code>.)</p>
+<p>In this example these two formats are essentially equivalent, but when dealing with lists, the differences become larger. JSON Patch directly references array indexes like <code>/tasks/1</code>, which is a sensible format for individual patches, but breaks down in the presence of distributed edits—if Alice makes a change to the first element in a list, Bob might end up applying that change to a different element that happens to be in that position in the list from his point of view. Automerge associates changes with object IDs rather than array indices to avoid these kinds of problems.</p>
+<p>In this simple example we don&rsquo;t have any lists, but we still do have an object ID translation to do: we need to resolve the object ID into a JSON Path relative to the current document state, aka turn <code>abc123</code> into <code>/details</code>. This isn&rsquo;t possible to determine just from looking at the change alone; we need to know the document state at the time of the change. To recover this state, we can replay the document state <em>in Schema B</em> up to the point of Bob&rsquo;s write. Then we can look inside <em>that</em> document state and figure out that the object ID <code>abc123</code> corresponds to the path <code>/details</code>.</p>
+<p>We&rsquo;ve now encountered a recursive problem. We started out wanting to read the doc in Schema A; now as part of that process, we need to read an earlier state of the doc in Schema B. This in turn might require reading even earlier states of the doc in other writer schemas. (The recursion is guaranteed to terminate eventually because we&rsquo;ll reach the initial state of the empty doc.)</p>
+<p>Performance is worth paying attention to here: if there are lots of schemas being written to, applying a single change might require simultaneously playing forward many different schemas. We haven&rsquo;t put work into optimization yet, but an easy step would be to snapshot the state of various schemas at various points in time, reducing incremental replay cost. In fact, we might even be able to do this in a memory-efficient way because Automerge uses persistent data structures, meaning different schemas could share parts of their replayed state. Also, we think some workloads might avoid these replay costs in practice—each schema only needs to be played forward as far as its last write, so if an old schema hasn&rsquo;t been making writes recently, there&rsquo;s no need to keep playing it forward as the document evolves.</p>
+<h3 id="subtleties">Subtleties</h3>
+<p>That&rsquo;s a high level summary of the approach we&rsquo;re taking to integrating Automerge and Cloudina. We think the conceptual design has turned out cleanly, but as usual, the devil is in the details. Here&rsquo;s a brief mention of some details which have been challenging in practice:</p>
+<ul>
+<li><strong>Default values:</strong> Our schema system introduces the notion of default values, which is particularly useful for initializing structures like an empty list. The problem is, default values weren&rsquo;t actually written by any actor, and are schema-specific. We solve this by having a special virtual actor apply changes to the document as changes are being played back, to fill in default values as needed.</li>
+<li><strong>Incremental op application:</strong> Automerge batches individual &ldquo;operations&rdquo; on a document into &ldquo;changes&rdquo; which are applied atomically. The trouble is, in order to convert a change with a lens, sometimes operations need to reference structures that were created earlier in the change. We deal with this by maintaining special forked Automerge documents where we apply each operation as its own change.</li>
+<li><strong>CRDTs and type conversions?</strong> One area we haven&rsquo;t fully explored yet is the intersection of CRDT properties with structure-converting lenses. For example, when a lens converts a list to a scalar property, how does concurrent edit resolution behave?</li>
+</ul>
+<p>That&rsquo;s it for this week. Only two weeks left in the project, so look forward to a fuller writeup in the near future!</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://inkandswitch.github.io/cambria/" >
+    &copy;  Cambria Development Notes 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/cambria/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+<script src="/cambria/mermaid.min.js"></script>
+
+  </body>
+</html>

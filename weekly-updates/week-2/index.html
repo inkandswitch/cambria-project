@@ -183,11 +183,11 @@ file could follow this path.</p>
 First, it doesn&rsquo;t handle nested data very well yet. If you want to rename a field and it&rsquo;s not connected
 to the root of the document? Too bad. Orion&rsquo;s working on that this week.</p>
 <p>Next, our canonical representation has become increasingly difficult to reason about. We suspect that
-we can separate the conversion logic from the underlying storage layout, which will hopefully both 
-simplify each piece of the system and also make them more independently useful. Geoffrey is working 
+we can separate the conversion logic from the underlying storage layout, which will hopefully both
+simplify each piece of the system and also make them more independently useful. Geoffrey is working
 on exploring that.</p>
-<p>Last, we&rsquo;ve had a number of fascinating discussions about what the correct behavior <em>should</em> be for 
-some of these cases. If you check and uncheck the <code>complete</code> Boolean, what should happen to the 
+<p>Last, we&rsquo;ve had a number of fascinating discussions about what the correct behavior <em>should</em> be for
+some of these cases. If you check and uncheck the <code>complete</code> Boolean, what should happen to the
 <code>status</code> string?</p>
 <p>Along with concrete progress in improving the capabilities of the system we also want to document our
 expectations for how various cases will behave in a test suite. Peter&rsquo;s planning to focus on that to

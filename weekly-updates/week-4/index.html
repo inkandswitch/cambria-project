@@ -139,13 +139,13 @@ collaborators, and that didn&rsquo;t really work <em>at all</em>.</p>
 <p>We&rsquo;d optimized for the experience of our demos (which we took to calling the Researcher Experience, or RX) instead of the
 developer experience (DX) of building real software.</p>
 <p>We made a few changes to fix this, but the biggest was that we now treat our lenses more like a migrations directory,
-and produce the types your program will use by summing up all the lenses found there. This means that if you pull a 
+and produce the types your program will use by summing up all the lenses found there. This means that if you pull a
 branch in from a collaborator you shouldn&rsquo;t have to take any manual fix-up steps to get their code working.</p>
 <p>As we thought through the consequences of this change we realized that our current propagating-lens-patches model was
-not going to work. It would incorrectly orphan some changes, and worse, the same problem meant that async collaboration 
+not going to work. It would incorrectly orphan some changes, and worse, the same problem meant that async collaboration
 was broken too.</p>
 <h1 id="fixing-cambria">Fixing Cambria</h1>
-<p>The current version of Cambria is becoming increasingly ergonomic. At this point, we think we&rsquo;re close to solving a 
+<p>The current version of Cambria is becoming increasingly ergonomic. At this point, we think we&rsquo;re close to solving a
 useful problem and having a good interface to do so. Therefore, we&rsquo;ll be returning our attention to the functioning of
 the system along two key axes:</p>
 <ol>
@@ -157,13 +157,13 @@ Chitin (storage format, distribution, types) and Cloudina (lenses and patch tran
 <p>Our plan for fixing nesting documents looks a lot like work we&rsquo;ve seen coming out of Benjamin Pierce&rsquo;s group at UPenn,
 with symmetric edit lenses looking promising. We have a few advantages of their usual approach, in particular that because
 we instrument users&rsquo; code directly we don&rsquo;t have to guess at intent &ndash; we can instrument it.</p>
-<p>As to the correctness problem, well, we&rsquo;re trying something new based around a <a href="../../designs/chitin-v4">log of all operations</a>. It seems 
+<p>As to the correctness problem, well, we&rsquo;re trying something new based around a <a href="../../designs/chitin-v4">log of all operations</a>. It seems
 promising thus far, but we&rsquo;re coming dangerously close to building a new CRDT on top of an existing one and so we need
 to reconcile that.</p>
 <h1 id="out--about">Out &amp; About</h1>
 <p>We had a lovely audience for our last project demo from several folks who responded to an earlier update with interest in our work from their own past histories, including (alphabetically by author) <a href="https://dcreager.net/publications/012-dphil-thesis/">Douglas Creeger&rsquo;s PhD</a>, <a href="https://github.com/deadwisdom/blazon">Blazon</a> (Brantley Harris), and <a href="https://github.com/ipld/specs/tree/master/schemas">IPLD Schemas</a> (Eric Myhre).</p>
 <h1 id="q-how-do-you-track-time-to-live-for-a-version-so-you-know-when-you-can-retire-the-old-one">Q: How do you track &ldquo;time to live&rdquo; for a version so you know when you can retire the old one?</h1>
-<p>In a centralised system, you want to know when enough of your old clients are upgraded to the new version so you can 
+<p>In a centralised system, you want to know when enough of your old clients are upgraded to the new version so you can
 remove support for older versions. The Cambria library works more like an ActiveRecord migrations directory &ndash; the code
 automatically migrates old data up to the new version when it encounters it, so you don&rsquo;t need to think about deprecating old versions. It can also migrate the data down to older versions to ensure backwards support.</p>
 <h1 id="q-what-happens-when-youre-simply-missing-data-that-a-new-or-old-version-needs">Q: What happens when you&rsquo;re simply missing data that a new or old version needs?</h1>
