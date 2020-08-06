@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc --outDir ./dist",
     "test": "mocha -r ts-node/register test/**.ts",
-    "postinstall": "yarn run build"
+    "postinstall": "yarn run build",
+    "build-demo": "browserify ./demo/cloudina-demo.js -o ./demo/bundle.js"
   },
   "dependencies": {
     "commander": "^5.1.0",
@@ -26,6 +27,7 @@
     "@typescript-eslint/eslint-plugin": "^3.6.1",
     "@typescript-eslint/parser": "^3.6.1",
     "assert": "^2.0.0",
+    "browserify": "^16.5.2",
     "eslint": "^7.4.0",
     "eslint-config-airbnb-typescript": "^8.0.2",
     "eslint-config-prettier": "^6.11.0",

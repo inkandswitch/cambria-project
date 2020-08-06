@@ -10,3 +10,5 @@ export { LensGraph, initLensGraph, registerLens, lensGraphSchema, lensFromTo } f
 
 // TODO: delete js syntax, remove these
 export { addProperty, renameProperty, convertValue } from './helpers'
+
+export { loadYamlLens } from './lens-loader'
