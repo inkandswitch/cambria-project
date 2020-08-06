@@ -32,6 +32,7 @@ export function defaultObjectForSchema(schema: JSONSchema7) {
   return applyPatch({}, defaultsPatch).newDocument
 }
 
+// transforms a patch by injecting new operations that fill in default fields
 export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
   return patch
     .map((op) => {

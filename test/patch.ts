@@ -604,10 +604,24 @@ describe('head (array to nullable scalar)', () => {
     )
   })
 
-  it('converts array first element delete into a null write on the scalar', () => {
+  // The behavior of head on delete has multiple options, described here:
+  // https://github.com/inkandswitch/cambria/blob/default/conversations/converting-scalar-to-arrays.md
+
+  // This is the "Register" option
+  it.skip('converts array first element delete into a null write on the scalar', () => {
     assert.deepEqual(
       applyLensToPatch(lensSource, [{ op: 'remove' as const, path: '/assignee/0' }], docSchema),
       [{ op: 'replace' as const, path: '/assignee', value: null }]
+    )
+  })
+
+  // This is "Stack Popping"
+  it('converts array first element delete into a set of another array element', () => {
+    assert.deepEqual(
+      applyLensToPatch(lensSource, [{ op: 'remove' as const, path: '/assignee/0' }], docSchema, {
+        assignee: ['alice', 'bob', 'charlie'],
+      }),
+      [{ op: 'replace' as const, path: '/assignee', value: 'bob' }]
     )
   })
 

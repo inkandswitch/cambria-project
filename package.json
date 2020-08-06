@@ -16,6 +16,7 @@
     "graphlib": "^2.1.8",
     "is-url": "^1.2.4",
     "js-yaml": "^3.14.0",
+    "json-pointer": "^0.6.0",
     "json-schema": "^0.2.5",
     "quicktype-core": "^6.0.66"
   },

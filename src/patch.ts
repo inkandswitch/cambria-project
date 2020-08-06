@@ -5,6 +5,7 @@ import { addDefaultValues, defaultObjectForSchema } from './defaults'
 import { JSONSchema7 } from 'json-schema'
 import { updateSchema } from './json-schema'
 import GenerateSchema from 'generate-schema'
+import * as JSONPointer from 'json-pointer'
 import { inspect } from 'util'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
@@ -73,31 +74,35 @@ export function applyLensToDoc(
 export function applyLensToPatch(
   lensSource: LensSource,
   patch: Patch,
-  patchSchema: JSONSchema7 // the json schema for the doc the patch was operating on
+  sourceSchema: JSONSchema7, // the json schema for the doc the patch was operating on
+  sourceDoc?: any
 ): Patch {
   // expand patches that set nested objects into scalar patches
   const expandedPatch: Patch = patch.map((op) => expandPatch(op)).flat()
 
   // send everything through the lens
   const lensedPatch = noNulls<PatchOp>(
-    expandedPatch.map((patchOp) => applyLensToPatchOp(lensSource, patchOp))
+    expandedPatch.map((patchOp) => applyLensToPatchOp(lensSource, patchOp, sourceDoc))
   )
 
   // add in default values needed (based on the new schema after lensing)
-  const readerSchema = updateSchema(patchSchema, lensSource)
+  const readerSchema = updateSchema(sourceSchema, lensSource)
   const lensedPatchWithDefaults = addDefaultValues(lensedPatch, readerSchema)
 
   return lensedPatchWithDefaults
 }
 
-// todo: remove destinationDoc entirely
-export function applyLensToPatchOp(lensSource: LensSource, patchOp: MaybePatchOp): MaybePatchOp {
+export function applyLensToPatchOp(
+  lensSource: LensSource,
+  patchOp: MaybePatchOp,
+  sourceDoc?: any
+): MaybePatchOp {
   return lensSource.reduce<MaybePatchOp>((prevPatch: MaybePatchOp, lensOp: LensOp) => {
-    return runLensOp(lensOp, prevPatch)
+    return runLensOp(lensOp, prevPatch, sourceDoc)
   }, patchOp)
 }
 
-function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
+function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp, sourceDoc?: any): MaybePatchOp {
   if (patchOp === null) {
     return null
   }
@@ -166,10 +171,19 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       }
 
       if (patchOp.op === 'remove') {
+        let newValue = null
+
+        if (sourceDoc !== undefined) {
+          const arrayContents = JSONPointer.get(sourceDoc, `/${lensOp.name}`)
+          if (arrayContents.length > 1) {
+            newValue = arrayContents[1]
+          }
+        }
+
         return {
           op: 'replace' as const,
           path: `/${lensOp.name}${headMatch[1] || ''}`,
-          value: null,
+          value: newValue,
         }
       }
 
@@ -206,12 +220,12 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       const arrayIndexMatch = patchOp.path.match(/\/([0-9]+)\//)
       if (!arrayIndexMatch) break
       const arrayIndex = arrayIndexMatch[1]
-      const itemPatch = applyLensToPatchOp(
-        lensOp.lens,
-        { ...patchOp, path: patchOp.path.replace(/\/[0-9]+\//, '/') }
-        // Then add the parent path back to the beginning of the results
-      )
+      const itemPatch = applyLensToPatchOp(lensOp.lens, {
+        ...patchOp,
+        path: patchOp.path.replace(/\/[0-9]+\//, '/'),
+      })
 
+      // Then add the parent path back to the beginning of the results
       if (itemPatch) {
         return { ...itemPatch, path: `/${arrayIndex}${itemPatch.path}` }
       }
