@@ -7,11 +7,37 @@
   </head>
   <body>
     <h1>Cloudina component demo</h1>
-          <cloudina-demo
-            img="img/alt.png"
-            data-text="Your card validation code (CVC) is an extra security feature — it is the last 3 or 4 numbers on the back of your card."
-          ></cloudina-demo>
-      </div>
-    </form>
+    <cloudina-demo>
+      <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
+      <textarea slot="lens">
+lens:
+  - rename: 
+      source: name
+      destination: title
+      </textarea>
+      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
+    </cloudina-demo>
+
+    <cloudina-demo>
+      <textarea slot="left">{ "metadata": { "author": "Luc Besson" }</textarea>
+      <textarea slot="lens">
+lens:
+  - hoist: 
+      host: metadata
+      name: author
+      </textarea>
+      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
+    </cloudina-demo>
+
+    <cloudina-demo>
+      <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
+      <textarea slot="lens">
+lens:
+  - rename: 
+      source: name
+      destination: title
+      </textarea>
+      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
+    </cloudina-demo>
   </body>
 </html>

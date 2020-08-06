@@ -3,95 +3,90 @@ const Cloudina = require('..')
 const Yaml = require('js-yaml')
 
 class CloudinaDemo extends HTMLElement {
-  lens = []
-  left = { name: 'The Fifth Element' }
-  right = {}
-  leftElt = null
-  rightElt = null
-  errorDisplay = null
+  template = document.createElement('template')
 
   constructor() {
     super()
 
+    this.template.innerHTML = `
+      <style>
+        :host {
+          display: grid;
+          grid-template-columns: 40% 30% 40%;
+          grid-template-rows: auto;
+          grid-template-areas:
+            ' left lens right '
+            ' error error error ';
+          width: 80%;
+          padding: 10px;
+          height: 250px;
+        }
+        .leftData {
+          grid-area: left;
+        }
+        .lens {
+          grid-area: lens;
+        }
+        .rightData {
+          grid-area: right;
+        }
+        .errorDisplay {
+          grid-area: error;
+          color: red;
+          margin: 4px;
+          padding: 4px;
+          height: 1em;
+          border: 1px solid black;
+        }
+      </style>
+      <slot name="left">{}</slot>
+      <slot name="lens">no lens</slot>
+      <slot name="right">{}</slot>
+      <div class="error"></div>`
+
     // Create a shadow root
     const shadow = this.attachShadow({ mode: 'open' })
 
-    // Create spans
-    const wrapper = document.createElement('div')
-    wrapper.setAttribute('class', 'wrapper')
+    const result = this.template.content.cloneNode(true)
+    shadow.appendChild(result)
 
-    const errorDisplay = document.createElement('p')
-    errorDisplay.setAttribute('class', 'errorDisplay')
-    this.errorDisplay = errorDisplay
+    this.error = shadow.querySelector('.error')
 
-    const lens = document.createElement('textarea')
-    lens.setAttribute('type', 'text')
-    lens.setAttribute('id', 'lens')
-    lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
-    lens.textContent = `lens:
-    - rename: 
-       source: name
-       destination: title`
-    this.updateLens(lens.textContent)
+    let slots = {}
+    shadow
+      .querySelectorAll('slot')
+      .forEach((slot) => (slots[slot.name] = slot.assignedElements()[0]))
 
-    const left = document.createElement('textarea')
-    left.setAttribute('type', 'text')
-    left.setAttribute('id', 'left')
-    left.textContent = JSON.stringify(this.left)
-    left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
-    this.leftElt = left
+    this.left = slots.left
+    this.right = slots.right
+    this.lens = slots.lens
 
-    const right = document.createElement('textarea')
-    right.setAttribute('type', 'text')
-    right.setAttribute('id', 'right')
-    this.rightElt = right
+    slots.lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
+    this.updateLens(slots.lens.textContent)
 
-    // Create some CSS to apply to the shadow dom
-    const style = document.createElement('style')
-
-    style.textContent = `
-      .wrapper {
-        position: relative;
-      }
-      input {
-        color: blue;
-        width: 250px;
-        height: 250px;
-      }
-      .errorDisplay {
-        width: 100%;
-        color: red;
-        margin: 2px;
-        padding: 2px;
-        border: 1px solid black;
-      }
-    `
-    shadow.appendChild(style)
-
-    shadow.appendChild(wrapper)
-    wrapper.appendChild(left)
-    wrapper.appendChild(lens)
-    wrapper.appendChild(right)
-    wrapper.appendChild(errorDisplay)
+    slots.left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
   }
 
   updateTextArea(value) {
     let newJson
     try {
+      this.error.textContent = ''
       newJson = JSON.parse(value)
       if (newJson) {
-        const newDoc = Cloudina.applyLensToDoc(this.lens, newJson)
-        this.rightElt.textContent = JSON.stringify(newDoc)
+        const newDoc = Cloudina.applyLensToDoc(this.compiledLens, newJson)
+        this.right.textContent = JSON.stringify(newDoc)
       }
     } catch (err) {
-      this.errorDisplay.textContent = err.message
+      this.error.textContent = err.message
     }
   }
   updateLens(value) {
     try {
-      this.lens = Cloudina.loadYamlLens(value)
+      this.error.textContent = ''
+      this.compiledLens = Cloudina.loadYamlLens(value)
+      this.updateTextArea(this.left.value)
     } catch (err) {
-      this.errorDisplay.textContent = err.message
+      this.error.textContent = err.message
     }
   }
 }
