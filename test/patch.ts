@@ -450,7 +450,7 @@ describe('wrap (scalar to array)', () => {
   }
   const lensSource: LensSource = [wrapProperty('assignee')]
 
-  it('converts head set value into 0th element writes into its child', () => {
+  it('converts head replace value into 0th element writes into its child', () => {
     assert.deepEqual(
       applyLensToPatch(
         lensSource,
@@ -467,11 +467,28 @@ describe('wrap (scalar to array)', () => {
     )
   })
 
+  it('converts head add value into 0th element writes into its child', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [
+          {
+            op: 'add' as const,
+            path: '/assignee',
+            value: 'July 7th, 2020',
+          },
+        ],
+        docSchema
+      ),
+      [{ op: 'add' as const, path: '/assignee/0', value: 'July 7th, 2020' }]
+    )
+  })
+
   // todo: many possible options for how to handle this.
   // We've chosen this one for now based on implementation simplicity.
   // Consider other options:
   // https://github.com/inkandswitch/cambria/blob/default/conversations/converting-scalar-to-arrays.md
-  it('converts head null write into a null write on first element', () => {
+  it('converts head null write into a remove the first element op', () => {
     assert.deepEqual(
       applyLensToPatch(
         lensSource,
@@ -484,7 +501,7 @@ describe('wrap (scalar to array)', () => {
         ],
         docSchema
       ),
-      [{ op: 'replace' as const, path: '/assignee/0', value: null }]
+      [{ op: 'remove' as const, path: '/assignee/0' }]
     )
   })
 
@@ -622,6 +639,28 @@ describe('head (array to nullable scalar)', () => {
     )
   })
 
+  it('preserves the rest of the path after the array index with nulls', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [{ op: 'replace' as const, path: '/assignee/0/age', value: null }],
+        docSchema
+      ),
+      [{ op: 'replace' as const, path: '/assignee/age', value: null }]
+    )
+  })
+
+  it('preserves the rest of the path after the array index with removes', () => {
+    assert.deepEqual(
+      applyLensToPatch(
+        lensSource,
+        [{ op: 'remove' as const, path: '/assignee/0/age' }],
+        docSchema
+      ),
+      [{ op: 'remove' as const, path: '/assignee/age' }]
+    )
+  })
+
   it('correctly handles a sequence of array writes', () => {
     assert.deepEqual(
       applyLensToPatch(
@@ -642,7 +681,7 @@ describe('head (array to nullable scalar)', () => {
       ),
       [
         {
-          op: 'replace' as const,
+          op: 'add' as const,
           path: '/assignee',
           value: 'geoffrey',
         },
