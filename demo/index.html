@@ -33,14 +33,18 @@ lens:
     </cloudina-demo>
 
     <cloudina-demo>
-      <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
+      <textarea slot="left">
+[
+  { "op": "replace", "path": "/name", "value": "The Fifth Element" }
+]
+      </textarea>
       <textarea slot="lens">
 lens:
   - rename: 
       source: name
       destination: title
       </textarea>
-      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
+      <textarea slot="right">{}</textarea>
     </cloudina-demo>
   </body>
 </html>

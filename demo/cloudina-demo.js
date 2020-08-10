@@ -5,6 +5,22 @@ const Yaml = require('js-yaml')
 class CloudinaDemo extends HTMLElement {
   template = document.createElement('template')
 
+  get mode() {
+    const attrValue = this.getAttribute('mode')
+    if (attrValue === 'patch') {
+      return 'patch'
+    }
+    // default to document mode (including bad values)
+    if (!attrValue || attrValue === 'document') {
+      return 'document'
+    }
+    console.log('unrecognized conversion mode, defaulting to "document"')
+    return 'document'
+  }
+  set mode(newValue) {
+    this.setAttribute('mode', newValue)
+  }
+
   constructor() {
     super()
 
@@ -64,20 +80,23 @@ class CloudinaDemo extends HTMLElement {
     slots.lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
     this.updateLens(slots.lens.textContent)
 
-    const editor = CodeMirror.fromTextArea(slots.left, {
-      lineNumbers: true,
-    })
     slots.left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
   }
 
   updateTextArea(value) {
-    let newJson
     try {
       this.error.textContent = ''
-      newJson = JSON.parse(value)
-      if (newJson) {
-        const newDoc = Cloudina.applyLensToDoc(this.compiledLens, newJson)
-        this.right.textContent = JSON.stringify(newDoc)
+      const inputData = JSON.parse(value)
+      if (inputData) {
+        if (this.mode == 'patch') {
+          this.right.textContent = JSON.stringify(
+            Cloudina.applyLensToPatch(this.compiledLens, inputData)
+          )
+        } else {
+          this.right.textContent = JSON.stringify(
+            Cloudina.applyLensToDoc(this.compiledLens, inputData)
+          )
+        }
       }
     } catch (err) {
       this.error.textContent = err.message
