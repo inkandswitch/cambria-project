@@ -774,8 +774,11 @@ function runLensOp(lensOp, patchOp) {
             const pathComponent = new RegExp(`^/(${lensOp.name})(.*)`);
             const match = patchOp.path.match(pathComponent);
             if (match) {
-                const newPath = `/${match[1]}/0${match[2]}`;
-                patchOp.path = newPath;
+                const path = `/${match[1]}/0${match[2]}`;
+                if ((patchOp.op === "add" || patchOp.op === "replace") && patchOp.value === null && match[2] === "") {
+                    return { op: "remove", path };
+                }
+                return Object.assign(Object.assign({}, patchOp), { path });
             }
             break;
         }
@@ -791,17 +794,22 @@ function runLensOp(lensOp, patchOp) {
             if (patchOp.op === 'add' || patchOp.op === 'replace') {
                 // If the write is to the first array element, write to the scalar
                 return {
-                    op: 'replace',
+                    op: patchOp.op,
                     path: `/${lensOp.name}${headMatch[1] || ''}`,
                     value: patchOp.value,
                 };
             }
             if (patchOp.op === 'remove') {
-                return {
-                    op: 'replace',
-                    path: `/${lensOp.name}${headMatch[1] || ''}`,
-                    value: null,
-                };
+                if (headMatch[1] === "") {
+                    return {
+                        op: 'replace',
+                        path: `/${lensOp.name}${headMatch[1] || ''}`,
+                        value: null,
+                    };
+                }
+                else {
+                    return Object.assign(Object.assign({}, patchOp), { path: `/${lensOp.name}${headMatch[1] || ''}` });
+                }
             }
             break;
         }
