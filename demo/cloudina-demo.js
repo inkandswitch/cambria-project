@@ -39,9 +39,9 @@ class CloudinaDemo extends HTMLElement {
           border: 1px solid black;
         }
       </style>
-      <slot name="left">{}</slot>
-      <slot name="lens">no lens</slot>
-      <slot name="right">{}</slot>
+      <slot name="left"><textarea></textarea></slot>
+      <slot name="lens"><textarea></textarea></slot>
+      <slot name="right"><textarea></textarea></slot>
       <div class="error"></div>`
 
     // Create a shadow root
@@ -55,7 +55,7 @@ class CloudinaDemo extends HTMLElement {
     let slots = {}
     shadow
       .querySelectorAll('slot')
-      .forEach((slot) => (slots[slot.name] = slot.assignedElements()[0]))
+      .forEach((slot) => (slots[slot.name] = slot.assignedElements()[0] || slot.firstElementChild))
 
     this.left = slots.left
     this.right = slots.right
@@ -64,6 +64,9 @@ class CloudinaDemo extends HTMLElement {
     slots.lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
     this.updateLens(slots.lens.textContent)
 
+    const editor = CodeMirror.fromTextArea(slots.left, {
+      lineNumbers: true,
+    })
     slots.left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
   }
 
@@ -80,6 +83,7 @@ class CloudinaDemo extends HTMLElement {
       this.error.textContent = err.message
     }
   }
+
   updateLens(value) {
     try {
       this.error.textContent = ''
