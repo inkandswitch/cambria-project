@@ -165,14 +165,14 @@ class CloudinaDemo extends HTMLElement {
 
     const resetButton = shadow.querySelector('.reset')
     resetButton.addEventListener('click', (e) => {
-      this.left.importDoc()
       this.right.clear()
+      this.left.importDoc()
     })
 
     slots.lens.addEventListener('lens-changed', (e) => {
       // trigger a re-processing of the document
-      this.right.importDoc()
-      this.left.dispatchEvent(new Event('input'))
+      this.right.clear()
+      this.left.importDoc()
     })
 
     // ehhhhhh
