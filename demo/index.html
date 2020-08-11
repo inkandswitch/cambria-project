@@ -8,18 +8,16 @@
   <body>
     <h1>Cloudina component demo</h1>
     <cloudina-demo>
-      <cloudina-document slot="left">
-        <textarea>{ "name": "The Fifth Element" }</textarea>
-      </cloudina-document>
-      <cloudina-lens slot="lens">
-        <textarea>
+      <pre is="cloudina-document" contenteditable="true" slot="left">
+        { "name": "The Fifth Element" }
+      </pre>
+      <pre is="cloudina-lens" contenteditable="true" slot="lens">
 lens:
   - rename: 
       source: name
       destination: title
-        </textarea>
-      </cloudina-lens>
-      <cloudina-document slot="right"><textarea>{}</textarea></cloudina-document>
+      </pre>
+      <pre is="cloudina-document" slot="right">{}</pre>
     </cloudina-demo>
   </body>
 </html>

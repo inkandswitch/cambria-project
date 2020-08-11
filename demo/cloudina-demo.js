@@ -3,78 +3,74 @@ const Cloudina = require('..')
 const Yaml = require('js-yaml')
 const jsonpatch = require('fast-json-patch')
 
-class CloudinaDocument extends HTMLElement {
-  template = document.createElement('template')
-  prevJSON = {}
+class CloudinaDocument extends HTMLPreElement {
+  clear() {
+    this.innerText = '{}'
+  }
+  lastJSON = {}
 
-  constructor() {
-    super()
+  importDoc() {
+    const rawText = this.innerText
+    const rawJSON = JSON.parse(rawText)
+    const [schema, patch] = Cloudina.importDoc(rawJSON)
+    this.schema = schema
 
-    this.template.innerHTML = `
-      <slot><textarea></textarea></slot>
-    `
-
-    // Create a shadow root
-    const shadow = this.attachShadow({ mode: 'open' })
-
-    const result = this.template.content.cloneNode(true)
-    shadow.appendChild(result)
-
-    // As the user types, the textarea inside the form dispatches/triggers the event to fire, and uses itself as the starting point
-    const slot = shadow.querySelector('slot')
-    const textarea = slot.assignedElements()[0] || slot.firstElementChild
-
-    // The form element listens for the custom "awesome" event and then consoles the output of the passed text() method
-    textarea.addEventListener('doc-change', (e) => console.log(e.detail))
-
-    textarea.addEventListener('input', (e) => {
-      const rawText = textarea.value
-      const rawJSON = JSON.parse(rawText)
-      const [schema, patch] = Cloudina.importDoc(rawJSON)
-
-      const event = new CustomEvent('doc-change', {
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
         bubbles: true,
         composed: true,
         detail: { schema, patch },
       })
-
-      e.target.dispatchEvent(event)
-    })
-    textarea.dispatchEvent(new Event('input'))
-
-    this.addEventListener('doc-patch', (event) => {
-      const patch = event.detail.patch
-      const doc = JSON.parse(textarea.value)
-      textarea.value = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
-    })
+    )
   }
-}
 
-customElements.define('cloudina-document', CloudinaDocument)
+  handleInput() {
+    const rawText = this.innerText
+    const rawJSON = JSON.parse(rawText)
 
-// Sends `lens-compiled` events when it gets a new, good lens.
-// Receives `doc-change` events and emits `doc-patch` ones in response.
-class CloudinaLens extends HTMLElement {
-  template = document.createElement('template')
+    const schema = this.schema
+    const patch = jsonpatch.compare(this.lastJSON, rawJSON)
+
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch },
+      })
+    )
+    this.lastJSON = rawJSON
+  }
 
   constructor() {
     super()
 
-    this.template.innerHTML = `
-      <slot><textarea></textarea></slot>
-    `
+    this.importDoc()
 
-    // Create a shadow root
-    const shadow = this.attachShadow({ mode: 'open' })
+    this.addEventListener('input', (e) => this.handleInput())
+    this.addEventListener('doc-change', (e) => console.log(e.detail))
 
-    const result = this.template.content.cloneNode(true)
-    shadow.appendChild(result)
+    this.addEventListener('doc-patch', (event) => {
+      const patch = event.detail.patch
+      const doc = JSON.parse(this.innerText)
+      this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
+    })
+  }
 
-    let slot = shadow.querySelector('slot')
-    const textarea = slot.assignedElements()[0] || slot.firstElementChild
+  connectedCallback() {
+    this.dispatchEvent(new Event('input'))
+  }
+}
 
-    textarea.addEventListener('input', (e) => this.handleInput(e.target.value))
-    this.handleInput(textarea.textContent)
+customElements.define('cloudina-document', CloudinaDocument, { extends: 'pre' })
+
+// Sends `lens-compiled` events when it gets a new, good lens.
+// Receives `doc-change` events and emits `doc-patch` ones in response.
+class CloudinaLens extends HTMLPreElement {
+  constructor() {
+    super()
+
+    this.addEventListener('input', (e) => this.handleInput(e.target.innerText))
+    this.handleInput(this.innerText)
 
     this.addEventListener('doc-change', (e) => this.handleDocChange(e, this.compiledLens))
   }
@@ -102,11 +98,10 @@ class CloudinaLens extends HTMLElement {
   }
 }
 
-customElements.define('cloudina-lens', CloudinaLens)
+customElements.define('cloudina-lens', CloudinaLens, { extends: 'pre' })
 
 class CloudinaDemo extends HTMLElement {
   template = document.createElement('template')
-  lastJSON = {}
 
   constructor() {
     super()
@@ -119,18 +114,19 @@ class CloudinaDemo extends HTMLElement {
           grid-template-rows: auto;
           grid-template-areas:
             ' left lens right '
+            ' reset reverse reset  '
             ' error error error ';
           width: 80%;
           padding: 10px;
           height: 250px;
         }
-        .leftData {
+        .left {
           grid-area: left;
         }
         .lens {
           grid-area: lens;
         }
-        .rightData {
+        .right {
           grid-area: right;
         }
         .errorDisplay {
@@ -145,6 +141,8 @@ class CloudinaDemo extends HTMLElement {
       <slot name="left"></slot>
       <slot name="lens"></slot>
       <slot name="right"></slot>
+
+      <button class="reset">Reset</button>
       <div class="error"></div>`
 
     // Create a shadow root
@@ -164,8 +162,15 @@ class CloudinaDemo extends HTMLElement {
     this.right = slots.right
     this.lens = slots.lens
 
+    const resetButton = shadow.querySelector('.reset')
+    resetButton.addEventListener('click', (e) => {
+      this.left.importDoc()
+      this.right.clear()
+    })
+
     slots.lens.addEventListener('lens-changed', (e) => {
       // trigger a re-processing of the document
+      this.right.importDoc()
       this.left.dispatchEvent(new Event('input'))
     })
 
@@ -187,6 +192,7 @@ class CloudinaDemo extends HTMLElement {
     slots.lens.addEventListener('doc-patch', (e) => {
       const { detail } = e
       const { patch, destination } = e.detail
+      this.error.innerText = JSON.stringify(e.detail.patch)
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
     })
   }
