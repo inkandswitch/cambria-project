@@ -7,17 +7,19 @@
   </head>
   <body>
     <h1>Cloudina component demo</h1>
-    <cloudina-lens>
+    <cloudina-demo>
       <cloudina-document slot="left">
         <textarea>{ "name": "The Fifth Element" }</textarea>
       </cloudina-document>
-      <textarea slot="lens">
+      <cloudina-lens slot="lens">
+        <textarea>
 lens:
   - rename: 
       source: name
       destination: title
-      </textarea>
+        </textarea>
+      </cloudina-lens>
       <cloudina-document slot="right"><textarea>{}</textarea></cloudina-document>
-    </cloudina-lens>
+    </cloudina-demo>
   </body>
 </html>

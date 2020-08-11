@@ -52,7 +52,59 @@ class CloudinaDocument extends HTMLElement {
 
 customElements.define('cloudina-document', CloudinaDocument)
 
+// Sends `lens-compiled` events when it gets a new, good lens.
+// Receives `doc-change` events and emits `doc-patch` ones in response.
 class CloudinaLens extends HTMLElement {
+  template = document.createElement('template')
+
+  constructor() {
+    super()
+
+    this.template.innerHTML = `
+      <slot><textarea></textarea></slot>
+    `
+
+    // Create a shadow root
+    const shadow = this.attachShadow({ mode: 'open' })
+
+    const result = this.template.content.cloneNode(true)
+    shadow.appendChild(result)
+
+    let slot = shadow.querySelector('slot')
+    const textarea = slot.assignedElements()[0] || slot.firstElementChild
+
+    textarea.addEventListener('input', (e) => this.handleInput(e.target.value))
+    this.handleInput(textarea.textContent)
+
+    this.addEventListener('doc-change', (e) => this.handleDocChange(e, this.compiledLens))
+  }
+
+  handleDocChange(event, lens) {
+    const { patch, schema, reverse, destination } = event.detail
+
+    const convertedPatch = Cloudina.applyLensToPatch(
+      reverse ? Cloudina.reverseLens(lens) : lens,
+      patch,
+      schema
+    )
+
+    this.dispatchEvent(
+      new CustomEvent('doc-patch', {
+        bubbles: true,
+        detail: { patch: convertedPatch, destination },
+      })
+    )
+  }
+
+  handleInput(value) {
+    this.compiledLens = Cloudina.loadYamlLens(value)
+    this.dispatchEvent(new CustomEvent('lens-changed', { bubbles: true }))
+  }
+}
+
+customElements.define('cloudina-lens', CloudinaLens)
+
+class CloudinaDemo extends HTMLElement {
   template = document.createElement('template')
   lastJSON = {}
 
@@ -112,41 +164,33 @@ class CloudinaLens extends HTMLElement {
     this.right = slots.right
     this.lens = slots.lens
 
-    slots.lens.addEventListener('input', (e) => this.updateLens(e.target.value))
-    this.updateLens(slots.lens.textContent)
+    slots.lens.addEventListener('lens-changed', (e) => {
+      // trigger a re-processing of the document
+      this.left.dispatchEvent(new Event('input'))
+    })
 
+    // ehhhhhh
     slots.left.addEventListener('doc-change', (e) =>
-      this.applyLens(e, this.compiledLens, this.right)
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
+      )
     )
+
     slots.right.addEventListener('doc-change', (e) =>
-      this.applyLens(e, Cloudina.reverseLens(this.compiledLens), this.left)
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', {
+          detail: { ...e.detail, reverse: true, destination: slots.left },
+        })
+      )
     )
-  }
 
-  applyLens(event, lens, target) {
-    try {
-      const { patch, schema } = event.detail
-      const convertedPatch = Cloudina.applyLensToPatch(lens, patch, schema)
-
-      const outEvent = new CustomEvent('doc-patch', {
-        bubbles: true,
-        detail: { patch: convertedPatch },
-      })
-      target.dispatchEvent(outEvent)
-    } catch (err) {
-      this.error.textContent = err.message
-    }
-  }
-
-  updateLens(value) {
-    try {
-      this.error.textContent = ''
-      this.compiledLens = Cloudina.loadYamlLens(value)
-    } catch (err) {
-      this.error.textContent = err.message
-    }
+    slots.lens.addEventListener('doc-patch', (e) => {
+      const { detail } = e
+      const { patch, destination } = e.detail
+      destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
+    })
   }
 }
 
 // Define the new element
-customElements.define('cloudina-lens', CloudinaLens)
+customElements.define('cloudina-demo', CloudinaDemo)
