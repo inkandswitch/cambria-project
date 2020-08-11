@@ -4,47 +4,20 @@
     <meta charset="utf-8" />
     <title>Cloudina Demos</title>
     <script src="bundle.js" defer></script>
-
-    <link rel="stylesheet" href="codemirror.css" />
-    <script src="codemirror.js"></script>
   </head>
   <body>
     <h1>Cloudina component demo</h1>
-    <wc-codemirror></wc-codemirror>
-    <cloudina-demo>
-      <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
+    <cloudina-lens>
+      <cloudina-document slot="left">
+        <textarea>{ "name": "The Fifth Element" }</textarea>
+      </cloudina-document>
       <textarea slot="lens">
 lens:
   - rename: 
       source: name
       destination: title
       </textarea>
-      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
-    </cloudina-demo>
-
-    <cloudina-demo>
-      <textarea slot="left">{ "metadata": { "author": "Luc Besson" }}</textarea>
-      <textarea slot="lens">
-lens:
-  - hoist: 
-      host: metadata
-      name: author
-      </textarea>
-    </cloudina-demo>
-
-    <cloudina-demo>
-      <textarea slot="left">
-[
-  { "op": "replace", "path": "/name", "value": "The Fifth Element" }
-]
-      </textarea>
-      <textarea slot="lens">
-lens:
-  - rename: 
-      source: name
-      destination: title
-      </textarea>
-      <textarea slot="right">{}</textarea>
-    </cloudina-demo>
+      <cloudina-document slot="right"><textarea>{}</textarea></cloudina-document>
+    </cloudina-lens>
   </body>
 </html>

@@ -1,25 +1,60 @@
 // Create a class for the element
 const Cloudina = require('..')
 const Yaml = require('js-yaml')
+const jsonpatch = require('fast-json-patch')
 
-class CloudinaDemo extends HTMLElement {
+class CloudinaDocument extends HTMLElement {
   template = document.createElement('template')
+  prevJSON = {}
 
-  get mode() {
-    const attrValue = this.getAttribute('mode')
-    if (attrValue === 'patch') {
-      return 'patch'
-    }
-    // default to document mode (including bad values)
-    if (!attrValue || attrValue === 'document') {
-      return 'document'
-    }
-    console.log('unrecognized conversion mode, defaulting to "document"')
-    return 'document'
+  constructor() {
+    super()
+
+    this.template.innerHTML = `
+      <slot><textarea></textarea></slot>
+    `
+
+    // Create a shadow root
+    const shadow = this.attachShadow({ mode: 'open' })
+
+    const result = this.template.content.cloneNode(true)
+    shadow.appendChild(result)
+
+    // As the user types, the textarea inside the form dispatches/triggers the event to fire, and uses itself as the starting point
+    const slot = shadow.querySelector('slot')
+    const textarea = slot.assignedElements()[0] || slot.firstElementChild
+
+    // The form element listens for the custom "awesome" event and then consoles the output of the passed text() method
+    textarea.addEventListener('doc-change', (e) => console.log(e.detail))
+
+    textarea.addEventListener('input', (e) => {
+      const rawText = textarea.value
+      const rawJSON = JSON.parse(rawText)
+      const [schema, patch] = Cloudina.importDoc(rawJSON)
+
+      const event = new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch },
+      })
+
+      e.target.dispatchEvent(event)
+    })
+    textarea.dispatchEvent(new Event('input'))
+
+    this.addEventListener('doc-patch', (event) => {
+      const patch = event.detail.patch
+      const doc = JSON.parse(textarea.value)
+      textarea.value = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
+    })
   }
-  set mode(newValue) {
-    this.setAttribute('mode', newValue)
-  }
+}
+
+customElements.define('cloudina-document', CloudinaDocument)
+
+class CloudinaLens extends HTMLElement {
+  template = document.createElement('template')
+  lastJSON = {}
 
   constructor() {
     super()
@@ -55,9 +90,9 @@ class CloudinaDemo extends HTMLElement {
           border: 1px solid black;
         }
       </style>
-      <slot name="left"><textarea></textarea></slot>
-      <slot name="lens"><textarea></textarea></slot>
-      <slot name="right"><textarea></textarea></slot>
+      <slot name="left"></slot>
+      <slot name="lens"></slot>
+      <slot name="right"></slot>
       <div class="error"></div>`
 
     // Create a shadow root
@@ -77,27 +112,27 @@ class CloudinaDemo extends HTMLElement {
     this.right = slots.right
     this.lens = slots.lens
 
-    slots.lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
+    slots.lens.addEventListener('input', (e) => this.updateLens(e.target.value))
     this.updateLens(slots.lens.textContent)
 
-    slots.left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
+    slots.left.addEventListener('doc-change', (e) =>
+      this.applyLens(e, this.compiledLens, this.right)
+    )
+    slots.right.addEventListener('doc-change', (e) =>
+      this.applyLens(e, Cloudina.reverseLens(this.compiledLens), this.left)
+    )
   }
 
-  updateTextArea(value) {
+  applyLens(event, lens, target) {
     try {
-      this.error.textContent = ''
-      const inputData = JSON.parse(value)
-      if (inputData) {
-        if (this.mode == 'patch') {
-          this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToPatch(this.compiledLens, inputData)
-          )
-        } else {
-          this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToDoc(this.compiledLens, inputData)
-          )
-        }
-      }
+      const { patch, schema } = event.detail
+      const convertedPatch = Cloudina.applyLensToPatch(lens, patch, schema)
+
+      const outEvent = new CustomEvent('doc-patch', {
+        bubbles: true,
+        detail: { patch: convertedPatch },
+      })
+      target.dispatchEvent(outEvent)
     } catch (err) {
       this.error.textContent = err.message
     }
@@ -107,7 +142,6 @@ class CloudinaDemo extends HTMLElement {
     try {
       this.error.textContent = ''
       this.compiledLens = Cloudina.loadYamlLens(value)
-      this.updateTextArea(this.left.value)
     } catch (err) {
       this.error.textContent = err.message
     }
@@ -115,4 +149,4 @@ class CloudinaDemo extends HTMLElement {
 }
 
 // Define the new element
-customElements.define('cloudina-demo', CloudinaDemo)
+customElements.define('cloudina-lens', CloudinaLens)

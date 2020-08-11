@@ -1,11 +1,9 @@
-import { Operation, compare, applyPatch } from 'fast-json-patch'
+import { Operation } from 'fast-json-patch'
 import { LensSource, LensOp } from './lens-ops'
 import { reverseLens } from './reverse'
-import { addDefaultValues, defaultObjectForSchema } from './defaults'
+import { addDefaultValues } from './defaults'
 import { JSONSchema7 } from 'json-schema'
 import { updateSchema } from './json-schema'
-import GenerateSchema from 'generate-schema'
-import { inspect } from 'util'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
 // can we actually find a way to keep it around and typecheck patches against a type?
@@ -33,40 +31,6 @@ export function compile(lensSource: LensSource): { right: CompiledLens; left: Co
     left: (patch: Patch, targetDoc: any) =>
       applyLensToPatch(reverseLens(lensSource), patch, targetDoc),
   }
-}
-
-// generate an inferred JSON Schema for a document
-function generateSchema(doc): JSONSchema7 {
-  return GenerateSchema.json(doc)
-}
-
-// utility function: converts a document (rather than a patch) through a lens
-export function applyLensToDoc(
-  lensSource: LensSource,
-  inputDoc: any,
-  inputSchema?: JSONSchema7,
-  targetDoc?: any
-) {
-  // build up a patch that creates the document
-  const patchForOriginalDoc = compare({}, inputDoc)
-
-  if (inputSchema === undefined || inputSchema === null) {
-    inputSchema = generateSchema(inputDoc)
-  }
-
-  // convert the patch through the lens
-  const outputPatch = applyLensToPatch(lensSource, patchForOriginalDoc, inputSchema)
-  const outputSchema = updateSchema(inputSchema, lensSource)
-
-  // construct the "base" upon which we will apply the patches from doc.
-  // We start with the default object for the output schema,
-  // then we add in any existing fields on the target doc.
-  // TODO: I think we need to deep merge here, can't just shallow merge?
-  const base = Object.assign(defaultObjectForSchema(outputSchema), targetDoc || {})
-
-  // return a doc based on the converted patch.
-  // (start with either a specified baseDoc, or just empty doc)
-  return applyPatch(base, outputPatch).newDocument
 }
 
 // given a patch, returns a new patch that has had the lens applied to it.
@@ -142,10 +106,14 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       const match = patchOp.path.match(pathComponent)
       if (match) {
         const path = `/${match[1]}/0${match[2]}`
-        if ((patchOp.op === "add" || patchOp.op === "replace") && patchOp.value === null && match[2] === "") {
-           return { op: "remove", path }
+        if (
+          (patchOp.op === 'add' || patchOp.op === 'replace') &&
+          patchOp.value === null &&
+          match[2] === ''
+        ) {
+          return { op: 'remove', path }
         }
-        return { ... patchOp, path } 
+        return { ...patchOp, path }
       }
       break
     }
@@ -169,14 +137,14 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       }
 
       if (patchOp.op === 'remove') {
-        if (headMatch[1] === "") {
+        if (headMatch[1] === '') {
           return {
             op: 'replace' as const,
             path: `/${lensOp.name}${headMatch[1] || ''}`,
             value: null,
           }
         } else {
-          return { ... patchOp, path: `/${lensOp.name}${headMatch[1] || ''}` }
+          return { ...patchOp, path: `/${lensOp.name}${headMatch[1] || ''}` }
         }
       }
 
