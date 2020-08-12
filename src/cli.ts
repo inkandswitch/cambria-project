@@ -3,7 +3,7 @@ import { program } from 'commander'
 import { readFileSync } from 'fs'
 
 import { reverseLens } from './reverse'
-import { applyLensToDoc } from './patch'
+import { applyLensToDoc } from './doc'
 import { loadYamlLens } from './lens-loader'
 
 program

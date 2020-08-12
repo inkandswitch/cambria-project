@@ -1,25 +1,107 @@
 // Create a class for the element
 const Cambria = require('..')
 const Yaml = require('js-yaml')
+const jsonpatch = require('fast-json-patch')
+
+class CambriaDocument extends HTMLPreElement {
+  clear() {
+    this.innerText = '{}'
+  }
+  lastJSON = {}
+
+  importDoc() {
+    const rawText = this.innerText
+    const rawJSON = JSON.parse(rawText)
+    const [schema, patch] = Cambria.importDoc(rawJSON)
+    this.schema = schema
+
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch },
+      })
+    )
+  }
+
+  handleInput() {
+    const rawText = this.innerText
+    const rawJSON = JSON.parse(rawText)
+
+    const schema = this.schema
+    const patch = jsonpatch.compare(this.lastJSON, rawJSON)
+
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch },
+      })
+    )
+    this.lastJSON = rawJSON
+  }
+
+  constructor() {
+    super()
+
+    this.importDoc()
+
+    this.addEventListener('input', (e) => this.handleInput())
+    this.addEventListener('doc-change', (e) => console.log(e.detail))
+
+    this.addEventListener('doc-patch', (event) => {
+      const patch = event.detail.patch
+      const doc = JSON.parse(this.innerText)
+      this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
+    })
+  }
+
+  connectedCallback() {
+    this.dispatchEvent(new Event('input'))
+  }
+}
+
+customElements.define('cambria-document', CambriaDocument, { extends: 'pre' })
+
+// Sends `lens-compiled` events when it gets a new, good lens.
+// Receives `doc-change` events and emits `doc-patch` ones in response.
+class CambriaLens extends HTMLPreElement {
+  constructor() {
+    super()
+
+    this.addEventListener('input', (e) => this.handleInput(e.target.innerText))
+    this.handleInput(this.innerText)
+
+    this.addEventListener('doc-change', (e) => this.handleDocChange(e, this.compiledLens))
+  }
+
+  handleDocChange(event, lens) {
+    const { patch, schema, reverse, destination } = event.detail
+
+    const convertedPatch = Cambria.applyLensToPatch(
+      reverse ? Cambria.reverseLens(lens) : lens,
+      patch,
+      schema
+    )
+
+    this.dispatchEvent(
+      new CustomEvent('doc-patch', {
+        bubbles: true,
+        detail: { patch: convertedPatch, destination },
+      })
+    )
+  }
+
+  handleInput(value) {
+    this.compiledLens = Cambria.loadYamlLens(value)
+    this.dispatchEvent(new CustomEvent('lens-changed', { bubbles: true }))
+  }
+}
+
+customElements.define('cambria-lens', CambriaLens, { extends: 'pre' })
 
 class CambriaDemo extends HTMLElement {
   template = document.createElement('template')
-
-  get mode() {
-    const attrValue = this.getAttribute('mode')
-    if (attrValue === 'patch') {
-      return 'patch'
-    }
-    // default to document mode (including bad values)
-    if (!attrValue || attrValue === 'document') {
-      return 'document'
-    }
-    console.log('unrecognized conversion mode, defaulting to "document"')
-    return 'document'
-  }
-  set mode(newValue) {
-    this.setAttribute('mode', newValue)
-  }
 
   constructor() {
     super()
@@ -32,18 +114,19 @@ class CambriaDemo extends HTMLElement {
           grid-template-rows: auto;
           grid-template-areas:
             ' left lens right '
+            ' reset reverse reset  '
             ' error error error ';
           width: 80%;
           padding: 10px;
           height: 250px;
         }
-        .leftData {
+        .left {
           grid-area: left;
         }
         .lens {
           grid-area: lens;
         }
-        .rightData {
+        .right {
           grid-area: right;
         }
         .errorDisplay {
@@ -55,9 +138,11 @@ class CambriaDemo extends HTMLElement {
           border: 1px solid black;
         }
       </style>
-      <slot name="left"><textarea></textarea></slot>
-      <slot name="lens"><textarea></textarea></slot>
-      <slot name="right"><textarea></textarea></slot>
+      <slot name="left"></slot>
+      <slot name="lens"></slot>
+      <slot name="right"></slot>
+
+      <button class="reset">Reset</button>
       <div class="error"></div>`
 
     // Create a shadow root
@@ -77,40 +162,39 @@ class CambriaDemo extends HTMLElement {
     this.right = slots.right
     this.lens = slots.lens
 
-    slots.lens.addEventListener('keyup', (e) => this.updateLens(e.target.value))
-    this.updateLens(slots.lens.textContent)
+    const resetButton = shadow.querySelector('.reset')
+    resetButton.addEventListener('click', (e) => {
+      this.right.clear()
+      this.left.importDoc()
+    })
 
-    slots.left.addEventListener('keyup', (e) => this.updateTextArea(e.target.value))
-  }
+    slots.lens.addEventListener('lens-changed', (e) => {
+      // trigger a re-processing of the document
+      this.right.clear()
+      this.left.importDoc()
+    })
 
-  updateTextArea(value) {
-    try {
-      this.error.textContent = ''
-      const inputData = JSON.parse(value)
-      if (inputData) {
-        if (this.mode == 'patch') {
-          this.right.textContent = JSON.stringify(
-            Cambria.applyLensToPatch(this.compiledLens, inputData)
-          )
-        } else {
-          this.right.textContent = JSON.stringify(
-            Cambria.applyLensToDoc(this.compiledLens, inputData)
-          )
-        }
-      }
-    } catch (err) {
-      this.error.textContent = err.message
-    }
-  }
+    // ehhhhhh
+    slots.left.addEventListener('doc-change', (e) =>
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
+      )
+    )
 
-  updateLens(value) {
-    try {
-      this.error.textContent = ''
-      this.compiledLens = Cambria.loadYamlLens(value)
-      this.updateTextArea(this.left.value)
-    } catch (err) {
-      this.error.textContent = err.message
-    }
+    slots.right.addEventListener('doc-change', (e) =>
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', {
+          detail: { ...e.detail, reverse: true, destination: slots.left },
+        })
+      )
+    )
+
+    slots.lens.addEventListener('doc-patch', (e) => {
+      const { detail } = e
+      const { patch, destination } = e.detail
+      this.error.innerText = JSON.stringify(e.detail.patch)
+      destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
+    })
   }
 }
 

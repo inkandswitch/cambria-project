@@ -2,13 +2,13 @@
 // See how much we can narrow this.
 
 export { updateSchema, schemaForLens } from './json-schema'
-export { compile, applyLensToDoc, applyLensToPatch, Patch, CompiledLens } from './patch'
+export { compile, applyLensToPatch, Patch, CompiledLens } from './patch'
+export { applyLensToDoc, importDoc } from './doc'
 export { LensSource, LensOp, Property } from './lens-ops'
 export { defaultObjectForSchema } from './defaults'
 export { reverseLens } from './reverse'
 export { LensGraph, initLensGraph, registerLens, lensGraphSchema, lensFromTo } from './lens-graph'
 
-// TODO: delete js syntax, remove these
 export { addProperty, renameProperty, convertValue } from './helpers'
 
 export { loadYamlLens } from './lens-loader'

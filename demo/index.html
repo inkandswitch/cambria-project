@@ -4,47 +4,20 @@
     <meta charset="utf-8" />
     <title>Cambria Demos</title>
     <script src="bundle.js" defer></script>
-
-    <link rel="stylesheet" href="codemirror.css" />
-    <script src="codemirror.js"></script>
   </head>
   <body>
     <h1>Cambria component demo</h1>
-    <wc-codemirror></wc-codemirror>
     <cambria-demo>
-      <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
-      <textarea slot="lens">
+      <pre is="cambria-document" contenteditable="true" slot="left">
+        { "name": "The Fifth Element" }
+      </pre>
+      <pre is="cambria-lens" contenteditable="true" slot="lens">
 lens:
   - rename: 
       source: name
       destination: title
-      </textarea>
-      <textarea slot="right">{ "title": The Fifth Element" }</textarea>
-    </cambria-demo>
-
-    <cambria-demo>
-      <textarea slot="left">{ "metadata": { "author": "Luc Besson" }}</textarea>
-      <textarea slot="lens">
-lens:
-  - hoist: 
-      host: metadata
-      name: author
-      </textarea>
-    </cambria-demo>
-
-    <cambria-demo>
-      <textarea slot="left">
-[
-  { "op": "replace", "path": "/name", "value": "The Fifth Element" }
-]
-      </textarea>
-      <textarea slot="lens">
-lens:
-  - rename: 
-      source: name
-      destination: title
-      </textarea>
-      <textarea slot="right">{}</textarea>
+      </pre>
+      <pre is="cambria-document" slot="right">{}</pre>
     </cambria-demo>
   </body>
 </html>
