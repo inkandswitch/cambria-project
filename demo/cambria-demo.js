@@ -1,5 +1,5 @@
 // Create a class for the element
-const Cambria = require('..')
+const Cambria = require('../dist')
 const Yaml = require('js-yaml')
 const jsonpatch = require('fast-json-patch')
 
@@ -15,6 +15,15 @@ class CambriaDocument extends HTMLPreElement {
     const [schema, patch] = Cambria.importDoc(rawJSON)
     this.schema = schema
 
+    const initializationPatch = [{ op: 'add', path: '', value: {} }]
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch: initializationPatch },
+      })
+    )
+
     this.dispatchEvent(
       new CustomEvent('doc-change', {
         bubbles: true,
@@ -25,35 +34,50 @@ class CambriaDocument extends HTMLPreElement {
   }
 
   handleInput() {
-    const rawText = this.innerText
-    const rawJSON = JSON.parse(rawText)
+    try {
+      const rawText = this.innerText
+      const rawJSON = JSON.parse(rawText)
 
-    const schema = this.schema
-    const patch = jsonpatch.compare(this.lastJSON, rawJSON)
+      const schema = this.schema
+      const patch = jsonpatch.compare(this.lastJSON, rawJSON)
 
-    this.dispatchEvent(
-      new CustomEvent('doc-change', {
-        bubbles: true,
-        composed: true,
-        detail: { schema, patch },
-      })
-    )
-    this.lastJSON = rawJSON
+      this.dispatchEvent(
+        new CustomEvent('doc-change', {
+          bubbles: true,
+          composed: true,
+          detail: { schema, patch },
+        })
+      )
+      this.lastJSON = rawJSON
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', { detail: { topic: 'document edit', message: e.error } })
+      )
+    }
   }
 
   constructor() {
-    super()
+    try {
+      super()
 
-    this.importDoc()
+      this.importDoc()
 
-    this.addEventListener('input', (e) => this.handleInput())
-    this.addEventListener('doc-change', (e) => console.log(e.detail))
+      this.addEventListener('input', (e) => this.handleInput())
+      this.addEventListener('doc-change', (e) => console.log(e.detail))
 
-    this.addEventListener('doc-patch', (event) => {
-      const patch = event.detail.patch
-      const doc = JSON.parse(this.innerText)
-      this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
-    })
+      this.addEventListener('doc-patch', (event) => {
+        const { patch, schema } = event.detail
+        const doc = JSON.parse(this.innerText)
+        this.schema = schema
+        this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
+      })
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'patch application', message: e.error },
+        })
+      )
+    }
   }
 
   connectedCallback() {
@@ -76,25 +100,43 @@ class CambriaLens extends HTMLPreElement {
   }
 
   handleDocChange(event, lens) {
-    const { patch, schema, reverse, destination } = event.detail
+    try {
+      const { patch, schema, reverse, destination } = event.detail
 
-    const convertedPatch = Cambria.applyLensToPatch(
-      reverse ? Cambria.reverseLens(lens) : lens,
-      patch,
-      schema
-    )
+      const convertedSchema = Cambria.updateSchema(schema, lens)
 
-    this.dispatchEvent(
-      new CustomEvent('doc-patch', {
-        bubbles: true,
-        detail: { patch: convertedPatch, destination },
-      })
-    )
+      const convertedPatch = Cambria.applyLensToPatch(
+        reverse ? Cambria.reverseLens(lens) : lens,
+        patch,
+        schema
+      )
+
+      this.dispatchEvent(
+        new CustomEvent('doc-patch', {
+          bubbles: true,
+          detail: { patch: convertedPatch, schema: convertedSchema, destination },
+        })
+      )
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'doc conversion', message: e.message },
+        })
+      )
+    }
   }
 
   handleInput(value) {
-    this.compiledLens = Cambria.loadYamlLens(value)
-    this.dispatchEvent(new CustomEvent('lens-changed', { bubbles: true }))
+    try {
+      this.compiledLens = Cambria.loadYamlLens(value)
+      this.dispatchEvent(new CustomEvent('lens-changed', { bubbles: true }))
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'lens compilation', message: e.error },
+        })
+      )
+    }
   }
 }
 
@@ -114,36 +156,81 @@ class CambriaDemo extends HTMLElement {
           grid-template-rows: auto;
           grid-template-areas:
             ' left lens right '
-            ' reset reverse reset  '
+            ' patch patch patch '
             ' error error error ';
           width: 80%;
           padding: 10px;
           height: 250px;
         }
+
         .left {
           grid-area: left;
         }
+
+        pre { 
+          border-radius: 4px;
+          border: 2px solid green;
+        }
+
         .lens {
           grid-area: lens;
         }
         .right {
           grid-area: right;
         }
-        .errorDisplay {
+        .error {
           grid-area: error;
-          color: red;
           margin: 4px;
           padding: 4px;
           height: 1em;
-          border: 1px solid black;
+          border: 2px solid red;
+          border-radius: 4px;
+          font-family: monospace;
+        }
+        .patch {
+          grid-area: patch;
+          border-color: blue;
+          height: 1em;
+          font-family: monospace;
+        }
+
+        .patch::after {
+          content: 'Last Patch';
+          background-color: blue;
+        }
+
+        .error::after {
+          content: 'Last Error';
+          background-color: red;
+        }
+
+        .with-thumb {
+          margin: 4px;
+          padding: 4px;
+          border: 2px solid black;
+          border-radius: 4px;
+        }
+
+        .with-thumb::after {
+          display: block;
+          position: relative;
+          text-align: center;
+          padding: 2px 4px;
+          border-radius: 4px;
+          font-size: 10px;
+          line-height: 16px;
+          color: white;
+          top: -40px;
+          left: 0px;
+          width: 64px;
         }
       </style>
-      <slot name="left"></slot>
-      <slot name="lens"></slot>
-      <slot name="right"></slot>
+      <slot class="left with-thumb" name="left"></slot>
+      <slot class="lens with-thumb" name="lens"></slot>
+      <slot class="right with-thumb" name="right"></slot>
 
-      <button class="reset">Reset</button>
-      <div class="error"></div>`
+      <div class="patch">... no activity ...</div>
+      <div class="error">... no errors yet ...</div>`
 
     // Create a shadow root
     const shadow = this.attachShadow({ mode: 'open' })
@@ -151,7 +238,8 @@ class CambriaDemo extends HTMLElement {
     const result = this.template.content.cloneNode(true)
     shadow.appendChild(result)
 
-    this.error = shadow.querySelector('.error')
+    const errorDiv = (this.error = shadow.querySelector('.error'))
+    this.patch = shadow.querySelector('.patch')
 
     let slots = {}
     shadow
@@ -161,12 +249,6 @@ class CambriaDemo extends HTMLElement {
     this.left = slots.left
     this.right = slots.right
     this.lens = slots.lens
-
-    const resetButton = shadow.querySelector('.reset')
-    resetButton.addEventListener('click', (e) => {
-      this.right.clear()
-      this.left.importDoc()
-    })
 
     slots.lens.addEventListener('lens-changed', (e) => {
       // trigger a re-processing of the document
@@ -189,12 +271,21 @@ class CambriaDemo extends HTMLElement {
       )
     )
 
+    // hack
+    Object.values(slots).forEach((slot) =>
+      slot.addEventListener('cloudina-error', (e) => {
+        this.error.innerText = e.detail.topic + ': ' + e.detail.message
+      })
+    )
+
     slots.lens.addEventListener('doc-patch', (e) => {
       const { detail } = e
       const { patch, destination } = e.detail
-      this.error.innerText = JSON.stringify(e.detail.patch)
+      this.patch.innerText = JSON.stringify(e.detail.patch)
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
     })
+
+    this.left.importDoc()
   }
 }
 

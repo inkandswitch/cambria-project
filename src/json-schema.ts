@@ -133,6 +133,12 @@ function mapSchema(schema: JSONSchema7, lens: LensSource) {
 }
 
 function wrapProperty(schema, op: WrapProperty) {
+  if (!op.name) {
+    throw new Error("Wrap property requires a 'name' to identify what to wrap.")
+  }
+  if (!schema.properties[op.name]) {
+    throw new Error(`Cannot wrap property '${op.name}' because it does not exist.`)
+  }
   // create an array property, stuff the existing schema info inside the array type
   return addProperty(schema, {
     name: op.name,
@@ -146,6 +152,13 @@ function wrapProperty(schema, op: WrapProperty) {
 }
 
 function headProperty(schema, op: HeadProperty) {
+  if (!op.name) {
+    throw new Error("Head requires a 'name' to identify what to wrap.")
+  }
+  if (!schema.properties[op.name]) {
+    throw new Error(`Cannot head property '${op.name}' because it does not exist.`)
+  }
+
   return {
     ...schema,
     properties: {

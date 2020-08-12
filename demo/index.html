@@ -7,7 +7,7 @@
   </head>
   <body>
     <h1>Cambria component demo</h1>
-    <cambria-demo>
+    <!--cambria-demo>
       <pre is="cambria-document" contenteditable="true" slot="left">
         { "name": "The Fifth Element" }
       </pre>
@@ -18,20 +18,18 @@ lens:
       destination: title
       </pre>
       <pre is="cambria-document" slot="right">{}</pre>
-    </cambria-demo>
+    </cambria-demo -->
 
     <cambria-demo>
       <pre is="cambria-document" contenteditable="true" slot="left">
-      {
-        "assignee": "Peter"
-      } 
+      { "assignee": "Peter" } 
       </pre>
       <pre is="cambria-lens" contenteditable="true" slot="lens">
 lens:
   - wrap: 
       name: assignee
       </pre>
-      <pre is="cambria-document" slot="right">{}</pre>
+      <pre is="cambria-document" contenteditable="true" slot="right">{}</pre>
     </cambria-demo>
   </body>
 </html>
