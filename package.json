@@ -1,5 +1,5 @@
 {
-  "name": "cloudina",
+  "name": "cambria",
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
     "build": "tsc --outDir ./dist",
     "test": "mocha -r ts-node/register test/**.ts",
     "postinstall": "yarn run build",
-    "build-demo": "browserify ./demo/cloudina-demo.js -o ./demo/bundle.js"
+    "build-demo": "browserify ./demo/cambria-demo.js -o ./demo/bundle.js"
   },
   "dependencies": {
     "commander": "^5.1.0",

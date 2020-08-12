@@ -2,16 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Cloudina Demos</title>
+    <title>Cambria Demos</title>
     <script src="bundle.js" defer></script>
 
     <link rel="stylesheet" href="codemirror.css" />
     <script src="codemirror.js"></script>
   </head>
   <body>
-    <h1>Cloudina component demo</h1>
+    <h1>Cambria component demo</h1>
     <wc-codemirror></wc-codemirror>
-    <cloudina-demo>
+    <cambria-demo>
       <textarea slot="left">{ "name": "The Fifth Element" }</textarea>
       <textarea slot="lens">
 lens:
@@ -20,9 +20,9 @@ lens:
       destination: title
       </textarea>
       <textarea slot="right">{ "title": The Fifth Element" }</textarea>
-    </cloudina-demo>
+    </cambria-demo>
 
-    <cloudina-demo>
+    <cambria-demo>
       <textarea slot="left">{ "metadata": { "author": "Luc Besson" }}</textarea>
       <textarea slot="lens">
 lens:
@@ -30,9 +30,9 @@ lens:
       host: metadata
       name: author
       </textarea>
-    </cloudina-demo>
+    </cambria-demo>
 
-    <cloudina-demo>
+    <cambria-demo>
       <textarea slot="left">
 [
   { "op": "replace", "path": "/name", "value": "The Fifth Element" }
@@ -45,6 +45,6 @@ lens:
       destination: title
       </textarea>
       <textarea slot="right">{}</textarea>
-    </cloudina-demo>
+    </cambria-demo>
   </body>
 </html>

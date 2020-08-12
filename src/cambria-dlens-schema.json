@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "lens",
-  "title": "Cloudina Lens",
+  "title": "Cambria Lens",
   "type": "object",
   "properties": {
     "schemaName": {

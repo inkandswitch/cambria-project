@@ -1,8 +1,8 @@
 // Create a class for the element
-const Cloudina = require('..')
+const Cambria = require('..')
 const Yaml = require('js-yaml')
 
-class CloudinaDemo extends HTMLElement {
+class CambriaDemo extends HTMLElement {
   template = document.createElement('template')
 
   get mode() {
@@ -90,11 +90,11 @@ class CloudinaDemo extends HTMLElement {
       if (inputData) {
         if (this.mode == 'patch') {
           this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToPatch(this.compiledLens, inputData)
+            Cambria.applyLensToPatch(this.compiledLens, inputData)
           )
         } else {
           this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToDoc(this.compiledLens, inputData)
+            Cambria.applyLensToDoc(this.compiledLens, inputData)
           )
         }
       }
@@ -106,7 +106,7 @@ class CloudinaDemo extends HTMLElement {
   updateLens(value) {
     try {
       this.error.textContent = ''
-      this.compiledLens = Cloudina.loadYamlLens(value)
+      this.compiledLens = Cambria.loadYamlLens(value)
       this.updateTextArea(this.left.value)
     } catch (err) {
       this.error.textContent = err.message
@@ -115,4 +115,4 @@ class CloudinaDemo extends HTMLElement {
 }
 
 // Define the new element
-customElements.define('cloudina-demo', CloudinaDemo)
+customElements.define('cambria-demo', CambriaDemo)

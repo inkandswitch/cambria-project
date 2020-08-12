@@ -1,9 +1,9 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 // Create a class for the element
-const Cloudina = require('..')
+const Cambria = require('..')
 const Yaml = require('js-yaml')
 
-class CloudinaDemo extends HTMLElement {
+class CambriaDemo extends HTMLElement {
   template = document.createElement('template')
 
   get mode() {
@@ -91,11 +91,11 @@ class CloudinaDemo extends HTMLElement {
       if (inputData) {
         if (this.mode == 'patch') {
           this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToPatch(this.compiledLens, inputData)
+            Cambria.applyLensToPatch(this.compiledLens, inputData)
           )
         } else {
           this.right.textContent = JSON.stringify(
-            Cloudina.applyLensToDoc(this.compiledLens, inputData)
+            Cambria.applyLensToDoc(this.compiledLens, inputData)
           )
         }
       }
@@ -107,7 +107,7 @@ class CloudinaDemo extends HTMLElement {
   updateLens(value) {
     try {
       this.error.textContent = ''
-      this.compiledLens = Cloudina.loadYamlLens(value)
+      this.compiledLens = Cambria.loadYamlLens(value)
       this.updateTextArea(this.left.value)
     } catch (err) {
       this.error.textContent = err.message
@@ -116,7 +116,7 @@ class CloudinaDemo extends HTMLElement {
 }
 
 // Define the new element
-customElements.define('cloudina-demo', CloudinaDemo)
+customElements.define('cambria-demo', CambriaDemo)
 
 },{"..":4,"js-yaml":45}],2:[function(require,module,exports){
 "use strict";
@@ -417,10 +417,10 @@ function inSchema(schema, op) {
 }
 function validateSchemaItems(items) {
     if (Array.isArray(items)) {
-        throw new Error('Cloudina only supports consistent types for arrays.');
+        throw new Error('Cambria only supports consistent types for arrays.');
     }
     if (!items || items === true) {
-        throw new Error('Cloudina requires a specific items definition.');
+        throw new Error('Cambria requires a specific items definition.');
     }
     return items;
 }
@@ -631,7 +631,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadYamlLens = exports.loadLens = void 0;
 const js_yaml_1 = __importDefault(require("js-yaml"));
-// copied from migrationRunner.ts; should probably migrate into cloudina
+// copied from migrationRunner.ts; should probably migrate into cambria
 const foldInOp = (lensOpJson) => {
     const opName = Object.keys(lensOpJson)[0];
     // the json format is
@@ -774,8 +774,11 @@ function runLensOp(lensOp, patchOp) {
             const pathComponent = new RegExp(`^/(${lensOp.name})(.*)`);
             const match = patchOp.path.match(pathComponent);
             if (match) {
-                const newPath = `/${match[1]}/0${match[2]}`;
-                patchOp.path = newPath;
+                const path = `/${match[1]}/0${match[2]}`;
+                if ((patchOp.op === "add" || patchOp.op === "replace") && patchOp.value === null && match[2] === "") {
+                    return { op: "remove", path };
+                }
+                return Object.assign(Object.assign({}, patchOp), { path });
             }
             break;
         }
@@ -791,17 +794,22 @@ function runLensOp(lensOp, patchOp) {
             if (patchOp.op === 'add' || patchOp.op === 'replace') {
                 // If the write is to the first array element, write to the scalar
                 return {
-                    op: 'replace',
+                    op: patchOp.op,
                     path: `/${lensOp.name}${headMatch[1] || ''}`,
                     value: patchOp.value,
                 };
             }
             if (patchOp.op === 'remove') {
-                return {
-                    op: 'replace',
-                    path: `/${lensOp.name}${headMatch[1] || ''}`,
-                    value: null,
-                };
+                if (headMatch[1] === "") {
+                    return {
+                        op: 'replace',
+                        path: `/${lensOp.name}${headMatch[1] || ''}`,
+                        value: null,
+                    };
+                }
+                else {
+                    return Object.assign(Object.assign({}, patchOp), { path: `/${lensOp.name}${headMatch[1] || ''}` });
+                }
             }
             break;
         }

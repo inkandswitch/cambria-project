@@ -120,10 +120,10 @@ function inSchema(schema: JSONSchema7, op: LensIn) {
 type JSONSchema7Items = boolean | JSONSchema7 | JSONSchema7Definition[] | undefined
 function validateSchemaItems(items: JSONSchema7Items) {
   if (Array.isArray(items)) {
-    throw new Error('Cloudina only supports consistent types for arrays.')
+    throw new Error('Cambria only supports consistent types for arrays.')
   }
   if (!items || items === true) {
-    throw new Error('Cloudina requires a specific items definition.')
+    throw new Error('Cambria requires a specific items definition.')
   }
   return items
 }

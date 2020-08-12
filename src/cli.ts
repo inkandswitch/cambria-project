@@ -1,4 +1,4 @@
-// A CLI document conversion tool for cloudina
+// A CLI document conversion tool for cambria
 import { program } from 'commander'
 import { readFileSync } from 'fs'
 

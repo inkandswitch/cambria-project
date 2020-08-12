@@ -1,6 +1,6 @@
-# Cloudina
+# Cambria
 
-Cloudina is a general-purpose lens library for interoperating between different JSON structures.
+Cambria is a general-purpose lens library for interoperating between different JSON structures.
 
 It is based on the theory of edit lenses, for converting _patches_ on one document
 to _patches_ on another document with a different structure.

@@ -16,11 +16,11 @@
   "debug.node.autoAttach": "on",
   "json.schemas": [
     {
-      "url": "./src/cloudina-lens-schema.json",
+      "url": "./src/cambria-lens-schema.json",
       "fileMatch": ["*/lenses/*.json"]
     }
   ],
   "yaml.schemas": {
-    "./src/cloudina-lens-schema.json": ["*/lenses/*.yml", "**/*.lens.yml"]
+    "./src/cambria-lens-schema.json": ["*/lenses/*.yml", "**/*.lens.yml"]
   }
 }
