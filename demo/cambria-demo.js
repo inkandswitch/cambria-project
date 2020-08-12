@@ -160,6 +160,7 @@ class CambriaDemo extends HTMLElement {
             ' left lens right '
             ' patch patch patch '
             ' error error error ';
+          grid-gap: 4px;
           width: 80%;
           padding: 10px;
           height: 250px;
@@ -167,58 +168,65 @@ class CambriaDemo extends HTMLElement {
 
         .left {
           grid-area: left;
-        }
-
-        pre { 
-          border-radius: 4px;
-          border: 2px solid green;
+          --color: blue;
         }
 
         .lens {
           grid-area: lens;
+          --color: black;
         }
+
         .right {
           grid-area: right;
+          --color: green;
         }
+
         .error {
           grid-area: error;
-          margin: 4px;
-          padding: 4px;
-          height: 1em;
-          border: 2px solid red;
-          border-radius: 4px;
+          --color: red;
           font-family: monospace;
         }
+
         .patch {
           grid-area: patch;
-          border-color: blue;
-          height: 1em;
+          --color: grey;
           font-family: monospace;
-        }
-
-        .patchthumb {
-          content: 'Last Patch';
-          background-color: blue;
-        }
-
-        .errorthumb {
-          content: 'Last Error';
-          background-color: red;
         }
 
         .thumb {
+          background-color: var(--color);
           color: white;
           text-size: 10px;
           border-radius: 2px;
         }
 
+        .block {
+          border: 2px solid var(--color);
+        }
+        
       </style>
-      <slot name="left"></slot>
-      <slot name="lens"></slot>
-      <slot name="right"></slot>
+      <div class="left block">
+        <div class="thumb">Left Document</div>
+        <slot name="left"></slot>
+      </div>
+      <div class="lens block">
+        <div class="thumb">Lens</div>
+        <slot name="lens"></slot></div>
+      </div>
+      <div class="right block">
+        <div class="thumb">Right Document</div>
+        <slot name="right"></slot>
+      </div>
 
-      <div class="patch"><div class="patchthumb thumb">Last Patch</div><span class="patch-content">... no activity ...</span></div>
-      <div class="error"><div class="errorthumb thumb">Last Error</div><span class="error-content">... no errors yet ...</span></div>`
+      <div class="patch block">
+        <div class="thumb">Last Patch</div>
+        <span class="content">... no activity ...</span>
+      </div>
+      
+      <div class="error block">
+        <div class="thumb">Last Error</div>
+        <span class="content">... no errors yet ...</span>
+      </div>`
 
     // Create a shadow root
     const shadow = this.attachShadow({ mode: 'open' })
@@ -226,8 +234,8 @@ class CambriaDemo extends HTMLElement {
     const result = this.template.content.cloneNode(true)
     shadow.appendChild(result)
 
-    const errorDiv = (this.error = shadow.querySelector('.error-content'))
-    this.patch = shadow.querySelector('.patch-content')
+    const errorDiv = (this.error = shadow.querySelector('.error .content'))
+    this.patch = shadow.querySelector('.patch .content')
 
     let slots = {}
     shadow
