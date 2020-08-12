@@ -202,6 +202,223 @@ class CambriaDemo extends HTMLElement {
 // Define the new element
 customElements.define('cambria-demo', CambriaDemo)
 
+  handleInput() {
+    const rawText = this.innerText
+    const rawJSON = JSON.parse(rawText)
+
+<<<<<<< HEAD
+    const schema = this.schema
+    const patch = jsonpatch.compare(this.lastJSON, rawJSON)
+=======
+},{"fast-json-patch":16}],3:[function(require,module,exports){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.applyLensToDoc = exports.importDoc = void 0;
+const fast_json_patch_1 = require("fast-json-patch");
+const generate_schema_1 = __importDefault(require("generate-schema"));
+const defaults_1 = require("./defaults");
+const patch_1 = require("./patch");
+const json_schema_1 = require("./json-schema");
+function importDoc(inputDoc) {
+    const schema = generate_schema_1.default.json(inputDoc);
+    const patch = fast_json_patch_1.compare({}, inputDoc);
+    return [schema, patch];
+}
+exports.importDoc = importDoc;
+// utility function: converts a document (rather than a patch) through a lens
+function applyLensToDoc(lensSource, inputDoc, inputSchema, targetDoc) {
+    const [impliedSchema, patchForOriginalDoc] = importDoc(inputDoc);
+    if (inputSchema === undefined || inputSchema === null) {
+        inputSchema = impliedSchema;
+    }
+    // construct the "base" upon which we will apply the patches from doc.
+    // We start with the default object for the output schema,
+    // then we add in any existing fields on the target doc.
+    // TODO: I think we need to deep merge here, can't just shallow merge?
+    const outputSchema = json_schema_1.updateSchema(inputSchema, lensSource);
+    const base = Object.assign(defaults_1.defaultObjectForSchema(outputSchema), targetDoc || {});
+    // return a doc based on the converted patch.
+    // (start with either a specified baseDoc, or just empty doc)
+    // convert the patch through the lens
+    const outputPatch = patch_1.applyLensToPatch(lensSource, patchForOriginalDoc, inputSchema);
+    return fast_json_patch_1.applyPatch(base, outputPatch).newDocument;
+}
+exports.applyLensToDoc = applyLensToDoc;
+>>>>>>> cleanup references to cloudina name
+
+    this.dispatchEvent(
+      new CustomEvent('doc-change', {
+        bubbles: true,
+        composed: true,
+        detail: { schema, patch },
+      })
+    )
+    this.lastJSON = rawJSON
+  }
+
+  constructor() {
+    super()
+
+    this.importDoc()
+
+    this.addEventListener('input', (e) => this.handleInput())
+    this.addEventListener('doc-change', (e) => console.log(e.detail))
+
+    this.addEventListener('doc-patch', (event) => {
+      const patch = event.detail.patch
+      const doc = JSON.parse(this.innerText)
+      this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
+    })
+  }
+
+  connectedCallback() {
+    this.dispatchEvent(new Event('input'))
+  }
+}
+
+customElements.define('cambria-document', CambriaDocument, { extends: 'pre' })
+
+// Sends `lens-compiled` events when it gets a new, good lens.
+// Receives `doc-change` events and emits `doc-patch` ones in response.
+class CambriaLens extends HTMLPreElement {
+  constructor() {
+    super()
+
+    this.addEventListener('input', (e) => this.handleInput(e.target.innerText))
+    this.handleInput(this.innerText)
+
+    this.addEventListener('doc-change', (e) => this.handleDocChange(e, this.compiledLens))
+  }
+
+  handleDocChange(event, lens) {
+    const { patch, schema, reverse, destination } = event.detail
+
+    const convertedPatch = Cambria.applyLensToPatch(
+      reverse ? Cambria.reverseLens(lens) : lens,
+      patch,
+      schema
+    )
+
+    this.dispatchEvent(
+      new CustomEvent('doc-patch', {
+        bubbles: true,
+        detail: { patch: convertedPatch, destination },
+      })
+    )
+  }
+
+  handleInput(value) {
+    this.compiledLens = Cambria.loadYamlLens(value)
+    this.dispatchEvent(new CustomEvent('lens-changed', { bubbles: true }))
+  }
+}
+
+customElements.define('cambria-lens', CambriaLens, { extends: 'pre' })
+
+class CambriaDemo extends HTMLElement {
+  template = document.createElement('template')
+
+  constructor() {
+    super()
+
+    this.template.innerHTML = `
+      <style>
+        :host {
+          display: grid;
+          grid-template-columns: 40% 30% 40%;
+          grid-template-rows: auto;
+          grid-template-areas:
+            ' left lens right '
+            ' reset reverse reset  '
+            ' error error error ';
+          width: 80%;
+          padding: 10px;
+          height: 250px;
+        }
+        .left {
+          grid-area: left;
+        }
+        .lens {
+          grid-area: lens;
+        }
+        .right {
+          grid-area: right;
+        }
+        .errorDisplay {
+          grid-area: error;
+          color: red;
+          margin: 4px;
+          padding: 4px;
+          height: 1em;
+          border: 1px solid black;
+        }
+      </style>
+      <slot name="left"></slot>
+      <slot name="lens"></slot>
+      <slot name="right"></slot>
+
+      <button class="reset">Reset</button>
+      <div class="error"></div>`
+
+    // Create a shadow root
+    const shadow = this.attachShadow({ mode: 'open' })
+
+    const result = this.template.content.cloneNode(true)
+    shadow.appendChild(result)
+
+    this.error = shadow.querySelector('.error')
+
+    let slots = {}
+    shadow
+      .querySelectorAll('slot')
+      .forEach((slot) => (slots[slot.name] = slot.assignedElements()[0] || slot.firstElementChild))
+
+    this.left = slots.left
+    this.right = slots.right
+    this.lens = slots.lens
+
+    const resetButton = shadow.querySelector('.reset')
+    resetButton.addEventListener('click', (e) => {
+      this.right.clear()
+      this.left.importDoc()
+    })
+
+    slots.lens.addEventListener('lens-changed', (e) => {
+      // trigger a re-processing of the document
+      this.right.clear()
+      this.left.importDoc()
+    })
+
+    // ehhhhhh
+    slots.left.addEventListener('doc-change', (e) =>
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
+      )
+    )
+
+    slots.right.addEventListener('doc-change', (e) =>
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-change', {
+          detail: { ...e.detail, reverse: true, destination: slots.left },
+        })
+      )
+    )
+
+    slots.lens.addEventListener('doc-patch', (e) => {
+      const { detail } = e
+      const { patch, destination } = e.detail
+      this.error.innerText = JSON.stringify(e.detail.patch)
+      destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
+    })
+  }
+}
+
+// Define the new element
+customElements.define('cambria-demo', CambriaDemo)
+
 },{"..":4,"fast-json-patch":15,"js-yaml":45}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });

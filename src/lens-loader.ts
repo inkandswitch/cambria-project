@@ -5,7 +5,6 @@ interface YAMLLens {
   lens: LensSource
 }
 
-// copied from migrationRunner.ts; should probably migrate into cambria
 const foldInOp = (lensOpJson): LensOp => {
   const opName = Object.keys(lensOpJson)[0]
 

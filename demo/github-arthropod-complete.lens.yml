@@ -2,79 +2,79 @@
 schemaName: Issue
 
 lens:
-  # remove unnecessary fields
-  - remove: { destination: milestone }
-  - remove: { destination: pull_request }
-  - remove: { destination: closed_by }
-  - remove: { destination: repository_url }
-  - remove: { destination: number }
-  - remove: { destination: assignees }
-  - remove: { destination: user }
-  - remove: { destination: url }
-  - remove: { destination: comments_url }
-  - remove: { destination: events_url }
-  - remove: { destination: html_url }
-  - remove: { destination: locked }
-  - remove: { destination: active_lock_reason }
-  - remove: { destination: comments }
-  - remove: { destination: node_id }
-  - remove: { destination: closed_at }
+      # remove unnecessary fields
+      - remove: { name: milestone }
+      - remove: { name: pull_request }
+      - remove: { name: closed_by }
+      - remove: { name: repository_url }
+      - remove: { name: number }
+      - remove: { name: assignees }
+      - remove: { name: user }
+      - remove: { name: url }
+      - remove: { name: comments_url }
+      - remove: { name: events_url }
+      - remove: { name: html_url }
+      - remove: { name: locked }
+      - remove: { name: active_lock_reason }
+      - remove: { name: comments }
+      - remove: { name: node_id }
+      - remove: { name: closed_at }
 
-  # Some simple renames
-  - rename:
-      source: title
-      destination: name
-  - rename:
-      source: body
-      destination: description
+      # Some simple renames
+      - rename:
+              source: title
+              destination: name
+      - rename:
+              source: body
+              destination: description
 
-  # Convert github's state field to our status field
-  - rename:
-      source: state
-      destination: status
-  - convert:
-      destination: status
-      mapping:
-        - open: todo
-          closed: done
-        - todo: open
-          doing: open
-          done: closed
+      # Convert github's state field to our status field
+      - rename:
+              source: state
+              destination: status
+      - convert:
+              name: status
+              mapping:
+                    - open: todo
+                      closed: done
+                    - todo: open
+                      doing: open
+                      done: closed
 
-  # pull the creator up to the top level
-  - in:
-      source: user
-      lens:
-        - rename:
-            source: login
-            destination: created_by
-  - hoist:
-      destination: created_by
-      host: user
-  - remove: { destination: user }
+      # pull the creator up to the top level
+      - in:
+              name: user
+              lens:
+                    - rename:
+                            source: login
+                            destination: created_by
+      - hoist:
+              name: created_by
+              host: user
+      - remove: { name: user }
 
-  # pull first label up to category
-  - head:
-      destination: labels
-  - in:
-      source: labels
-      lens:
-        - rename:
-            source: name
-            destination: category
-  - hoist:
-      destination: category
-      host: labels
-  - remove:
-      destination: labels
+      # pull first label up to category
+      - head:
+              name: labels
+      - in:
+              name: labels
+              lens:
+                    - rename:
+                            source: name
+                            destination: category
+      - hoist:
+              name: category
+              host: labels
+      - remove:
+              name: labels
 
-  # push created_at and updated_at inside a metadata object
-  - add:
-      destination: metadata
-      type: object
-  - plunge:
-      destination: created_at
-      host: metadata
-  - plunge:
-      destination: updated_at
-      host: metadata
+      # push created_at and updated_at inside a metadata object
+      - add:
+              name: metadata
+              type: object
+      - plunge:
+              name: created_at
+              host: metadata
+      - plunge:
+              name: updated_at
+              host: metadata

@@ -1,4 +1,3 @@
-// A CLI document conversion tool for cambria
 import { program } from 'commander'
 import { readFileSync } from 'fs'
 
@@ -7,6 +6,7 @@ import { applyLensToDoc } from './doc'
 import { loadYamlLens } from './lens-loader'
 
 program
+  .description('// A CLI document conversion tool for cambria')
   .requiredOption('-l, --lens <filename>', 'lens source as yaml')
   .option('-i, --input <filename>', 'input document filename')
   .option('-s, --schema <schema>', 'json schema for input document')
