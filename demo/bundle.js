@@ -195,43 +195,29 @@ class CambriaDemo extends HTMLElement {
           font-family: monospace;
         }
 
-        .patch::after {
+        .patchthumb {
           content: 'Last Patch';
           background-color: blue;
         }
 
-        .error::after {
+        .errorthumb {
           content: 'Last Error';
           background-color: red;
         }
 
-        .with-thumb {
-          margin: 4px;
-          padding: 4px;
-          border: 2px solid black;
-          border-radius: 4px;
-        }
-
-        .with-thumb::after {
-          display: block;
-          position: relative;
-          text-align: center;
-          padding: 2px 4px;
-          border-radius: 4px;
-          font-size: 10px;
-          line-height: 16px;
+        .thumb {
           color: white;
-          top: -40px;
-          left: 0px;
-          width: 64px;
+          text-size: 10px;
+          border-radius: 2px;
         }
-      </style>
-      <slot class="left with-thumb" name="left"></slot>
-      <slot class="lens with-thumb" name="lens"></slot>
-      <slot class="right with-thumb" name="right"></slot>
 
-      <div class="patch">... no activity ...</div>
-      <div class="error">... no errors yet ...</div>`
+      </style>
+      <slot name="left"></slot>
+      <slot name="lens"></slot>
+      <slot name="right"></slot>
+
+      <div class="patch"><div class="patchthumb thumb">Last Patch</div><span class="patch-content">... no activity ...</span></div>
+      <div class="error"><div class="errorthumb thumb">Last Error</div><span class="error-content">... no errors yet ...</span></div>`
 
     // Create a shadow root
     const shadow = this.attachShadow({ mode: 'open' })
@@ -239,8 +225,8 @@ class CambriaDemo extends HTMLElement {
     const result = this.template.content.cloneNode(true)
     shadow.appendChild(result)
 
-    const errorDiv = (this.error = shadow.querySelector('.error'))
-    this.patch = shadow.querySelector('.patch')
+    const errorDiv = (this.error = shadow.querySelector('.error-content'))
+    this.patch = shadow.querySelector('.patch-content')
 
     let slots = {}
     shadow
