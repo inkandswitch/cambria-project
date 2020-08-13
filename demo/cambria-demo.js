@@ -3,7 +3,44 @@ const Cambria = require('../dist')
 const Yaml = require('js-yaml')
 const jsonpatch = require('fast-json-patch')
 
-class CambriaDocument extends HTMLPreElement {
+class CambriaDocument extends HTMLElement {
+  template = document.createElement('template')
+
+  constructor() {
+    try {
+      super()
+
+      this.template.innerHTML = `
+      <div>
+        <pre class="data" contenteditable="true">
+        <slot/>
+        </pre>
+        <pre class="schemaViewer">NO SCHEMA HERE</pre>
+      </div>
+      `
+
+      const shadow = this.attachShadow({ mode: 'open' })
+      const result = this.template.content.cloneNode(true)
+      shadow.appendChild(result)
+
+      this.data = shadow.querySelector('.data')
+      this.schemaViewer = shadow.querySelector('.schemaViewer')
+
+      this.importDoc()
+
+      this.addEventListener('input', (e) => this.handleInput())
+      this.addEventListener('doc-change', (e) => console.log(e.detail))
+
+      this.addEventListener('doc-patch', (event) => this.handlePatch(event))
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'patch application', message: e.message },
+        })
+      )
+    }
+  }
+
   clear() {
     this.innerText = '{}'
   }
@@ -14,6 +51,7 @@ class CambriaDocument extends HTMLPreElement {
     const rawJSON = JSON.parse(rawText)
     const [schema, patch] = Cambria.importDoc(rawJSON)
     this.schema = schema
+    this.renderSchema(schema)
 
     const initializationPatch = [{ op: 'add', path: '', value: {} }]
     this.dispatchEvent(
@@ -33,6 +71,14 @@ class CambriaDocument extends HTMLPreElement {
     )
   }
 
+  renderSchema(schema) {
+    this.schemaViewer.innerText = JSON.stringify(this.schema.properties)
+  }
+
+  renderJSON(json) {
+    this.innerText = JSON.stringify(json)
+  }
+
   handleInput() {
     try {
       const rawText = this.innerText
@@ -49,6 +95,12 @@ class CambriaDocument extends HTMLPreElement {
         })
       )
       this.lastJSON = rawJSON
+
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'document edit', message: '' },
+        })
+      )
     } catch (e) {
       this.dispatchEvent(
         new CustomEvent('cloudina-error', {
@@ -58,28 +110,13 @@ class CambriaDocument extends HTMLPreElement {
     }
   }
 
-  constructor() {
-    try {
-      super()
-
-      this.importDoc()
-
-      this.addEventListener('input', (e) => this.handleInput())
-      this.addEventListener('doc-change', (e) => console.log(e.detail))
-
-      this.addEventListener('doc-patch', (event) => {
-        const { patch, schema } = event.detail
-        const doc = JSON.parse(this.innerText)
-        this.schema = schema
-        this.innerText = JSON.stringify(jsonpatch.applyPatch(doc, patch).newDocument)
-      })
-    } catch (e) {
-      this.dispatchEvent(
-        new CustomEvent('cloudina-error', {
-          detail: { topic: 'patch application', message: e.message },
-        })
-      )
-    }
+  handlePatch(event) {
+    const { patch, schema } = event.detail
+    const doc = JSON.parse(this.innerText)
+    this.schema = schema
+    this.renderSchema(schema)
+    const newJSON = jsonpatch.applyPatch(doc, patch).newDocument
+    this.renderJSON(newJSON)
   }
 
   connectedCallback() {
@@ -87,7 +124,7 @@ class CambriaDocument extends HTMLPreElement {
   }
 }
 
-customElements.define('cambria-document', CambriaDocument, { extends: 'pre' })
+customElements.define('cambria-document', CambriaDocument)
 
 // Sends `lens-compiled` events when it gets a new, good lens.
 // Receives `doc-change` events and emits `doc-patch` ones in response.
@@ -105,7 +142,10 @@ class CambriaLens extends HTMLPreElement {
     try {
       const { patch, schema, reverse, destination } = event.detail
 
-      const convertedSchema = Cambria.updateSchema(schema, lens)
+      const convertedSchema = Cambria.updateSchema(
+        schema,
+        reverse ? Cambria.reverseLens(lens) : lens
+      )
 
       const convertedPatch = Cambria.applyLensToPatch(
         reverse ? Cambria.reverseLens(lens) : lens,
@@ -162,8 +202,6 @@ class CambriaDemo extends HTMLElement {
             ' error error error ';
           grid-gap: 4px;
           width: 80%;
-          padding: 10px;
-          height: 250px;
         }
 
         .left {
@@ -203,11 +241,14 @@ class CambriaDemo extends HTMLElement {
         .block {
           border: 2px solid var(--color);
         }
+
+        .schema {  border: 1px solid black; }
         
       </style>
       <div class="left block">
         <div class="thumb">Left Document</div>
         <slot name="left"></slot>
+        <div class="schema"></div>
       </div>
       <div class="lens block">
         <div class="thumb">Lens</div>
@@ -216,6 +257,7 @@ class CambriaDemo extends HTMLElement {
       <div class="right block">
         <div class="thumb">Right Document</div>
         <slot name="right"></slot>
+        <div class="schema"></div>
       </div>
 
       <div class="patch block">
@@ -243,6 +285,10 @@ class CambriaDemo extends HTMLElement {
       .forEach((slot) => (slots[slot.name] = slot.assignedElements()[0] || slot.firstElementChild))
 
     this.left = slots.left
+
+    this.leftSchema = shadow.querySelector('.left .schema')
+    this.rightSchema = shadow.querySelector('.right .schema')
+
     this.right = slots.right
     this.lens = slots.lens
 
@@ -253,19 +299,19 @@ class CambriaDemo extends HTMLElement {
     })
 
     // ehhhhhh
-    slots.left.addEventListener('doc-change', (e) =>
+    slots.left.addEventListener('doc-change', (e) => {
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
       )
-    )
+    })
 
-    slots.right.addEventListener('doc-change', (e) =>
+    slots.right.addEventListener('doc-change', (e) => {
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', {
           detail: { ...e.detail, reverse: true, destination: slots.left },
         })
       )
-    )
+    })
 
     // hack
     Object.values(slots).forEach((slot) =>
@@ -278,6 +324,7 @@ class CambriaDemo extends HTMLElement {
       const { detail } = e
       const { patch, destination } = e.detail
       this.patch.innerText = JSON.stringify(e.detail.patch)
+
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
     })
 
