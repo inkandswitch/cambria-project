@@ -55,9 +55,23 @@ function addProperty(schema: JSONSchema7, property: Property) {
 }
 
 function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSchema7 {
-  if (typeof schema !== 'object') {
+  if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
     throw new Error('expected schema object')
   }
+  if (!from) {
+    throw new Error("Rename property requires a 'source' to rename.")
+  }
+  if (!schema.properties[from]) {
+    throw new Error(
+      `Cannot rename property '${from}' because it does not exist among ${Object.keys(
+        schema.properties
+      )}.`
+    )
+  }
+  if (!to) {
+    throw new Error(`Need a 'destination' to rename ${from} to.`)
+  }
+
   const { properties = {}, required = [] } = schema // extract properties with default of empty
   const { [from]: propDetails, ...rest } = properties // pull out the old value
 

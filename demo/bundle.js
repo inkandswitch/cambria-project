@@ -636,8 +636,17 @@ function addProperty(schema, property) {
         required });
 }
 function renameProperty(schema, from, to) {
-    if (typeof schema !== 'object') {
+    if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
         throw new Error('expected schema object');
+    }
+    if (!from) {
+        throw new Error("Rename property requires a 'source' to rename.");
+    }
+    if (!schema.properties[from]) {
+        throw new Error(`Cannot rename property '${from}' because it does not exist among ${Object.keys(schema.properties)}.`);
+    }
+    if (!to) {
+        throw new Error(`Need a 'destination' to rename ${from} to.`);
     }
     const { properties = {}, required = [] } = schema; // extract properties with default of empty
     const _a = properties, _b = from, propDetails = _a[_b], rest = __rest(_a, [typeof _b === "symbol" ? _b : _b + ""]); // pull out the old value
@@ -674,10 +683,10 @@ function inSchema(schema, op) {
 }
 function validateSchemaItems(items) {
     if (Array.isArray(items)) {
-        throw new Error('Cloudina only supports consistent types for arrays.');
+        throw new Error('Cambria only supports consistent types for arrays.');
     }
     if (!items || items === true) {
-        throw new Error('Cloudina requires a specific items definition.');
+        throw new Error('Cambria requires a specific items definition.');
     }
     return items;
 }
