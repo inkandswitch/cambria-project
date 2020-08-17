@@ -1,5 +1,6 @@
 import assert from 'assert'
-import { Patch, applyLensToPatch, applyLensToDoc, PatchOp, expandPatch } from '../src/patch'
+import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
+import { applyLensToDoc } from '../src/doc'
 import { updateSchema } from '../src/json-schema'
 import { LensSource } from '../src/lens-ops'
 import {
@@ -652,11 +653,7 @@ describe('head (array to nullable scalar)', () => {
 
   it('preserves the rest of the path after the array index with removes', () => {
     assert.deepEqual(
-      applyLensToPatch(
-        lensSource,
-        [{ op: 'remove' as const, path: '/assignee/0/age' }],
-        docSchema
-      ),
+      applyLensToPatch(lensSource, [{ op: 'remove' as const, path: '/assignee/0/age' }], docSchema),
       [{ op: 'remove' as const, path: '/assignee/age' }]
     )
   })
@@ -1038,7 +1035,7 @@ describe('inferring schemas from documents', () => {
         applyLensToDoc(lens, doc)
       },
       {
-        message: /Rename error/,
+        message: /Cannot rename property/,
       }
     )
   })

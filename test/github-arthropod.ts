@@ -2,7 +2,7 @@
 // testing a complex doc + lens
 
 import githubIssue from './github-issue.json'
-import { applyLensToDoc } from '../src/patch'
+import { applyLensToDoc } from '../src/doc'
 import assert from 'assert'
 import { reverseLens } from '../src/reverse'
 
