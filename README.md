@@ -1,12 +1,14 @@
 # Cambria
 
-Cambria is a Javascript/Typescript library for converting JSON data bidirectionally between related schemas.
+Cambria is a Javascript/Typescript library for converting JSON data between related schemas.
 
-A lens can convert:
+You specify (in YAML or JSON) a _lens_, which specifies a data transformation. Cambria lets you use this lens to convert:
 
 - a whole document, in JSON
 - an edit to a document, in [JSON Patch](http://jsonpatch.com/)
 - a schema description, in [JSON Schema](https://json-schema.org/)
+
+Lenses are bidirectional. Once you've converted a document from schema A to schema B, you can edit the document in schema B and propagate those edits _backwards through the same lens_ to schema A.
 
 For more background on why Cambria exists and what it can do, see the research essay. (todo: link once released)
 
