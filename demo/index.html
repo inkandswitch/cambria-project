@@ -7,18 +7,19 @@
   </head>
   <body>
     <h1>Cambria component demo</h1>
-    <!--cambria-demo>
-      <pre is="cambria-document" contenteditable="true" slot="left">
+
+    <cambria-demo>
+      <cambria-document contenteditable="true" slot="left">
         { "name": "The Fifth Element" }
-      </pre>
+      </cambria-document>
       <pre is="cambria-lens" contenteditable="true" slot="lens">
 lens:
   - rename: 
       source: name
       destination: title
       </pre>
-      <pre is="cambria-document" slot="right">{}</pre>
-    </cambria-demo -->
+      <cambria-document slot="right" contenteditable="true">{}</cambria-document>
+    </cambria-demo>
 
     <cambria-demo>
       <cambria-document contenteditable="true" slot="left">

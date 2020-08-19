@@ -201,7 +201,6 @@ class CambriaDemo extends HTMLElement {
             ' patch patch patch '
             ' error error error ';
           grid-gap: 4px;
-          width: 80%;
         }
 
         .left {
