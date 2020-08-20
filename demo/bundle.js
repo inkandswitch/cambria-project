@@ -247,7 +247,6 @@ class CambriaDocument extends HTMLElement {
 
       const { schema } = this
       const validation = JsonSchema.validate(rawJSON, schema)
-      console.log(validation, schema)
       if (validation.valid === false && validation.errors.length > 0) {
         throw new Error(validation.errors[0].message)
       }
@@ -279,9 +278,6 @@ class CambriaDocument extends HTMLElement {
 
   handlePatch(event) {
     const { patch, schema } = event.detail
-
-    console.log(patch, schema, this.innerText)
-
     const doc = JSON.parse(this.innerText)
     this.schema = schema
     const newJSON = jsonpatch.applyPatch(doc, patch).newDocument
