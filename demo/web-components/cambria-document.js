@@ -22,8 +22,6 @@ class CambriaDocument extends HTMLElement {
       this.data = shadow.querySelector('.data')
       this.schemaViewer = shadow.querySelector('.schemaViewer')
 
-      this.importDoc()
-
       this.addEventListener('input', (e) => this.handleInput())
       this.addEventListener('doc-patch', (event) => this.handlePatch(event))
     } catch (e) {
@@ -38,6 +36,7 @@ class CambriaDocument extends HTMLElement {
   clear() {
     this.innerText = '{}'
   }
+
   lastJSON = {}
 
   importDoc() {
@@ -47,6 +46,7 @@ class CambriaDocument extends HTMLElement {
     schema.additionalProperties = false
     schema.required = Object.keys(schema.properties)
     this.schema = schema
+    this.renderJSON(rawJSON) // formatting
 
     const initializationPatch = [{ op: 'add', path: '', value: {} }]
     this.dispatchEvent(
@@ -90,6 +90,7 @@ class CambriaDocument extends HTMLElement {
           detail: { schema, patch },
         })
       )
+
       this.lastJSON = rawJSON
 
       this.dispatchEvent(
