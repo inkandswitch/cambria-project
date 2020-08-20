@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const jsonpatch = require('fast-json-patch')
+const JsonSchema = require('jsonschema')
 const Cambria = require('../../dist')
 
 class CambriaDocument extends HTMLElement {
@@ -43,6 +44,8 @@ class CambriaDocument extends HTMLElement {
     const rawText = this.innerText
     const rawJSON = JSON.parse(rawText)
     const [schema, patch] = Cambria.importDoc(rawJSON)
+    schema.additionalProperties = false
+    schema.required = Object.keys(schema.properties)
     this.schema = schema
 
     const initializationPatch = [{ op: 'add', path: '', value: {} }]
@@ -73,6 +76,11 @@ class CambriaDocument extends HTMLElement {
       const rawJSON = JSON.parse(rawText)
 
       const { schema } = this
+      const validation = JsonSchema.validate(rawJSON, schema)
+      console.log(validation, schema)
+      if (validation.valid === false && validation.errors.length > 0) {
+        throw new Error(validation.errors[0].message)
+      }
       const patch = jsonpatch.compare(this.lastJSON, rawJSON)
 
       this.dispatchEvent(

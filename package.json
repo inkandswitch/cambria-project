@@ -18,6 +18,7 @@
     "is-url": "^1.2.4",
     "js-yaml": "^3.14.0",
     "json-schema": "^0.2.5",
+    "jsonschema": "^1.2.6",
     "quicktype-core": "^6.0.66"
   },
   "devDependencies": {
