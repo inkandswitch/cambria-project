@@ -143,12 +143,15 @@ function validateSchemaItems(items: JSONSchema7Items) {
 }
 
 function mapSchema(schema: JSONSchema7, lens: LensSource) {
+  if (lens) {
+    throw new Error('Map requires a `lens` to map over the array.')
+  }
   return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
 }
 
 function wrapProperty(schema, op: WrapProperty) {
   if (!op.name) {
-    throw new Error("Wrap property requires a 'name' to identify what to wrap.")
+    throw new Error('Wrap property requires a `name` to identify what to wrap.')
   }
   if (!schema.properties[op.name]) {
     throw new Error(`Cannot wrap property '${op.name}' because it does not exist.`)
@@ -167,7 +170,7 @@ function wrapProperty(schema, op: WrapProperty) {
 
 function headProperty(schema, op: HeadProperty) {
   if (!op.name) {
-    throw new Error("Head requires a 'name' to identify what to wrap.")
+    throw new Error('Head requires a `name` to identify what to take head from.')
   }
   if (!schema.properties[op.name]) {
     throw new Error(`Cannot head property '${op.name}' because it does not exist.`)
@@ -189,8 +192,15 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
 
   const hostSchema = schema.properties[host]
 
+  if (!host) {
+    throw new Error(`Need a \`host\` property to hoist from.`)
+  }
+
   if (hostSchema === undefined) {
     throw new Error(`Can't hoist out of nonexistent host property: ${host}`)
+  }
+  if (!name) {
+    throw new Error(`Need to provide a \`name\` to hoist up`)
   }
 
   if (
@@ -239,10 +249,18 @@ function plungeProperty(schema: JSONSchema7, host: string, name: string) {
   // XXXX what should we do for missing child properties? error?
   const { properties = {} } = schema
 
+  if (!host) {
+    throw new Error(`Need a \`host\` property to plunge into`)
+  }
+
+  if (!name) {
+    throw new Error(`Need to provide a \`name\` to plunge`)
+  }
+
   const destinationTypeProperties = properties[name]
 
   if (!destinationTypeProperties) {
-    throw new Error(`Could not find a property called ${name} among ${properties}`)
+    throw new Error(`Could not find a property called ${name} among ${Object.keys(properties)}`)
   }
 
   // we can throw an error here if things are missing?

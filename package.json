@@ -8,7 +8,7 @@
     "build": "tsc --outDir ./dist",
     "test": "mocha -r ts-node/register test/**.ts",
     "postinstall": "yarn run build",
-    "build-demo": "browserify ./demo/cambria-demo.js -o ./demo/bundle.js"
+    "build-demo": "browserify ./demo/web-components/cambria-demo.js -o ./demo/bundle.js"
   },
   "dependencies": {
     "commander": "^5.1.0",

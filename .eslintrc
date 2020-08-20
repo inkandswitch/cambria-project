@@ -10,7 +10,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": [],
   "extends": [
-    "airbnb-typescript",
+    "airbnb-base",
     "plugin:@typescript-eslint/recommended",
     "prettier/@typescript-eslint",
     "plugin:prettier/recommended"
@@ -50,12 +50,6 @@
     // third-party libs often use this
     "no-underscore-dangle": "off",
 
-    // we agreed this is a bad rule
-    "react/destructuring-assignment": "off",
-
-    // we agreed this is gratuitous
-    "react/jsx-one-expression-per-line": "off",
-
     // pushpin was inherently visual, so we've disabled quite a few accessibility rules
     // it would be reasonable to re-enable these but would take some work, and might be
     // a good idea for an app like arthropod
@@ -92,10 +86,6 @@
         "args": "none"
       }
     ],
-
-    "react-hooks/rules-of-hooks": "error",
-    // this rule caused bugs when it was automatically applied
-    "react-hooks/exhaustive-deps": "off",
 
     // import-specific rulings
     // we probably want to enable this, and it's violated 23 times
