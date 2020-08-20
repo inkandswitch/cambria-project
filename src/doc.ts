@@ -1,6 +1,6 @@
 import { JSONSchema7 } from 'json-schema'
 import { compare, applyPatch } from 'fast-json-patch'
-import GenerateSchema from 'generate-schema'
+import toJSONSchema from 'to-json-schema'
 
 import { defaultObjectForSchema } from './defaults'
 import { Patch, applyLensToPatch } from './patch'
@@ -8,7 +8,16 @@ import { LensSource } from './lens-ops'
 import { updateSchema } from './json-schema'
 
 export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
-  const schema = GenerateSchema.json(inputDoc) as JSONSchema7
+  const options = {
+    objects: {
+      postProcessFnc: (schema, obj, defaultFnc) => ({
+        ...defaultFnc(schema, obj),
+        required: Object.getOwnPropertyNames(obj),
+      }),
+    },
+  }
+
+  const schema = toJSONSchema(inputDoc, options) as JSONSchema7
   const patch = compare({}, inputDoc)
 
   return [schema, patch]

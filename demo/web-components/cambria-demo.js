@@ -158,7 +158,6 @@ class CambriaDemo extends HTMLElement {
   }
 
   renderSchema(target, schema) {
-    //target.innerText = JSON.stringify(schema.properties, null, 2)
     target.innerText = JSON.stringify(schema, null, 2)
   }
 }

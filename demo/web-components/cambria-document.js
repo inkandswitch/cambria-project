@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const jsonpatch = require('fast-json-patch')
-const JsonSchema = require('jsonschema')
+const JsonSchema = require('json-schema')
+
 const Cambria = require('../../dist')
 
 class CambriaDocument extends HTMLElement {
