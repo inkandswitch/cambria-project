@@ -64,7 +64,7 @@ class CambriaDemo extends HTMLElement {
       <div class="left block">
         <div class="thumb">Left Document</div>
         <slot name="left"></slot>
-        <div class="schema"></div>
+        <pre class="schema"/>
       </div>
       <div class="lens block">
         <div class="thumb">Lens</div>
@@ -73,12 +73,12 @@ class CambriaDemo extends HTMLElement {
       <div class="right block">
         <div class="thumb">Right Document</div>
         <slot name="right"></slot>
-        <div class="schema"></div>
+        <pre class="schema"/>
       </div>
 
       <div class="patch block">
         <div class="thumb">Last Patch</div>
-        <span class="content">... no activity ...</span>
+        <pre class="content">... no activity ...</pre>
       </div>
       
       <div class="error block">
@@ -116,12 +116,14 @@ class CambriaDemo extends HTMLElement {
 
     // ehhhhhh
     slots.left.addEventListener('doc-change', (e) => {
+      this.leftSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
       )
     })
 
     slots.right.addEventListener('doc-change', (e) => {
+      this.rightSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', {
           detail: { ...e.detail, reverse: true, destination: slots.left },
@@ -139,8 +141,13 @@ class CambriaDemo extends HTMLElement {
     slots.lens.addEventListener('doc-patch', (e) => {
       const { detail } = e
       const { patch, destination } = e.detail
-      this.patch.innerText = JSON.stringify(patch)
+      this.patch.innerText = JSON.stringify(patch, null, 2)
 
+      if (destination === slots.left) {
+        this.leftSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+      } else if (destination === slots.right) {
+        this.rightSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+      }
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
     })
 

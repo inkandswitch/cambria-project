@@ -10,10 +10,7 @@ class CambriaDocument extends HTMLElement {
     try {
       this.template.innerHTML = `
       <div>
-        <pre class="data" contenteditable="true">
-        <slot/>
-        </pre>
-        <pre class="schemaViewer">NO SCHEMA HERE</pre>
+        <pre class="data" contenteditable="true"><slot/></pre>
       </div>
       `
 
@@ -47,7 +44,6 @@ class CambriaDocument extends HTMLElement {
     const rawJSON = JSON.parse(rawText)
     const [schema, patch] = Cambria.importDoc(rawJSON)
     this.schema = schema
-    this.renderSchema(schema)
 
     const initializationPatch = [{ op: 'add', path: '', value: {} }]
     this.dispatchEvent(
@@ -67,12 +63,8 @@ class CambriaDocument extends HTMLElement {
     )
   }
 
-  renderSchema(schema) {
-    this.schemaViewer.innerText = JSON.stringify(this.schema.properties)
-  }
-
   renderJSON(json) {
-    this.innerText = JSON.stringify(json)
+    this.innerText = JSON.stringify(json, null, 2)
   }
 
   handleInput() {
@@ -113,7 +105,6 @@ class CambriaDocument extends HTMLElement {
 
     const doc = JSON.parse(this.innerText)
     this.schema = schema
-    this.renderSchema(schema)
     const newJSON = jsonpatch.applyPatch(doc, patch).newDocument
     this.renderJSON(newJSON)
   }
