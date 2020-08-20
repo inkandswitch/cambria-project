@@ -65,6 +65,7 @@ class CambriaDemo extends HTMLElement {
       <div class="left block">
         <div class="thumb">Left Document</div>
         <slot name="left"></slot>
+        <div class="thumb">Left Schema</div>
         <pre class="schema"/>
       </div>
       <div class="lens block">
@@ -74,6 +75,7 @@ class CambriaDemo extends HTMLElement {
       <div class="right block">
         <div class="thumb">Right Document</div>
         <slot name="right"></slot>
+        <div class="thumb">Right Schema</div>
         <pre class="schema"/>
       </div>
 
@@ -117,14 +119,15 @@ class CambriaDemo extends HTMLElement {
 
     // ehhhhhh
     slots.left.addEventListener('doc-change', (e) => {
-      this.leftSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+      this.renderSchema(this.leftSchema, e.detail.schema)
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', { detail: { ...e.detail, destination: slots.right } })
       )
     })
 
     slots.right.addEventListener('doc-change', (e) => {
-      this.rightSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+      this.renderSchema(this.rightSchema, e.detail.schema)
+
       slots.lens.dispatchEvent(
         new CustomEvent('doc-change', {
           detail: { ...e.detail, reverse: true, destination: slots.left },
@@ -145,14 +148,18 @@ class CambriaDemo extends HTMLElement {
       this.patch.innerText = JSON.stringify(patch, null, 2)
 
       if (destination === slots.left) {
-        this.leftSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+        this.renderSchema(this.leftSchema, e.detail.schema)
       } else if (destination === slots.right) {
-        this.rightSchema.innerText = JSON.stringify(e.detail.schema, null, 2)
+        this.renderSchema(this.rightSchema, e.detail.schema)
       }
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
     })
 
     this.left.importDoc()
+  }
+
+  renderSchema(target, schema) {
+    target.innerText = JSON.stringify(schema.properties, null, 2)
   }
 }
 
