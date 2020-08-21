@@ -1,54 +1,35 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const jsonpatch = require('fast-json-patch')
-const JsonSchema = require('json-schema')
+const { JSONEditor } = require('@json-editor/json-editor')
 
 const Cambria = require('../../dist')
 
 class CambriaDocument extends HTMLElement {
-  template = document.createElement('template')
+  lastJSON = {}
 
   constructor() {
     super()
-    try {
-      this.template.innerHTML = `
-      <div>
-        <pre class="data" contenteditable="true"><slot/></pre>
-      </div>
-      `
 
-      const shadow = this.attachShadow({ mode: 'open' })
-      const result = this.template.content.cloneNode(true)
-      shadow.appendChild(result)
+    const shadow = this.attachShadow({ mode: 'open' })
+    this.editorHost = document.createElement('div')
+    shadow.appendChild(this.editorHost)
 
-      this.data = shadow.querySelector('.data')
-      this.schemaViewer = shadow.querySelector('.schemaViewer')
-
-      this.addEventListener('input', (e) => this.handleInput())
-      this.addEventListener('doc-patch', (event) => this.handlePatch(event))
-    } catch (e) {
-      this.dispatchEvent(
-        new CustomEvent('cloudina-error', {
-          detail: { topic: 'patch application', message: e.message },
-        })
-      )
-    }
+    this.addEventListener('doc-patch', (e) => this.handlePatch(e))
+    this.addEventListener('doc-change', (e) => this.handleChange(e))
   }
 
-  clear() {
-    this.innerText = '{}'
-  }
-
-  lastJSON = {}
-
+  /** import a new JSON doc into the system
+   * this also triggers "downstream" editors to regenerate schemas
+   * we also run this when the lens changes to reset state
+   */
   importDoc() {
-    const rawText = this.innerText
+    const rawText = this.firstChild.wholeText
     const rawJSON = JSON.parse(rawText)
     const [schema, patch] = Cambria.importDoc(rawJSON)
-    schema.additionalProperties = false
-    schema.required = Object.keys(schema.properties)
+    this.lastJSON = rawJSON
     this.schema = schema
-    this.renderJSON(rawJSON) // formatting
 
+    // This bit here is rather dubious.
     const initializationPatch = [{ op: 'add', path: '', value: {} }]
     this.dispatchEvent(
       new CustomEvent('doc-change', {
@@ -59,40 +40,42 @@ class CambriaDocument extends HTMLElement {
     )
 
     this.dispatchEvent(
-      new CustomEvent('doc-change', {
+      new CustomEvent('doc-patch', {
         bubbles: true,
         composed: true,
-        detail: { schema, patch },
+        detail: { patch },
       })
     )
   }
 
-  renderJSON(json) {
-    this.innerText = JSON.stringify(json, null, 2)
+  clear() {
+    if (!this.editor) {
+      throw new Error("can't clear without an editor initialized")
+    }
+    this.editor.setValue({})
   }
 
-  handleInput() {
+  handleEdit() {
     try {
-      const rawText = this.innerText
-      const rawJSON = JSON.parse(rawText)
-
-      const { schema } = this
-      const validation = JsonSchema.validate(rawJSON, schema)
+      const validation = this.editor.validate()
       if (validation.valid === false && validation.errors.length > 0) {
         throw new Error(validation.errors[0].message)
       }
-      const patch = jsonpatch.compare(this.lastJSON, rawJSON)
+      const newJSON = this.editor.getValue()
+      const patch = jsonpatch.compare(this.lastJSON, newJSON)
+      this.lastJSON = {}
 
-      this.dispatchEvent(
-        new CustomEvent('doc-change', {
-          bubbles: true,
-          composed: true,
-          detail: { schema, patch },
-        })
-      )
+      if (patch.length > 0) {
+        this.dispatchEvent(
+          new CustomEvent('doc-patch', {
+            bubbles: true,
+            composed: true,
+            detail: { patch },
+          })
+        )
+      }
 
-      this.lastJSON = rawJSON
-
+      // clear the error status
       this.dispatchEvent(
         new CustomEvent('cloudina-error', {
           detail: { topic: 'document edit', message: '' },
@@ -107,12 +90,53 @@ class CambriaDocument extends HTMLElement {
     }
   }
 
+  applyChange({ patch, schema }) {
+    if (this.editor) {
+      this.editor.destroy()
+    }
+    this.editor = new JSONEditor(this.editorHost, { schema })
+    this.lastJSON = {}
+    // let handlePatch take care of filling in the data
+    this.applyPatch({ patch })
+    this.editor.on('change', (e) => this.handleEdit(e))
+  }
+
+  applyPatch({ patch }) {
+    if (!this.editor) {
+      throw new Error('received a patch before editor initialized')
+    }
+
+    const { lastJSON } = this
+    const newJSON = jsonpatch.applyPatch(lastJSON, patch).newDocument
+    this.editor.setValue(newJSON)
+    this.lastJSON = newJSON
+  }
+
+  /** receive a new schema,
+   * make a new editor, clear the old state */
+  handleChange(event) {
+    const { schema } = event.detail
+    if (this.editor) {
+      this.editor.destroy()
+    }
+    this.editor = new JSONEditor(this.editorHost, { schema })
+    this.editor.on('change', (e) => this.handleEdit(e))
+
+    // let handlePatch take care of filling in the data
+    this.handlePatch(event)
+  }
+
   handlePatch(event) {
-    const { patch, schema } = event.detail
-    const doc = JSON.parse(this.innerText)
-    this.schema = schema
-    const newJSON = jsonpatch.applyPatch(doc, patch).newDocument
-    this.renderJSON(newJSON)
+    const { patch } = event.detail
+
+    if (!this.editor) {
+      throw new Error('received a patch before editor initialized')
+    }
+
+    const { lastJSON } = this
+    const newJSON = jsonpatch.applyPatch(lastJSON, patch).newDocument
+    this.editor.setValue(newJSON)
+    this.lastJSON = newJSON
   }
 
   connectedCallback() {

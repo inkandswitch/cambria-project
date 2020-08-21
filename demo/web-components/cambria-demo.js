@@ -116,6 +116,33 @@ class CambriaDemo extends HTMLElement {
       this.left.importDoc()
     })
 
+    this.left.addEventListener('doc-change', (e) => {
+      this.renderSchema(this.leftSchema, e.detail.schema)
+      const { patch, schema } = this.lens.translateChange(e.detail)
+      this.renderSchema(this.rightSchema, schema)
+      this.right.applyChange({ patch, schema })
+      console.log('doc-change', e)
+    })
+
+    this.left.addEventListener('doc-patch', (e) => {
+      const { patch } = this.lens.translatePatch(e.detail)
+      this.right.applyPatch({ patch })
+      console.log('doc-patch', e)
+    })
+
+    this.right.addEventListener('doc-change', (e) => {
+      const { patch, schema } = this.lens.translateChange({ ...e.detail, reverse: true })
+      this.left.applyChange({ patch, schema })
+      console.log('doc-change from right', e)
+    })
+
+    this.right.addEventListener('doc-patch', (e) => {
+      const { patch } = this.lens.translatePatch({ ...e.detail, reverse: true })
+      this.left.applyPatch({ patch })
+      console.log('doc-patchfrom right', e)
+    })
+
+    /*
     // ehhhhhh
     slots.left.addEventListener('doc-change', (e) => {
       this.renderSchema(this.leftSchema, e.detail.schema)
@@ -134,6 +161,20 @@ class CambriaDemo extends HTMLElement {
       )
     })
 
+    slots.left.addEventListener('doc-patch', (e) => {
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-patch', { detail: { ...e.detail, destination: slots.right } })
+      )
+    })
+
+    slots.right.addEventListener('doc-patch', (e) => {
+      slots.lens.dispatchEvent(
+        new CustomEvent('doc-patch', {
+          detail: { ...e.detail, reverse: true, destination: slots.left },
+        })
+      )
+    })
+
     // hack
     Object.values(slots).forEach((slot) =>
       slot.addEventListener('cloudina-error', (e) => {
@@ -141,7 +182,18 @@ class CambriaDemo extends HTMLElement {
       })
     )
 
+    slots.lens.addEventListener('doc-change', (e) => {
+      debugger
+      const { detail } = e
+      const { destination } = e.detail
+
+      destination.dispatchEvent(
+        new CustomEvent('doc-change', { bubbles: false, detail: { ...detail, origin: 'LENS' } })
+      )
+    })
+
     slots.lens.addEventListener('doc-patch', (e) => {
+      debugger
       const { detail } = e
       const { patch, destination } = e.detail
       this.patch.innerText = JSON.stringify(patch, null, 2)
@@ -152,7 +204,7 @@ class CambriaDemo extends HTMLElement {
         this.renderSchema(this.rightSchema, e.detail.schema)
       }
       destination.dispatchEvent(new CustomEvent('doc-patch', { detail }))
-    })
+    }) */
 
     this.left.importDoc()
   }

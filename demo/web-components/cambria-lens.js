@@ -11,28 +11,60 @@ class CambriaLens extends HTMLPreElement {
     this.addEventListener('input', (e) => this.handleInput(e.target.innerText))
     this.handleInput(this.innerText)
 
+    this.addEventListener('doc-patch', (e) => this.handleDocPatch(e, this.compiledLens))
     this.addEventListener('doc-change', (e) => this.handleDocChange(e, this.compiledLens))
+  }
+
+  translateChange(detail) {
+    const { schema, patch, reverse } = detail
+    const lens = this.compiledLens
+
+    const outSchema = Cambria.updateSchema(schema, reverse ? Cambria.reverseLens(lens) : lens)
+
+    this.schema = schema
+    this.outSchema = outSchema
+
+    const outPatch = Cambria.applyLensToPatch(
+      reverse ? Cambria.reverseLens(lens) : lens,
+      patch,
+      this.schema
+    )
+
+    return { schema: outSchema, patch: outPatch, reverse }
+  }
+
+  translatePatch(detail) {
+    const { patch, reverse } = detail
+    const lens = this.compiledLens
+
+    const outPatch = Cambria.applyLensToPatch(
+      reverse ? Cambria.reverseLens(lens) : lens,
+      patch,
+      reverse ? this.outSchema : this.schema
+    )
+
+    return { patch: outPatch, reverse }
   }
 
   handleDocChange(event, lens) {
     try {
-      const { patch, schema, reverse, destination } = event.detail
+      const { schema, patch, reverse, destination } = event.detail
 
-      const convertedSchema = Cambria.updateSchema(
-        schema,
-        reverse ? Cambria.reverseLens(lens) : lens
-      )
+      const outSchema = Cambria.updateSchema(schema, reverse ? Cambria.reverseLens(lens) : lens)
+
+      this.schema = schema
+      this.outSchema = outSchema
 
       const convertedPatch = Cambria.applyLensToPatch(
         reverse ? Cambria.reverseLens(lens) : lens,
         patch,
-        schema
+        this.schema
       )
 
-      this.dispatchEvent(
-        new CustomEvent('doc-patch', {
-          bubbles: true,
-          detail: { patch: convertedPatch, schema: convertedSchema, destination },
+      destination.dispatchEvent(
+        new CustomEvent('doc-change', {
+          bubbles: false,
+          detail: { schema: outSchema, patch: convertedPatch, destination },
         })
       )
     } catch (e) {
@@ -44,6 +76,34 @@ class CambriaLens extends HTMLPreElement {
     }
   }
 
+  handleDocPatch(event, lens) {
+    try {
+      const { patch, reverse, destination } = event.detail
+
+      if (!this.schema) {
+        throw new Error('Tried to convert a patch before receiving the schema.')
+      }
+
+      const convertedPatch = Cambria.applyLensToPatch(
+        reverse ? Cambria.reverseLens(lens) : lens,
+        patch,
+        this.schema
+      )
+
+      destination.dispatchEvent(
+        new CustomEvent('doc-patch', {
+          bubbles: false,
+          detail: { patch: convertedPatch, destination },
+        })
+      )
+    } catch (e) {
+      this.dispatchEvent(
+        new CustomEvent('cloudina-error', {
+          detail: { topic: 'doc conversion', message: e.message },
+        })
+      )
+    }
+  }
   handleInput(value) {
     try {
       let hackYaml = safeLoad(value)
