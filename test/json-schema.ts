@@ -46,6 +46,17 @@ describe('transforming a json schema', () => {
       })
     })
 
+    it('supports nullable fields', () => {
+      const newSchema = updateSchema(v1Schema, [
+        addProperty({ name: 'description', type: ['string', 'null'] }),
+      ])
+
+      assert.deepEqual(newSchema.properties, {
+        ...v1Schema.properties,
+        description: { type: ['string', 'null'], default: null },
+      })
+    })
+
     it('uses default value if provided', () => {
       const newSchema = updateSchema(v1Schema, [
         addProperty({ name: 'description', type: 'string', default: 'hi' }),

@@ -2,7 +2,7 @@ import { JSONSchema7TypeName } from 'json-schema'
 
 export interface Property {
   name: string
-  type: JSONSchema7TypeName
+  type: JSONSchema7TypeName | JSONSchema7TypeName[]
   default?: any
   required?: boolean
   arrayItemType?: JSONSchema7TypeName // todo: is this right?

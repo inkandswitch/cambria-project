@@ -16,6 +16,9 @@
 - rename: 
     source: name
     destination: title
+- add:
+    name: nullable
+    type: [string, "null"]
       </pre>
       <cambria-document slot="right" contenteditable="true">{}</cambria-document>
     </cambria-demo>
@@ -115,7 +118,6 @@
 - remove: { name: repository_url }
 - remove: { name: number }
 - remove: { name: assignees }
-- remove: { name: user }
 - remove: { name: url }
 - remove: { name: comments_url }
 - remove: { name: events_url }
@@ -187,6 +189,6 @@
 
       </pre>
       <cambria-document contenteditable="true" slot="right">{}</cambria-document>
-    </cambria-demo -->
+    </cambria-demo-->
   </body>
 </html>

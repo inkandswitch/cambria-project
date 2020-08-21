@@ -5,7 +5,6 @@ import {
   LensSource,
   ConvertValue,
   LensOp,
-  AddProperty,
   HeadProperty,
   WrapProperty,
   LensIn,
@@ -25,15 +24,20 @@ export const emptySchema = {
 // (should switch to a more functional style)
 function addProperty(schema: JSONSchema7, property: Property) {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
-  const { name, type, arrayItemType, required: isPropertyRequired } = property
+  const { name, arrayItemType, required: isPropertyRequired } = property
+  let { type } = property
 
   if (!name || !type) {
     throw new Error(`Missing property name in addProperty.\nFound:\n${JSON.stringify(property)}`)
   }
 
+  if (Array.isArray(type)) {
+    type = type.map((t) => (t === null ? 'null' : t))
+  }
+
   const arraylessPropertyDefinition = {
     type,
-    default: property.default || defaultValuesByType[type], // default is a reserved keyword
+    default: property.default || defaultValuesByType(type), // default is a reserved keyword
   }
   // this is kludgey but you should see the crazy syntax for the alternative
   const propertyDefinition =
@@ -143,7 +147,7 @@ function validateSchemaItems(items: JSONSchema7Items) {
 }
 
 function mapSchema(schema: JSONSchema7, lens: LensSource) {
-  if (lens) {
+  if (!lens) {
     throw new Error('Map requires a `lens` to map over the array.')
   }
   return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
@@ -307,7 +311,7 @@ function convertValue(schema: JSONSchema7, lensOp: ConvertValue) {
       ...schema.properties,
       [name]: {
         type: destinationType,
-        default: defaultValuesByType[destinationType],
+        default: defaultValuesByType(destinationType),
       },
     },
   }
@@ -342,6 +346,7 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
 
     default:
       assertNever(op) // exhaustiveness check
+      return null
   }
 }
 export function updateSchema(schema: JSONSchema7, lens: LensSource): JSONSchema7 {

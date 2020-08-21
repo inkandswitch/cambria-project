@@ -1,19 +1,29 @@
-import { deepClone, applyPatch } from 'fast-json-patch'
-import { LensSource } from './lens-ops'
+/* eslint-disable no-use-before-define */
+import { applyPatch } from 'fast-json-patch'
+import { JSONSchema7, JSONSchema7Definition, JSONSchema7TypeName } from 'json-schema'
 import { Patch } from './patch'
-import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
 
-// XXX: ... do we want to keep this?
-export const defaultValuesByType = {
+/**
+ * behaviour:
+ *  - if we have an array of types where null is an option, that's our default
+ *  - otherwise use the first type in the array to pick a default from the table
+ *  - otherwise just use the value to lookup in the table
+ */
+const defaultValuesForType = {
   string: '',
   number: 0,
   boolean: false,
   array: [],
   object: {},
 }
-
-function assertNever(x: never): never {
-  throw new Error(`Unexpected object: ${x}`)
+export function defaultValuesByType(type: JSONSchema7TypeName | JSONSchema7TypeName[]): unknown {
+  if (Array.isArray(type)) {
+    if (type.includes('null')) {
+      return null
+    }
+    return defaultValuesForType[type[0]]
+  }
+  return defaultValuesForType[type]
 }
 
 // Return a recursively filled-in default object for a given schema
@@ -66,15 +76,16 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
             defaultValue = []
           } else if (propSchema.hasOwnProperty('default')) {
             defaultValue = propSchema.default
+          } else if (Array.isArray(propSchema.type) && propSchema.type.includes('null')) {
+            defaultValue = null
           }
 
           if (defaultValue !== undefined) {
             // todo: this is a TS hint, see if we can remove
             if (op.op !== 'add' && op.op !== 'replace') throw new Error('')
             return addDefaultValues([{ ...op, path, value: defaultValue }], schema)
-          } else {
-            return []
           }
+          return []
         }),
       ].flat(Infinity)
     })
@@ -88,22 +99,22 @@ function getPropertiesForPath(
   path: string
 ): { [key: string]: JSONSchema7Definition } {
   const pathComponents = path.split('/').slice(1)
-  const properties = pathComponents.reduce((schema: JSONSchema7, pathSegment: string) => {
+  const { properties } = pathComponents.reduce((schema: JSONSchema7, pathSegment: string) => {
     if (schema.type === 'object') {
       const schemaForProperty = schema.properties && schema.properties[pathSegment]
       if (typeof schemaForProperty !== 'object') throw new Error('Expected object')
       return schemaForProperty
-    } else if (schema.type === 'array') {
+    }
+    if (schema.type === 'array') {
       // throw away the array index, just return the schema for array items
       if (!schema.items || typeof schema.items !== 'object')
         throw new Error('Expected array items to have types')
 
       // todo: revisit this "as", was a huge pain to get this past TS
       return schema.items as JSONSchema7
-    } else {
-      throw new Error('Expected object or array in schema based on JSON Pointer')
     }
-  }, schema).properties
+    throw new Error('Expected object or array in schema based on JSON Pointer')
+  }, schema)
 
   if (properties === undefined) return {}
   return properties

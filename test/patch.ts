@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { Patch, applyLensToPatch, PatchOp, expandPatch } from '../src/patch'
 import { applyLensToDoc } from '../src/doc'
-import { updateSchema } from '../src/json-schema'
+import { updateSchema, schemaForLens } from '../src/json-schema'
 import { LensSource } from '../src/lens-ops'
 import {
   renameProperty,
@@ -16,7 +16,6 @@ import {
 } from '../src/helpers'
 
 import { reverseLens } from '../src/reverse'
-import { schemaForLens } from '../src/json-schema'
 
 export interface ProjectV1 {
   title: string
@@ -76,31 +75,6 @@ const projectV1Schema = <const>{
         updatedAt: { type: 'number', default: 123 },
       },
     },
-  },
-}
-
-// ======================================
-// Create some documents
-// ======================================
-
-// Start with two project documents in the corresponding formats
-const projectV1: ProjectV1 = {
-  title: 'hello',
-  tasks: [{ title: 'walk dog' }, { title: 'do laundry' }],
-  complete: false,
-  metadata: {
-    createdAt: 0,
-    updatedAt: 1,
-  },
-}
-const projectV2: ProjectV2 = {
-  name: 'hello',
-  issues: [{ title: 'walk dog' }, { title: 'do laundry' }],
-  description: 'a great project',
-  status: 'todo',
-  metadata: {
-    createdAt: 0,
-    updatedAt: 1,
   },
 }
 
@@ -874,6 +848,10 @@ describe('default value initialization', () => {
       addProperty({ name: 'flags', type: 'object', default: {} }),
       inside('flags', [addProperty({ name: 'O_CREATE', type: 'boolean', default: true })]),
     ]),
+    addProperty({
+      name: 'assignee',
+      type: ['string', 'null'],
+    }),
   ]
 
   const v1Schema = schemaForLens(v1Lens)
@@ -956,6 +934,11 @@ describe('default value initialization', () => {
         op: 'add',
         path: '/metadata/flags/O_CREATE',
         value: true,
+      },
+      {
+        op: 'add',
+        path: '/assignee',
+        value: null,
       },
     ])
   })
