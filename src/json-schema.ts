@@ -1,4 +1,6 @@
+/* eslint-disable no-use-before-define */
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
+import { inspect } from 'util'
 import { defaultValuesByType } from './defaults'
 import {
   Property,
@@ -14,6 +16,10 @@ export const emptySchema = {
   $schema: 'http://json-schema.org/draft-07/schema',
   type: 'object' as const,
   additionalProperties: false,
+}
+
+function deepInspect(object: any) {
+  return inspect(object, false, null, true)
 }
 
 // add a property to a schema
@@ -60,7 +66,7 @@ function addProperty(schema: JSONSchema7, property: Property) {
 
 function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSchema7 {
   if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
-    throw new Error('expected schema object')
+    throw new Error(`expected schema object, got ${JSON.stringify(schema)}`)
   }
   if (!from) {
     throw new Error("Rename property requires a 'source' to rename.")
@@ -112,27 +118,62 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   }
 }
 
-function inSchema(schema: JSONSchema7, op: LensIn) {
-  const { properties = {} } = schema
+function unWrapAnyOf(schema: JSONSchema7): JSONSchema7 {
+  const maybeSchema = schema.anyOf?.find((t) => typeof t === 'object' && t.properties)
+}
+
+function findHost(schema: JSONSchema7, name: string): JSONSchema7 {
+  if (schema.anyOf) {
+    console.log('anyof')
+    const maybeSchema = schema.anyOf?.find((t) => typeof t === 'object' && t.properties)
+    if (typeof maybeSchema === 'object' && typeof maybeSchema.properties === 'object') {
+      const maybeHost = maybeSchema.properties[name]
+      console.log('maybe', maybeHost)
+      if (maybeHost !== false && maybeHost !== true) {
+        return maybeHost
+      }
+    }
+  } else if (schema.properties && schema.properties[name]) {
+    const maybeHost = schema.properties[name]
+    if (maybeHost !== false && maybeHost !== true) {
+      return maybeHost
+    }
+  }
+  throw new Error("Coudln't find the host for this data.")
+}
+
+function inSchema(schema: JSONSchema7, op: LensIn): JSONSchema7 {
+  const properties: JSONSchema7 = schema.properties
+    ? schema.properties
+    : (schema.anyOf?.find((t) => typeof t === 'object' && t.properties) as any).properties
+
+  if (!properties) {
+    throw new Error("Cannot look 'in' an object that doesn't have properties.")
+  }
+
   const { name, lens } = op
 
   if (!name) {
     throw new Error(`Expected to find property ${name} in ${Object.keys(op || {})}`)
   }
 
-  const host = properties[name] as JSONSchema7
+  const host = findHost(schema, name)
+
+  console.log('HOST IS', deepInspect(host))
 
   if (host === undefined) {
-    throw new Error(`Expected to find property ${name} in ${Object.keys(schema.properties || {})}`)
+    throw new Error(`Expected to find property ${name} in ${Object.keys(properties || {})}`)
+  }
+
+  const newProperties: JSONSchema7 = {
+    ...properties,
+    [name]: updateSchema(host, lens),
   }
 
   return {
     ...schema,
-    properties: {
-      ...properties,
-      [name]: updateSchema(host, lens),
-    },
-  }
+    properties: newProperties,
+  } as JSONSchema7
 }
 
 type JSONSchema7Items = boolean | JSONSchema7 | JSONSchema7Definition[] | undefined
@@ -141,7 +182,7 @@ function validateSchemaItems(items: JSONSchema7Items) {
     throw new Error('Cambria only supports consistent types for arrays.')
   }
   if (!items || items === true) {
-    throw new Error('Cambria requires a specific items definition.')
+    throw new Error(`Cambria requires a specific items definition, found ${items}.`)
   }
   return items
 }
@@ -150,16 +191,41 @@ function mapSchema(schema: JSONSchema7, lens: LensSource) {
   if (!lens) {
     throw new Error('Map requires a `lens` to map over the array.')
   }
+  if (!schema.items) {
+    throw new Error(`Map requires a schema with items to map over, ${deepInspect(schema)}`)
+  }
   return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
 }
 
-function wrapProperty(schema, op: WrapProperty) {
+function wrapProperty(schema: JSONSchema7, op: WrapProperty) {
   if (!op.name) {
     throw new Error('Wrap property requires a `name` to identify what to wrap.')
   }
-  if (!schema.properties[op.name]) {
+
+  if (!schema.properties) {
+    throw new Error('Cannot wrap a property here. There are no properties.')
+  }
+
+  const prop = schema.properties[op.name]
+  if (!prop) {
     throw new Error(`Cannot wrap property '${op.name}' because it does not exist.`)
   }
+
+  if (prop === false || prop === true) {
+    throw new Error("I didn't feel like implementing this.")
+  }
+
+  if (
+    !(
+      Array.isArray(prop.type) &&
+      (prop.type.some((t) => t === 'null') ||
+        prop.anyOf?.some((t) => t !== false && t !== true && t.type === 'null'))
+    )
+  ) {
+    console.log('trying to wrap', prop)
+    throw new Error(`Cannot wrap property '${op.name}' because it does not allow nulls.`)
+  }
+
   // create an array property, stuff the existing schema info inside the array type
   return addProperty(schema, {
     name: op.name,
@@ -168,7 +234,7 @@ function wrapProperty(schema, op: WrapProperty) {
     // todo: I think arrayItemType needs to take more than a string,
     // it probably needs to take a recursive schema arg of some kind?
     // seems like this will not work if array items are obbjects
-    arrayItemType: schema.properties[op.name].type,
+    arrayItemType: prop.type,
   })
 }
 
@@ -184,7 +250,7 @@ function headProperty(schema, op: HeadProperty) {
     ...schema,
     properties: {
       ...schema.properties,
-      [op.name]: schema.properties[op.name].items,
+      [op.name]: { anyOf: [{ type: 'null' }, schema.properties[op.name].items] },
     },
   }
 }

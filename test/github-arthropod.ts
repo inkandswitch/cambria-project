@@ -1,9 +1,9 @@
 // a quasi-integration test, converting a github doc to an arthropod doc--
 // testing a complex doc + lens
 
+import assert from 'assert'
 import githubIssue from './github-issue.json'
 import { applyLensToDoc } from '../src/doc'
-import assert from 'assert'
 import { reverseLens } from '../src/reverse'
 
 describe('renaming title, and hoisting label name to category', () => {
@@ -24,7 +24,7 @@ describe('renaming title, and hoisting label name to category', () => {
     },
   ]
 
-  it('converts the doc forwards', () => {
+  it.only('converts the doc forwards', () => {
     const { title: _title, labels: _labels, ...rest } = githubIssue
     assert.deepEqual(applyLensToDoc(lens, githubIssue), {
       ...rest,
