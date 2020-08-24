@@ -63,7 +63,7 @@ function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   }
 }
 
-function unwrapNullable(schema: JSONSchema7, fn: (s: JSONSchema7) => JSONSchema7): JSONSchema7 {
+function withNullable(schema: JSONSchema7, fn: (s: JSONSchema7) => JSONSchema7): JSONSchema7 {
   if (schema.anyOf) {
     if (schema.anyOf.length !== 2) {
       throw new Error('We only support this operation on schemas with one type or a nullable type')
@@ -75,7 +75,7 @@ function unwrapNullable(schema: JSONSchema7, fn: (s: JSONSchema7) => JSONSchema7
 }
 
 function renameProperty(_schema: JSONSchema7, from: string, to: string): JSONSchema7 {
-  return unwrapNullable(_schema, (schema) => {
+  return withNullable(_schema, (schema) => {
     if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
       throw new Error(`expected schema object, got ${JSON.stringify(schema)}`)
     }
@@ -341,29 +341,30 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string): JSONSch
     )
   }
 
-  const hostSchema = db(properties[host])
-
-  // need an anyOf check here too
-  const hostProperties = hostSchema.properties
-  if (!hostProperties) {
-    throw new Error(
-      `There are no properties to hoist out of ${host}, found ${Object.keys(hostSchema)}`
-    )
-  }
-  if (!(name in hostProperties)) {
-    throw new Error(
-      `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
-        properties
-      )})`
-    )
-  }
+  const hoistedPropertySchema = withNullable(db(properties[host]), (hostSchema) => {
+    // need an anyOf check here too
+    const hostProperties = hostSchema.properties
+    if (!hostProperties) {
+      throw new Error(
+        `There are no properties to hoist out of ${host}, found ${Object.keys(hostSchema)}`
+      )
+    }
+    if (!(name in hostProperties)) {
+      throw new Error(
+        `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
+          properties
+        )})`
+      )
+    }
+    return db(hostProperties[name])
+  })
 
   // add the property to the root schema
   schema = {
     ...schema,
     properties: {
       ...schema.properties,
-      [name]: hostProperties[name],
+      [name]: hoistedPropertySchema,
     },
   }
 
