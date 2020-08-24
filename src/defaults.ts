@@ -27,7 +27,7 @@ export function defaultValuesByType(type: JSONSchema7TypeName | JSONSchema7TypeN
 }
 
 // Return a recursively filled-in default object for a given schema
-export function defaultObjectForSchema(schema: JSONSchema7) {
+export function defaultObjectForSchema(schema: JSONSchema7): JSONSchema7 {
   // By setting the root to empty object,
   // we kick off a recursive process that fills in the entire thing
   const initializeRootPatch = [
@@ -74,7 +74,7 @@ export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
             defaultValue = {}
           } else if (propSchema.type === 'array') {
             defaultValue = []
-          } else if (propSchema.hasOwnProperty('default')) {
+          } else if ('default' in propSchema) {
             defaultValue = propSchema.default
           } else if (Array.isArray(propSchema.type) && propSchema.type.includes('null')) {
             defaultValue = null

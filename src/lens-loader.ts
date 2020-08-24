@@ -21,13 +21,13 @@ const foldInOp = (lensOpJson): LensOp => {
   return op
 }
 
-export function loadLens(rawLens) {
+export function loadLens(rawLens: YAMLLens): LensSource {
   return (rawLens.lens as LensSource)
     .filter((o) => o !== null)
     .map((lensOpJson) => foldInOp(lensOpJson))
 }
 
-export function loadYamlLens(lensData) {
+export function loadYamlLens(lensData: string): LensSource {
   const rawLens = YAML.safeLoad(lensData) as YAMLLens
   if (!rawLens || typeof rawLens !== 'object') throw new Error('Error loading lens')
   if (!('lens' in rawLens)) throw new Error(`Expected top-level key 'lens' in YAML lens file`)

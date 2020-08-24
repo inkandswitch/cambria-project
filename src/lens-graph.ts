@@ -1,5 +1,5 @@
 import { Graph, alg, json } from 'graphlib'
-import { LensSource, LensOp, updateSchema, reverseLens, applyLensToPatch } from '.'
+import { LensSource, LensOp, updateSchema, reverseLens } from '.'
 import { emptySchema } from './json-schema'
 import { JSONSchema7 } from 'json-schema'
 
@@ -14,7 +14,12 @@ export function initLensGraph(): LensGraph {
   return lensGraph
 }
 
-export function registerLens({ graph }: LensGraph, from: string, to: string, lenses: LensSource) {
+export function registerLens(
+  { graph }: LensGraph,
+  from: string,
+  to: string,
+  lenses: LensSource
+): LensGraph {
   // clone the graph to ensure this is a pure function
   graph = json.read(json.write(graph)) // (these are graphlib's jsons)
 

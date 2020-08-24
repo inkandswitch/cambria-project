@@ -7,6 +7,8 @@ import { Patch, applyLensToPatch } from './patch'
 import { LensSource } from './lens-ops'
 import { updateSchema } from './json-schema'
 
+// This is legitimately an "any" type, since we can do pretty much anything here
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
   const options = {
     objects: {
@@ -24,12 +26,15 @@ export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
 }
 
 // utility function: converts a document (rather than a patch) through a lens
+// this has to be an "any" because we're calculating the return type internally at runtime
 export function applyLensToDoc(
   lensSource: LensSource,
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   inputDoc: any,
   inputSchema?: JSONSchema7,
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   targetDoc?: any
-) {
+): any {
   const [impliedSchema, patchForOriginalDoc] = importDoc(inputDoc)
 
   if (inputSchema === undefined || inputSchema === null) {

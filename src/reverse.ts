@@ -4,7 +4,7 @@ function assertNever(x: never): never {
   throw new Error(`Unexpected object: ${x}`)
 }
 
-export function reverseLens(lens: LensSource) {
+export function reverseLens(lens: LensSource): LensSource {
   return lens
     .slice()
     .reverse()
@@ -59,7 +59,7 @@ function reverseLensOp(lensOp: LensOp): LensOp {
         op: 'hoist',
       }
     case 'convert': {
-      const mapping = new Array(lensOp.mapping[1], lensOp.mapping[0])
+      const mapping = [lensOp.mapping[1], lensOp.mapping[0]]
       const reversed = {
         ...lensOp,
         mapping,

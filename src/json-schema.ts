@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import { JSONSchema7, JSONSchema7Definition, JSONSchema7TypeName } from 'json-schema'
 import { inspect } from 'util'
 import { defaultValuesByType } from './defaults'
@@ -477,7 +476,7 @@ export function updateSchema(schema: JSONSchema7, lens: LensSource): JSONSchema7
   }, schema as JSONSchema7)
 }
 
-export function schemaForLens(lens: LensSource) {
+export function schemaForLens(lens: LensSource): JSONSchema7 {
   const emptySchema = {
     $schema: 'http://json-schema.org/draft-07/schema',
     type: 'object' as const,

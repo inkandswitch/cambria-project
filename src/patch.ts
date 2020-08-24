@@ -213,7 +213,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
   return patchOp
 }
 
-export function expandPatch(patchOp: PatchOp) {
+export function expandPatch(patchOp: PatchOp): PatchOp[] {
   // this only applies for add and replace ops; no expansion to do otherwise
   // todo: check the whole list of json patch verbs
   if (patchOp.op !== 'add' && patchOp.op !== 'replace') return [patchOp]
