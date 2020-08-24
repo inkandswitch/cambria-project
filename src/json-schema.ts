@@ -320,60 +320,79 @@ function headProperty(schema, op: HeadProperty) {
   }
 }
 
-function hoistProperty(schema: JSONSchema7, host: string, name: string): JSONSchema7 {
-  // What if this has an anyOf?
-  if (schema.properties === undefined) {
-    throw new Error(`Can't hoist when root schema isn't an object`)
-  }
-  if (!host) {
-    throw new Error(`Need a \`host\` property to hoist from.`)
-  }
-  if (!name) {
-    throw new Error(`Need to provide a \`name\` to hoist up`)
-  }
-
-  const { properties } = schema
-  if (!(host in properties)) {
-    throw new Error(
-      `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
-        properties
-      )})`
-    )
-  }
-
-  const hoistedPropertySchema = withNullable(db(properties[host]), (hostSchema) => {
-    // need an anyOf check here too
-    const hostProperties = hostSchema.properties
-    if (!hostProperties) {
-      throw new Error(
-        `There are no properties to hoist out of ${host}, found ${Object.keys(hostSchema)}`
-      )
+function hoistProperty(_schema: JSONSchema7, host: string, name: string): JSONSchema7 {
+  return withNullable(_schema, (schema) => {
+    if (schema.properties === undefined) {
+      throw new Error(`Can't hoist when root schema isn't an object`)
     }
-    if (!(name in hostProperties)) {
+    if (!host) {
+      throw new Error(`Need a \`host\` property to hoist from.`)
+    }
+    if (!name) {
+      throw new Error(`Need to provide a \`name\` to hoist up`)
+    }
+
+    const { properties } = schema
+    if (!(host in properties)) {
       throw new Error(
         `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
           properties
         )})`
       )
     }
-    return db(hostProperties[name])
+
+    let childObject
+
+    const hoistedPropertySchema = withNullable(db(properties[host]), (hostSchema) => {
+      // need an anyOf check here too
+      const hostProperties = hostSchema.properties
+      const hostRequired = hostSchema.required || []
+      if (!hostProperties) {
+        throw new Error(
+          `There are no properties to hoist out of ${host}, found ${Object.keys(hostSchema)}`
+        )
+      }
+      if (!(name in hostProperties)) {
+        throw new Error(
+          `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
+            properties
+          )})`
+        )
+      }
+
+      // filter the target form the host properties
+      const { [name]: target, ...remainingProperties } = hostProperties
+      childObject = target
+
+      return {
+        ...hostSchema,
+        properties: remainingProperties,
+        required: hostRequired.filter((e) => e !== name),
+      }
+      return
+    })
+
+    // add the property to the root schema
+    schema = {
+      ...schema,
+      properties: {
+        ...schema.properties,
+        [host]: hoistedPropertySchema,
+        [name]: nullable(childObject), // only nullable if the host was nullable
+      },
+    }
+
+    // remove it from its current parent
+    // PS: ugh
+
+    schema = inSchema(schema, {
+      op: 'in',
+      name: host,
+      lens: [{ op: 'remove', name, type: 'null' }],
+    })
+
+    return schema
   })
-
-  // add the property to the root schema
-  schema = {
-    ...schema,
-    properties: {
-      ...schema.properties,
-      [name]: hoistedPropertySchema,
-    },
-  }
-
-  // remove it from its current parent
-  // PS: ugh
-
-  schema = inSchema(schema, { op: 'in', name: host, lens: [{ op: 'remove', name, type: 'null' }] })
-
-  return schema
 }
 
 function plungeProperty(schema: JSONSchema7, host: string, name: string) {
