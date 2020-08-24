@@ -105,7 +105,7 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   // we don't care about the `discarded` variable...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-  if (!properties.hasOwnProperty(removed)) {
+  if (!(removed in properties)) {
     throw new Error(`Attempting to remove nonexistent property: ${removed}`)
   }
 
@@ -339,7 +339,7 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
 
   const { properties = {} } = schema
 
-  if (!properties.hasOwnProperty(host)) throw new Error(`Missing property to hoist: ${host}`)
+  if (!(host in properties)) throw new Error(`Missing property to hoist: ${host}`)
   const sourceSchema = properties[host] || {}
 
   if (sourceSchema === true || sourceSchema.properties === undefined) {
