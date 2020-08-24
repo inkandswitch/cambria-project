@@ -24,7 +24,7 @@ describe('renaming title, and hoisting label name to category', () => {
     },
   ]
 
-  it.only('converts the doc forwards', () => {
+  it('converts the doc forwards', () => {
     const { title: _title, labels: _labels, ...rest } = githubIssue
     assert.deepEqual(applyLensToDoc(lens, githubIssue), {
       ...rest,
@@ -33,7 +33,7 @@ describe('renaming title, and hoisting label name to category', () => {
     })
   })
 
-  it('converts the doc backwards, merging with the original doc', () => {
+  it.only('converts the doc backwards, merging with the original doc', () => {
     const newArthropod = {
       name: 'Changed the name',
       category: 'Bug',

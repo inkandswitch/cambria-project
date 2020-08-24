@@ -48,9 +48,9 @@ function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   const propertyDefinition =
     type === 'array' && items
       ? {
-          ...arraylessPropertyDefinition,
-          items: { type: items.type, default: items.default },
-        }
+        ...arraylessPropertyDefinition,
+        items: { type: items.type, default: items.default },
+      }
       : arraylessPropertyDefinition
 
   const properties = { ...origProperties, [name]: propertyDefinition }
@@ -341,10 +341,7 @@ function hoistProperty(_schema: JSONSchema7, host: string, name: string): JSONSc
       )
     }
 
-    let childObject
-
     const hoistedPropertySchema = withNullable(db(properties[host]), (hostSchema) => {
-      // need an anyOf check here too
       const hostProperties = hostSchema.properties
       const hostRequired = hostSchema.required || []
       if (!hostProperties) {
@@ -359,39 +356,28 @@ function hoistProperty(_schema: JSONSchema7, host: string, name: string): JSONSc
           )})`
         )
       }
-
-      // filter the target form the host properties
       const { [name]: target, ...remainingProperties } = hostProperties
-      childObject = target
-
       return {
         ...hostSchema,
         properties: remainingProperties,
         required: hostRequired.filter((e) => e !== name),
       }
-      return
+    })
+    const childObject = withNullable(db(properties[host]), (hostSchema) => {
+      const hostProperties = hostSchema.properties!
+      const { [name]: target } = hostProperties
+      return db(target)
     })
 
-    // add the property to the root schema
-    schema = {
+    return {
       ...schema,
       properties: {
         ...schema.properties,
         [host]: hoistedPropertySchema,
-        [name]: nullable(childObject), // only nullable if the host was nullable
+        [name]: childObject,
       },
+      required: [...(schema.required || []), name],
     }
-
-    // remove it from its current parent
-    // PS: ugh
-
-    schema = inSchema(schema, {
-      op: 'in',
-      name: host,
-      lens: [{ op: 'remove', name, type: 'null' }],
-    })
-
-    return schema
   })
 }
 
