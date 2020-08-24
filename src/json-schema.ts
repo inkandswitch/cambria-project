@@ -63,12 +63,12 @@ function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   }
 }
 
-function unwrapNullable(schema: JSONSchema7, fn: (s:JSONSchema7) => JSONSchema7) : JSONSchema7 {
+function unwrapNullable(schema: JSONSchema7, fn: (s: JSONSchema7) => JSONSchema7): JSONSchema7 {
   if (schema.anyOf) {
     if (schema.anyOf.length !== 2) {
-      throw new Error("We only support this operation on schemas with one type or a nullable type")
+      throw new Error('We only support this operation on schemas with one type or a nullable type')
     }
-    return { ...schema, anyOf: schema.anyOf.map(db).map(s => s.type === "null" ? s : fn(s)) }
+    return { ...schema, anyOf: schema.anyOf.map(db).map((s) => (s.type === 'null' ? s : fn(s))) }
   } else {
     return fn(schema)
   }
@@ -320,47 +320,42 @@ function headProperty(schema, op: HeadProperty) {
   }
 }
 
-function hoistProperty(schema: JSONSchema7, host: string, name: string) : JSONSchema7 {
+function hoistProperty(schema: JSONSchema7, host: string, name: string): JSONSchema7 {
+  // What if this has an anyOf?
   if (schema.properties === undefined) {
     throw new Error(`Can't hoist when root schema isn't an object`)
   }
-
-  const hostSchema = schema.properties[host]
-
   if (!host) {
     throw new Error(`Need a \`host\` property to hoist from.`)
-  }
-
-  if (hostSchema === undefined) {
-    throw new Error(`Can't hoist out of nonexistent host property: ${host}`)
   }
   if (!name) {
     throw new Error(`Need to provide a \`name\` to hoist up`)
   }
 
-  if (
-    typeof hostSchema === 'boolean' ||
-    hostSchema === undefined ||
-    hostSchema.properties === undefined ||
-    hostSchema.properties[name] === undefined
-  ) {
-    throw new Error(`Can't hoist nonexistent property: ${host}/${name}`)
+  const { properties } = schema
+  if (!(host in properties)) {
+    throw new Error(
+      `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
+        properties
+      )})`
+    )
   }
 
-  const { properties = {} } = schema
+  const hostSchema = db(properties[host])
 
-  if (!(host in properties)) throw new Error(`Missing property to hoist: ${host}`)
-  const sourceSchema = properties[host] || {}
-
-  if (sourceSchema === true || sourceSchema.properties === undefined) {
-    // errrr... complain?
-    return schema
+  // need an anyOf check here too
+  const hostProperties = hostSchema.properties
+  if (!hostProperties) {
+    throw new Error(
+      `There are no properties to hoist out of ${host}, found ${Object.keys(hostSchema)}`
+    )
   }
-  const destinationProperties = sourceSchema.properties[name] || {}
-
-  if (destinationProperties === true) {
-    // this is bad too?
-    return schema
+  if (!(name in hostProperties)) {
+    throw new Error(
+      `Can't hoist anything from ${host}, it does not exist here. (Found properties ${Object.keys(
+        properties
+      )})`
+    )
   }
 
   // add the property to the root schema
@@ -368,7 +363,7 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) : JSONSc
     ...schema,
     properties: {
       ...schema.properties,
-      [name]: sourceSchema.properties[name],
+      [name]: hostProperties[name],
     },
   }
 
@@ -457,7 +452,7 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
     case 'add':
       return addProperty(schema, op)
     case 'remove':
-      return removeProperty(schema, op.name || "")
+      return removeProperty(schema, op.name || '')
     case 'rename':
       return renameProperty(schema, op.source, op.destination)
     case 'in':

@@ -16,6 +16,7 @@ import {
 } from '../src/helpers'
 
 import { reverseLens } from '../src/reverse'
+import { ReplaceOperation } from 'fast-json-patch'
 
 export interface ProjectV1 {
   title: string
@@ -787,7 +788,8 @@ describe('patch expander', () => {
     ])
 
     // deepEqual returns true for {} === []; so we need to double check ourselves
-    assert(Array.isArray(expandPatch(setObject)[0].value))
+    const op = expandPatch(setObject)[0] as ReplaceOperation<any>
+    assert(Array.isArray(op.value))
   })
 
   it('works recursively with objects and arrays', () => {
