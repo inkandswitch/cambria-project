@@ -1,7 +1,7 @@
 import { JSONSchema7TypeName } from 'json-schema'
 
 export interface Property {
-  name: string
+  name?: string
   type: JSONSchema7TypeName | JSONSchema7TypeName[]
   default?: any
   required?: boolean

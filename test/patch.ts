@@ -835,7 +835,7 @@ describe('patch expander', () => {
 describe('default value initialization', () => {
   // one lens that creates objects inside of arrays and other objects
   const v1Lens: LensSource = [
-    addProperty({ name: 'tags', type: 'array', arrayItemType: 'object', default: [] }),
+    addProperty({ name: 'tags', type: 'array', items: { type: 'object' }, default: [] }),
     inside('tags', [
       map([
         addProperty({ name: 'name', type: 'string', default: '' }),
