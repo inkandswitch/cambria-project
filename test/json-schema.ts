@@ -216,7 +216,7 @@ describe('transforming a json schema', () => {
   })
 
   describe('map', () => {
-    it.only('adds new properties inside an array', () => {
+    it('adds new properties inside an array', () => {
       const newSchema = updateSchema(v1Schema, [
         addProperty({ name: 'tasks', type: 'array', items: { type: 'object' as const } }),
         inside('tasks', [
@@ -234,6 +234,7 @@ describe('transforming a json schema', () => {
           default: [],
           items: {
             type: 'object',
+            default: {},
             properties: {
               name: {
                 type: 'string',
@@ -265,6 +266,7 @@ describe('transforming a json schema', () => {
           default: [],
           items: {
             type: 'object',
+            default: {},
             properties: {
               title: {
                 type: 'string',
@@ -285,9 +287,13 @@ describe('transforming a json schema', () => {
         headProperty('assignees'),
       ])
 
+      // Really, the correct result would be:
+      // { { type: 'null', type: 'string' }, default: 'Joe' } }
+      // the behaviour you see below here doesn't really work with at least AJV
+      // https://github.com/ajv-validator/ajv/issues/276
       assert.deepEqual(newSchema.properties, {
         ...v1Schema.properties,
-        assignees: { type: 'string' },
+        assignees: { anyOf: [{ type: 'null' }, { type: 'string', default: '' }] },
       })
     })
 
@@ -301,11 +307,17 @@ describe('transforming a json schema', () => {
       const expectedSchema = {
         ...v1Schema.properties,
         assignees: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', default: '' },
-          },
-          required: ['name'],
+          anyOf: [
+            { type: 'null' },
+            {
+              type: 'object',
+              default: {},
+              properties: {
+                name: { type: 'string', default: '' },
+              },
+              required: ['name'],
+            },
+          ],
         },
       }
 
@@ -316,7 +328,7 @@ describe('transforming a json schema', () => {
   describe('wrapProperty', () => {
     it('can wrap a scalar into an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'assignee', type: 'string' }),
+        addProperty({ name: 'assignee', type: ['string', 'null'] }),
         wrapProperty('assignee'),
       ])
 
@@ -327,6 +339,7 @@ describe('transforming a json schema', () => {
           default: [],
           items: {
             type: 'string' as const,
+            default: '',
           },
         },
       })
@@ -334,7 +347,7 @@ describe('transforming a json schema', () => {
 
     it.skip('can wrap an object into an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'assignee', type: 'object' }),
+        addProperty({ name: 'assignee', type: ['object', 'null'] }),
         inside('assignee', [
           addProperty({ name: 'id', type: 'string' }),
           addProperty({ name: 'name', type: 'string' }),

@@ -49,7 +49,7 @@ function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
     type === 'array' && items
       ? {
           ...arraylessPropertyDefinition,
-          items: { type: items.type, default: items.default },
+          items: { type: items.type, default: items.default || defaultValuesByType(items.type) },
         }
       : arraylessPropertyDefinition
 
@@ -260,7 +260,12 @@ function removeNullSupport(prop: JSONSchema7): JSONSchema7 | null {
     }
 
     prop = { ...prop, type: filterScalarOrArray(prop.type, (t) => t !== 'null') }
+
+    if (prop.default === null) {
+      prop.default = defaultValuesByType(prop.type!) // the above always assigns a legal type
+    }
   }
+
   if (prop.anyOf) {
     const newAnyOf = prop.anyOf.reduce((acc: JSONSchema7[], s) => {
       const clean = removeNullSupport(db(s))
@@ -302,6 +307,7 @@ function wrapProperty(schema: JSONSchema7, op: WrapProperty): JSONSchema7 {
       ...schema.properties,
       [op.name]: {
         type: 'array',
+        default: [],
         items: removeNullSupport(prop) || { not: {} },
       },
     },

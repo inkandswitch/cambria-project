@@ -17,6 +17,7 @@ import {
 
 import { reverseLens } from '../src/reverse'
 import { ReplaceOperation } from 'fast-json-patch'
+import { JSONSchema7 } from 'json-schema'
 
 export interface ProjectV1 {
   title: string
@@ -416,12 +417,12 @@ describe('plunge (object)', () => {
 })
 
 describe('wrap (scalar to array)', () => {
-  const docSchema = <const>{
+  const docSchema: JSONSchema7 = {
     $schema: 'http://json-schema.org/draft-07/schema',
     type: 'object' as const,
     additionalProperties: false,
     properties: {
-      assignee: { type: 'string' },
+      assignee: { type: ['string' as const, 'null' as const] },
     },
   }
   const lensSource: LensSource = [wrapProperty('assignee')]
@@ -504,12 +505,12 @@ describe('wrap (scalar to array)', () => {
   })
 
   it('converts nested values into 0th element writes into its child', () => {
-    const docSchema = <const>{
+    const docSchema: JSONSchema7 = {
       $schema: 'http://json-schema.org/draft-07/schema',
       type: 'object' as const,
       additionalProperties: false,
       properties: {
-        assignee: { type: 'object', properties: { name: { type: 'string' } } },
+        assignee: { type: ['object', 'null'], properties: { name: { type: 'string' } } },
       },
     }
 
@@ -671,12 +672,12 @@ describe('head (array to nullable scalar)', () => {
     // and is just a sanity check that the reverse isn't totally broken.
     // (could be also tested independently, but this is a nice backup)
 
-    const docSchema = <const>{
+    const docSchema: JSONSchema7 = {
       $schema: 'http://json-schema.org/draft-07/schema',
       type: 'object' as const,
       additionalProperties: false,
       properties: {
-        assignee: { type: 'string' },
+        assignee: { type: ['string', 'null'] },
       },
     }
 

@@ -16,7 +16,9 @@ const defaultValuesForType = {
   array: [],
   object: {},
 }
-export function defaultValuesByType(type: JSONSchema7TypeName | JSONSchema7TypeName[]): unknown {
+export function defaultValuesByType(
+  type: JSONSchema7TypeName | JSONSchema7TypeName[]
+): JSONSchema7['default'] {
   if (Array.isArray(type)) {
     if (type.includes('null')) {
       return null
