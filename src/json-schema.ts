@@ -1,8 +1,6 @@
 /* eslint-disable no-use-before-define */
 import { JSONSchema7, JSONSchema7Definition, JSONSchema7TypeName } from 'json-schema'
 import { inspect } from 'util'
-import { storeOptionsAsProperties } from 'commander'
-import { prototype } from 'mocha'
 import { defaultValuesByType } from './defaults'
 import {
   Property,
@@ -30,7 +28,7 @@ function deepInspect(object: any) {
 
 // mutates the schema that is passed in
 // (should switch to a more functional style)
-function addProperty(schema: JSONSchema7, property: Property) {
+function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
   const { name, items, required: isPropertyRequired } = property
   let { type } = property
@@ -51,9 +49,9 @@ function addProperty(schema: JSONSchema7, property: Property) {
   const propertyDefinition =
     type === 'array' && items
       ? {
-        ...arraylessPropertyDefinition,
-        items,
-      }
+          ...arraylessPropertyDefinition,
+          items: { type: items.type, default: items.default },
+        }
       : arraylessPropertyDefinition
 
   const properties = { ...origProperties, [name]: propertyDefinition }
