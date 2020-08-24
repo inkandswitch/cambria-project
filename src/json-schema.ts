@@ -109,6 +109,8 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
     throw new Error(`Attempting to remove nonexistent property: ${removed}`)
   }
 
+  // no way to discard the
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { [removed]: discarded, ...rest } = properties
 
   return {
@@ -189,8 +191,6 @@ function inSchema(schema: JSONSchema7, op: LensIn): JSONSchema7 {
   }
 
   const host = findHost(schema, name)
-
-  console.log('HOST IS', deepInspect(host))
 
   if (host === undefined) {
     throw new Error(`Expected to find property ${name} in ${Object.keys(properties || {})}`)

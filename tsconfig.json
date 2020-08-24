@@ -16,5 +16,8 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true
   },
+  "parserOptions": {
+    "tsconfigRootDir": "."
+  },
   "include": ["src/**/*.ts"]
 }
