@@ -19,8 +19,7 @@ describe('renaming title, and hoisting label name to category', () => {
     {
       op: 'remove' as const,
       name: 'labels',
-      type: 'array' as const,
-      items: { type: 'string' as const },
+      type: ['object' as const, 'null' as const],
     },
   ]
 
@@ -33,7 +32,7 @@ describe('renaming title, and hoisting label name to category', () => {
     })
   })
 
-  it.only('converts the doc backwards, merging with the original doc', () => {
+  it('converts the doc backwards, merging with the original doc', () => {
     const newArthropod = {
       name: 'Changed the name',
       category: 'Bug',

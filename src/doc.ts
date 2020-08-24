@@ -6,11 +6,16 @@ import { defaultObjectForSchema } from './defaults'
 import { Patch, applyLensToPatch } from './patch'
 import { LensSource } from './lens-ops'
 import { updateSchema } from './json-schema'
+import { inspect } from 'util'
 
 // This is legitimately an "any" type, since we can do pretty much anything here
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
   const options = {
+    postProcessFnc: (type, schema, obj, defaultFnc) => ({
+      ...defaultFnc(type, schema, obj),
+      type: [type, 'null'],
+    }),
     objects: {
       postProcessFnc: (schema, obj, defaultFnc) => ({
         ...defaultFnc(schema, obj),

@@ -43,9 +43,6 @@
       }
     ],
 
-    // it's handy to use a discarded variable to filter during a spread operation
-    "no-unused-vars": ["error", { "ignoreRestSiblings": true }],
-
     // we agreed this feels unnecessarily opinionated
     "lines-between-class-members": "off",
 
@@ -90,7 +87,8 @@
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
-        "args": "none"
+        "args": "none",
+        "ignoreRestSiblings": true
       }
     ],
 

@@ -100,12 +100,13 @@ function getPropertiesForPath(
 ): { [key: string]: JSONSchema7Definition } {
   const pathComponents = path.split('/').slice(1)
   const { properties } = pathComponents.reduce((schema: JSONSchema7, pathSegment: string) => {
-    if (schema.type === 'object') {
+    const types = Array.isArray(schema.type) ? schema.type : [schema.type]
+    if (types.includes('object')) {
       const schemaForProperty = schema.properties && schema.properties[pathSegment]
       if (typeof schemaForProperty !== 'object') throw new Error('Expected object')
       return schemaForProperty
     }
-    if (schema.type === 'array') {
+    if (types.includes('array')) {
       // throw away the array index, just return the schema for array items
       if (!schema.items || typeof schema.items !== 'object')
         throw new Error('Expected array items to have types')

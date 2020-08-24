@@ -48,9 +48,9 @@ function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   const propertyDefinition =
     type === 'array' && items
       ? {
-        ...arraylessPropertyDefinition,
-        items: { type: items.type, default: items.default },
-      }
+          ...arraylessPropertyDefinition,
+          items: { type: items.type, default: items.default },
+        }
       : arraylessPropertyDefinition
 
   const properties = { ...origProperties, [name]: propertyDefinition }
@@ -249,6 +249,7 @@ function filterScalarOrArray<T>(v: T | T[], cb: (t: T) => boolean) {
   return v
 }
 
+// XXX: THIS SHOULD REMOVE DEFAULT: NULL
 function removeNullSupport(prop: JSONSchema7): JSONSchema7 | null {
   if (!supportsNull(prop)) {
     return prop
@@ -258,7 +259,7 @@ function removeNullSupport(prop: JSONSchema7): JSONSchema7 | null {
       return null
     }
 
-    prop = { ...prop, type: filterScalarOrArray(prop.type, (t) => t === 'null') }
+    prop = { ...prop, type: filterScalarOrArray(prop.type, (t) => t !== 'null') }
   }
   if (prop.anyOf) {
     const newAnyOf = prop.anyOf.reduce((acc: JSONSchema7[], s) => {
@@ -288,7 +289,11 @@ function wrapProperty(schema: JSONSchema7, op: WrapProperty): JSONSchema7 {
   }
 
   if (!supportsNull(prop)) {
-    throw new Error(`Cannot wrap property '${op.name}' because it does not allow nulls.`)
+    throw new Error(
+      `Cannot wrap property '${op.name}' because it does not allow nulls, found ${deepInspect(
+        schema
+      )}`
+    )
   }
 
   return {
