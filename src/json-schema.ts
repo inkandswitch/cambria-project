@@ -51,9 +51,9 @@ function addProperty(schema: JSONSchema7, property: Property) {
   const propertyDefinition =
     type === 'array' && items
       ? {
-          ...arraylessPropertyDefinition,
-          items,
-        }
+        ...arraylessPropertyDefinition,
+        items,
+      }
       : arraylessPropertyDefinition
 
   const properties = { ...origProperties, [name]: propertyDefinition }
@@ -241,18 +241,27 @@ function filterScalarOrArray<T>(v: T | T[], cb: (t: T) => boolean) {
   return v
 }
 
-function removeNullSupport(prop: JSONSchema7): JSONSchema7 {
+function removeNullSupport(prop: JSONSchema7): JSONSchema7 | null {
   if (!supportsNull(prop)) {
     return prop
   }
   if (prop.type) {
     if (prop.type === 'null') {
-      return { not: {} }
+      return null
     }
 
-    return { ...prop, type: filterScalarOrArray(prop.type, (t) => t === 'null') }
+    prop = { ...prop, type: filterScalarOrArray(prop.type, (t) => t === 'null') }
   }
-  /* handle anyOf */
+  if (prop.anyOf) {
+    const newAnyOf = prop.anyOf.reduce((acc: JSONSchema7[], s) => {
+      const clean = removeNullSupport(db(s))
+      return clean ? [...acc, clean] : acc
+    }, [])
+    if (newAnyOf.length === 1) {
+      return newAnyOf[0]
+    }
+    prop = { ...prop, anyOf: newAnyOf }
+  }
   return prop
 }
 
@@ -280,7 +289,7 @@ function wrapProperty(schema: JSONSchema7, op: WrapProperty): JSONSchema7 {
       ...schema.properties,
       [op.name]: {
         type: 'array',
-        items: removeNullSupport(prop),
+        items: removeNullSupport(prop) || { not: {} },
       },
     },
   }
