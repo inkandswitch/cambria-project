@@ -1,8 +1,6 @@
 /* eslint-disable no-use-before-define */
 import { JSONSchema7, JSONSchema7Definition, JSONSchema7TypeName } from 'json-schema'
 import { inspect } from 'util'
-import { storeOptionsAsProperties } from 'commander'
-import { prototype } from 'mocha'
 import { defaultValuesByType } from './defaults'
 import {
   Property,
@@ -30,7 +28,7 @@ function deepInspect(object: any) {
 
 // mutates the schema that is passed in
 // (should switch to a more functional style)
-function addProperty(schema: JSONSchema7, property: Property) {
+function addProperty(schema: JSONSchema7, property: Property): JSONSchema7 {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
   const { name, items, required: isPropertyRequired } = property
   let { type } = property
@@ -51,9 +49,9 @@ function addProperty(schema: JSONSchema7, property: Property) {
   const propertyDefinition =
     type === 'array' && items
       ? {
-        ...arraylessPropertyDefinition,
-        items,
-      }
+          ...arraylessPropertyDefinition,
+          items: { type: items.type, default: items.default },
+        }
       : arraylessPropertyDefinition
 
   const properties = { ...origProperties, [name]: propertyDefinition }
@@ -120,7 +118,7 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   // we don't care about the `discarded` variable...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-  if (!properties.hasOwnProperty(removed)) {
+  if (!(removed in properties)) {
     throw new Error(`Attempting to remove nonexistent property: ${removed}`)
   }
 
@@ -170,11 +168,9 @@ function supportsNull(schema: JSONSchema7): boolean {
 
 function findHost(schema: JSONSchema7, name: string): JSONSchema7 {
   if (schema.anyOf) {
-    console.log('anyof')
     const maybeSchema = schema.anyOf?.find((t) => typeof t === 'object' && t.properties)
     if (typeof maybeSchema === 'object' && typeof maybeSchema.properties === 'object') {
       const maybeHost = maybeSchema.properties[name]
-      console.log('maybe', maybeHost)
       if (maybeHost !== false && maybeHost !== true) {
         return maybeHost
       }
@@ -204,8 +200,6 @@ function inSchema(schema: JSONSchema7, op: LensIn): JSONSchema7 {
   }
 
   const host = findHost(schema, name)
-
-  console.log('HOST IS', deepInspect(host))
 
   if (host === undefined) {
     throw new Error(`Expected to find property ${name} in ${Object.keys(properties || {})}`)
@@ -325,7 +319,7 @@ function headProperty(schema, op: HeadProperty) {
   }
 }
 
-function hoistProperty(_schema: JSONSchema7, host: string, name: string) : JSONSchema7 {
+function hoistProperty(schema: JSONSchema7, host: string, name: string) : JSONSchema7 {
   if (schema.properties === undefined) {
     throw new Error(`Can't hoist when root schema isn't an object`)
   }
@@ -349,13 +343,12 @@ function hoistProperty(_schema: JSONSchema7, host: string, name: string) : JSONS
     hostSchema.properties === undefined ||
     hostSchema.properties[name] === undefined
   ) {
-    console.log("hoist",deepInspect(schema))
     throw new Error(`Can't hoist nonexistent property: ${host}/${name}`)
   }
 
   const { properties = {} } = schema
 
-  if (!properties.hasOwnProperty(host)) throw new Error(`Missing property to hoist: ${host}`)
+  if (!(host in properties)) throw new Error(`Missing property to hoist: ${host}`)
   const sourceSchema = properties[host] || {}
 
   if (sourceSchema === true || sourceSchema.properties === undefined) {
