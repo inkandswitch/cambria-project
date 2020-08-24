@@ -66,36 +66,49 @@ function addProperty(schema: JSONSchema7, property: Property) {
   }
 }
 
-function renameProperty(schema: JSONSchema7, from: string, to: string): JSONSchema7 {
-  if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
-    throw new Error(`expected schema object, got ${JSON.stringify(schema)}`)
+function unwrapNullable(schema: JSONSchema7, fn: (s:JSONSchema7) => JSONSchema7) : JSONSchema7 {
+  if (schema.anyOf) {
+    if (schema.anyOf.length !== 2) {
+      throw new Error("We only support this operation on schemas with one type or a nullable type")
+    }
+    return { ...schema, anyOf: schema.anyOf.map(db).map(s => s.type === "null" ? s : fn(s)) }
+  } else {
+    return fn(schema)
   }
-  if (!from) {
-    throw new Error("Rename property requires a 'source' to rename.")
-  }
-  if (!schema.properties[from]) {
-    throw new Error(
-      `Cannot rename property '${from}' because it does not exist among ${Object.keys(
-        schema.properties
-      )}.`
-    )
-  }
-  if (!to) {
-    throw new Error(`Need a 'destination' to rename ${from} to.`)
-  }
+}
 
-  const { properties = {}, required = [] } = schema // extract properties with default of empty
-  const { [from]: propDetails, ...rest } = properties // pull out the old value
+function renameProperty(_schema: JSONSchema7, from: string, to: string): JSONSchema7 {
+  return unwrapNullable(_schema, (schema) => {
+    if (typeof schema !== 'object' || typeof schema.properties !== 'object') {
+      throw new Error(`expected schema object, got ${JSON.stringify(schema)}`)
+    }
+    if (!from) {
+      throw new Error("Rename property requires a 'source' to rename.")
+    }
+    if (!schema.properties[from]) {
+      throw new Error(
+        `Cannot rename property '${from}' because it does not exist among ${Object.keys(
+          schema.properties
+        )}.`
+      )
+    }
+    if (!to) {
+      throw new Error(`Need a 'destination' to rename ${from} to.`)
+    }
 
-  if (propDetails === undefined) {
-    throw new Error(`Rename error: missing expected property ${from}`)
-  }
+    const { properties = {}, required = [] } = schema // extract properties with default of empty
+    const { [from]: propDetails, ...rest } = properties // pull out the old value
 
-  return {
-    ...schema,
-    properties: { [to]: propDetails, ...rest },
-    required: [...required.filter((r) => r !== from), to],
-  } // assign it to the new one
+    if (propDetails === undefined) {
+      throw new Error(`Rename error: missing expected property ${from}`)
+    }
+
+    return {
+      ...schema,
+      properties: { [to]: propDetails, ...rest },
+      required: [...required.filter((r) => r !== from), to],
+    } // assign it to the new one
+  })
 }
 
 // remove a property from a schema
@@ -312,7 +325,7 @@ function headProperty(schema, op: HeadProperty) {
   }
 }
 
-function hoistProperty(schema: JSONSchema7, host: string, name: string) {
+function hoistProperty(_schema: JSONSchema7, host: string, name: string) : JSONSchema7 {
   if (schema.properties === undefined) {
     throw new Error(`Can't hoist when root schema isn't an object`)
   }
@@ -336,6 +349,7 @@ function hoistProperty(schema: JSONSchema7, host: string, name: string) {
     hostSchema.properties === undefined ||
     hostSchema.properties[name] === undefined
   ) {
+    console.log("hoist",deepInspect(schema))
     throw new Error(`Can't hoist nonexistent property: ${host}/${name}`)
   }
 
@@ -449,7 +463,7 @@ function applyLensOperation(schema: JSONSchema7, op: LensOp) {
     case 'add':
       return addProperty(schema, op)
     case 'remove':
-      return removeProperty(schema, op.name)
+      return removeProperty(schema, op.name || "")
     case 'rename':
       return renameProperty(schema, op.source, op.destination)
     case 'in':

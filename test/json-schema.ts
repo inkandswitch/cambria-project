@@ -218,7 +218,7 @@ describe('transforming a json schema', () => {
   describe('map', () => {
     it('adds new properties inside an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'tasks', type: 'array', arrayItemType: 'object' }),
+        addProperty({ name: 'tasks', type: 'array', items: { type: 'object' as const} }),
         inside('tasks', [
           map([
             addProperty({ name: 'name', type: 'string' }),
@@ -252,7 +252,7 @@ describe('transforming a json schema', () => {
 
     it('renames properties inside an array', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'tasks', type: 'array', arrayItemType: 'object' }),
+        addProperty({ name: 'tasks', type: 'array', items: { type: 'object' as const } }),
         inside('tasks', [
           map([addProperty({ name: 'name', type: 'string' }), renameProperty('name', 'title')]),
         ]),
@@ -281,7 +281,7 @@ describe('transforming a json schema', () => {
   describe('headProperty', () => {
     it('can turn an array into a scalar', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'assignees', type: 'array', arrayItemType: 'string' }),
+        addProperty({ name: 'assignees', type: 'array', items: { type: 'string' as const }}),
         headProperty('assignees'),
       ])
 
@@ -293,7 +293,7 @@ describe('transforming a json schema', () => {
 
     it('can preserve schema information for an array of objects becoming a single object', () => {
       const newSchema = updateSchema(v1Schema, [
-        addProperty({ name: 'assignees', type: 'array', arrayItemType: 'object' }),
+        addProperty({ name: 'assignees', type: 'array', items: { type: 'object' as const }}),
         inside('assignees', [map([addProperty({ name: 'name', type: 'string' })])]),
         headProperty('assignees'),
       ])
@@ -326,7 +326,7 @@ describe('transforming a json schema', () => {
           type: 'array',
           default: [],
           items: {
-            type: 'string',
+            type: 'string' as const,
           },
         },
       })
@@ -348,7 +348,7 @@ describe('transforming a json schema', () => {
           type: 'array',
           default: [],
           items: {
-            type: 'object',
+            type: 'object' as const,
             properties: {
               name: { type: 'string', default: '' },
               id: { type: 'string', default: '' },

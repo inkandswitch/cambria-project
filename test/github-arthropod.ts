@@ -20,7 +20,7 @@ describe('renaming title, and hoisting label name to category', () => {
       op: 'remove' as const,
       name: 'labels',
       type: 'array' as const,
-      arrayItemType: 'string' as const,
+      items: { type: 'string' as const },
     },
   ]
 
