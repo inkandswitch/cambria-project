@@ -1,6 +1,8 @@
 /* eslint-disable no-use-before-define */
-import { JSONSchema7, JSONSchema7Definition } from 'json-schema'
+import { JSONSchema7, JSONSchema7Definition, JSONSchema7TypeName } from 'json-schema'
 import { inspect } from 'util'
+import { storeOptionsAsProperties } from 'commander'
+import { prototype } from 'mocha'
 import { defaultValuesByType } from './defaults'
 import {
   Property,
@@ -30,7 +32,7 @@ function deepInspect(object: any) {
 // (should switch to a more functional style)
 function addProperty(schema: JSONSchema7, property: Property) {
   const { properties: origProperties = {}, required: origRequired = [] } = schema
-  const { name, arrayItemType, required: isPropertyRequired } = property
+  const { name, items, required: isPropertyRequired } = property
   let { type } = property
 
   if (!name || !type) {
@@ -47,10 +49,10 @@ function addProperty(schema: JSONSchema7, property: Property) {
   }
   // this is kludgey but you should see the crazy syntax for the alternative
   const propertyDefinition =
-    type === 'array' && arrayItemType
+    type === 'array' && items
       ? {
           ...arraylessPropertyDefinition,
-          items: { type: arrayItemType },
+          items,
         }
       : arraylessPropertyDefinition
 
@@ -118,8 +120,39 @@ function removeProperty(schema: JSONSchema7, removedPointer: string): JSONSchema
   }
 }
 
-function unWrapAnyOf(schema: JSONSchema7): JSONSchema7 {
-  const maybeSchema = schema.anyOf?.find((t) => typeof t === 'object' && t.properties)
+function schemaSupportsType(
+  typeValue: JSONSchema7TypeName | JSONSchema7TypeName[] | undefined,
+  type: JSONSchema7TypeName
+): boolean {
+  if (!typeValue) {
+    return false
+  }
+  if (!Array.isArray(typeValue)) {
+    typeValue = [typeValue]
+  }
+
+  return typeValue.includes(type)
+}
+
+/** db
+ * removes the horrible, obnoxious, and annoying case where JSON schemas can just be
+ * "true" or "false" meaning the below definitions and screwing up my type checker
+ */
+function db(s: JSONSchema7Definition): JSONSchema7 {
+  if (s === true) {
+    return {}
+  }
+  if (s === false) {
+    return { not: {} }
+  }
+  return s
+}
+
+function supportsNull(schema: JSONSchema7): boolean {
+  return (
+    schemaSupportsType(schema.type, 'null') ||
+    !!schema.anyOf?.some((subSchema) => schemaSupportsType(db(subSchema).type, 'null'))
+  )
 }
 
 function findHost(schema: JSONSchema7, name: string): JSONSchema7 {
@@ -197,7 +230,33 @@ function mapSchema(schema: JSONSchema7, lens: LensSource) {
   return { ...schema, items: updateSchema(validateSchemaItems(schema.items), lens) }
 }
 
-function wrapProperty(schema: JSONSchema7, op: WrapProperty) {
+function filterScalarOrArray<T>(v: T | T[], cb: (t: T) => boolean) {
+  if (!Array.isArray(v)) {
+    v = [v]
+  }
+  v = v.filter(cb)
+  if (v.length === 1) {
+    return v[0]
+  }
+  return v
+}
+
+function removeNullSupport(prop: JSONSchema7): JSONSchema7 {
+  if (!supportsNull(prop)) {
+    return prop
+  }
+  if (prop.type) {
+    if (prop.type === 'null') {
+      return { not: {} }
+    }
+
+    return { ...prop, type: filterScalarOrArray(prop.type, (t) => t === 'null') }
+  }
+  /* handle anyOf */
+  return prop
+}
+
+function wrapProperty(schema: JSONSchema7, op: WrapProperty): JSONSchema7 {
   if (!op.name) {
     throw new Error('Wrap property requires a `name` to identify what to wrap.')
   }
@@ -206,36 +265,25 @@ function wrapProperty(schema: JSONSchema7, op: WrapProperty) {
     throw new Error('Cannot wrap a property here. There are no properties.')
   }
 
-  const prop = schema.properties[op.name]
+  const prop = db(schema.properties[op.name])
   if (!prop) {
     throw new Error(`Cannot wrap property '${op.name}' because it does not exist.`)
   }
 
-  if (prop === false || prop === true) {
-    throw new Error("I didn't feel like implementing this.")
-  }
-
-  if (
-    !(
-      Array.isArray(prop.type) &&
-      (prop.type.some((t) => t === 'null') ||
-        prop.anyOf?.some((t) => t !== false && t !== true && t.type === 'null'))
-    )
-  ) {
-    console.log('trying to wrap', prop)
+  if (!supportsNull(prop)) {
     throw new Error(`Cannot wrap property '${op.name}' because it does not allow nulls.`)
   }
 
-  // create an array property, stuff the existing schema info inside the array type
-  return addProperty(schema, {
-    name: op.name,
-    type: 'array',
-
-    // todo: I think arrayItemType needs to take more than a string,
-    // it probably needs to take a recursive schema arg of some kind?
-    // seems like this will not work if array items are obbjects
-    arrayItemType: prop.type,
-  })
+  return {
+    ...schema,
+    properties: {
+      ...schema.properties,
+      [op.name]: {
+        type: 'array',
+        items: removeNullSupport(prop),
+      },
+    },
+  }
 }
 
 function headProperty(schema, op: HeadProperty) {

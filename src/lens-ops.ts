@@ -5,7 +5,7 @@ export interface Property {
   type: JSONSchema7TypeName | JSONSchema7TypeName[]
   default?: any
   required?: boolean
-  arrayItemType?: JSONSchema7TypeName | JSONSchema7TypeName[]
+  items?: Property
 }
 
 export interface AddProperty extends Property {
