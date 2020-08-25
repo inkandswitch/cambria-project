@@ -1,5 +1,6 @@
 require('./cambria-document')
 require('./cambria-lens')
+require('./cambria-schema')
 
 class CambriaDemo extends HTMLElement {
   template = document.createElement('template')
@@ -65,7 +66,8 @@ class CambriaDemo extends HTMLElement {
         <div class="thumb">Left Document</div>
         <slot name="left"></slot>
         <div class="thumb">Left Schema</div>
-        <pre class="schema"/>
+        <cambria-schema class="schema"/>
+        <div class="thumb">Patch</div>
       </div>
       <div class="lens block">
         <div class="thumb">Lens</div>
@@ -75,7 +77,7 @@ class CambriaDemo extends HTMLElement {
         <div class="thumb">Right Document</div>
         <slot name="right"></slot>
         <div class="thumb">Right Schema</div>
-        <pre class="schema"/>
+        <cambria-schema class="schema"/>
       </div>
 
       <div class="patch block">
@@ -117,9 +119,9 @@ class CambriaDemo extends HTMLElement {
     })
 
     this.left.addEventListener('doc-change', (e) => {
-      this.renderSchema(this.leftSchema, e.detail.schema)
+      this.leftSchema.setSchema(e.detail.schema)
       const { patch, schema } = this.lens.translateChange(e.detail)
-      this.renderSchema(this.rightSchema, schema)
+      this.rightSchema.setSchema(schema)
       this.right.applyChange({ patch, schema })
       console.log('doc-change', e)
     })

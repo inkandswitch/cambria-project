@@ -23,7 +23,7 @@
       <cambria-document slot="right" contenteditable="true">{}</cambria-document>
     </cambria-demo>
 
-    <!--cambria-demo>
+    <cambria-demo>
       <cambria-document contenteditable="true" slot="left">
         { "assignee": "Peter" }
       </cambria-document>
@@ -128,67 +128,8 @@
 - remove: { name: node_id }
 - remove: { name: closed_at }
 
-# Some simple renames
-- rename:
-        source: title
-        destination: name
-- rename:
-        source: body
-        destination: description
-
-# Convert github's state field to our status field
-- rename:
-        source: state
-        destination: status
-- convert:
-        name: status
-        mapping:
-              - open: todo
-                closed: done
-              - todo: open
-                doing: open
-                done: closed
-
-# pull the creator up to the top level
-- in:
-        name: user
-        lens:
-              - rename:
-                      source: login
-                      destination: created_by
-- hoist:
-        name: created_by
-        host: user
-- remove: { name: user }
-
-# pull first label up to category
-- head:
-        name: labels
-- in:
-        name: labels
-        lens:
-              - rename:
-                      source: name
-                      destination: category
-- hoist:
-        name: category
-        host: labels
-- remove:
-        name: labels
-
-# push created_at and updated_at inside a metadata object
-- add:
-        name: metadata
-        type: object
-- plunge:
-        name: created_at
-        host: metadata
-- plunge:
-        name: updated_at
-        host: metadata
-
       </pre>
       <cambria-document contenteditable="true" slot="right">{}</cambria-document>
-    </cambria-demo-->
+    </cambria-demo>
   </body>
 </html>

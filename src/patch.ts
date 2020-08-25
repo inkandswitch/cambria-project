@@ -1,8 +1,8 @@
 import { Operation } from 'fast-json-patch'
+import { JSONSchema7 } from 'json-schema'
 import { LensSource, LensOp } from './lens-ops'
 import { reverseLens } from './reverse'
 import { addDefaultValues } from './defaults'
-import { JSONSchema7 } from 'json-schema'
 import { updateSchema } from './json-schema'
 
 // todo: we're throwing away the type param right now so it doesn't actually do anything.
