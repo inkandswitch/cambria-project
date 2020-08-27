@@ -9,6 +9,17 @@ export { defaultObjectForSchema } from './defaults'
 export { reverseLens } from './reverse'
 export { LensGraph, initLensGraph, registerLens, lensGraphSchema, lensFromTo } from './lens-graph'
 
-export { addProperty, renameProperty, convertValue } from './helpers'
+export {
+  addProperty,
+  removeProperty,
+  renameProperty,
+  hoistProperty,
+  plungeProperty,
+  wrapProperty,
+  headProperty,
+  inside,
+  map,
+  convertValue,
+} from './helpers'
 
 export { loadYamlLens } from './lens-loader'
