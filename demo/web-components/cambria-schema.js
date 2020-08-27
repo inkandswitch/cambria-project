@@ -122,7 +122,9 @@ class CambriaSchema extends HTMLElement {
   setSchema(schema) {
     const view = new JSONSchemaView.default(schema, 1)
 
-    this.shadow.appendChild(view.render())
+    const attach = this.shadow.querySelector('.attach')
+    attach.innerHTML = ''
+    attach.appendChild(view.render())
   }
 }
 
