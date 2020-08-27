@@ -462,7 +462,6 @@ describe('wrap (scalar to array)', () => {
   })
 
   // todo: many possible options for how to handle this.
-  // We've chosen this one for now based on implementation simplicity.
   // Consider other options:
   // https://github.com/inkandswitch/cambria/blob/default/conversations/converting-scalar-to-arrays.md
   it('converts head null write into a remove the first element op', () => {
