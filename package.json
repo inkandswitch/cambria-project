@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "tsc --outDir ./dist",
+    "build": "tsc --outDir ./dist --project ./tsconfig.json",
     "test": "mocha -r ts-node/register test/**.ts",
     "prepare": "yarn run build",
     "build-demo": "browserify ./demo/web-components/cambria-demo.js -o ./demo/bundle.js"
