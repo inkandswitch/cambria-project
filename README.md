@@ -19,9 +19,53 @@ For more background on why Cambria exists and what it can do, see the research e
 - Transform a JSON document into a different shape on the command line
 - Combine with [cambria-automerge](https://github.com/inkandswitch/cambria-automerge) to collaborate on documents across multiple versions of [local-first software](https://www.inkandswitch.com/local-first.html)
 
-## Example
+## CLI Usage
 
-pending
+Cambria includes a simple CLI tool for converting JSON from the command line.
+
+(You'll want to run `yarn build` to compile the latest code.)
+
+Covert the github issue into a an arthropod-style issue:
+
+`cat ./demo/github-issue.json | node ./dist/cli.js -l ./demo/github-arthropod.lens.yml`
+
+To get a live updating pipeline using `entr`:
+
+`echo ./demo/github-arthropod.lens.yml | entr bash -c "cat ./demo/github-issue.json | node ./dist/cli.js -l ./demo/github-arthropod.lens.yml > ./demo/simple-issue.json"`
+
+Compile back from an updated "simple issue" to a new github issue file:
+
+`cat ./demo/simple-issue.json | node ./dist/cli.js -l ./demo/github-arthropod.lens.yml -r -b ./demo/github-issue.json`
+
+Live updating pipeline backwards:
+
+`echo ./demo/simple-issue.json | entr bash -c "cat ./demo/simple-issue.json | node ./dist/cli.js -l ./demo/github-arthropod.lens.yml -r -b ./demo/github-issue.json > ./demo/new-github-issue.json"`
+
+## API Usage
+
+Cambria is mostly intended to be used as a Typescript / Javascript library. Here's a simple example of converting an entire document.
+
+```
+// read doc from stdin if no input specified
+const input = readFileSync(program.input || 0, 'utf-8')
+const doc = JSON.parse(input)
+
+// we can (optionally) apply the contents of the changed document to a target document
+const targetDoc = program.base ? JSON.parse(readFileSync(program.base, 'utf-8')) : {}
+
+// now load a (yaml) lens definition
+const lensData = readFileSync(program.lens, 'utf-8')
+let lens = loadYamlLens(lensData)
+
+// should we reverse this lens?
+if (program.reverse) {
+  lens = reverseLens(lens)
+}
+
+// finally, apply the lens to the document, with the schema, onto the target document!
+const newDoc = applyLensToDoc(lens, doc, program.schema, targetDoc)
+console.log(JSON.stringify(newDoc, null, 4))
+```
 
 ## Install
 
@@ -33,4 +77,8 @@ If you're using npm, run `npm install cambria`. If you're using yarn, run `yarn 
 
 ## API Reference
 
-todo: list all lenses here
+Cambria supports a variety of lenses. Lenses are simple operations that modify a dataset in some way. /New lenses are likely to be added in the future -- if your use-case isn't supported by the lenses we have, please let us know!/
+
+```
+
+```
