@@ -63,7 +63,7 @@ class CambriaDocument extends HTMLElement {
       }
       const newJSON = this.editor.getValue()
       const patch = jsonpatch.compare(this.lastJSON, newJSON)
-      this.lastJSON = {}
+      this.lastJSON = newJSON
 
       if (patch.length > 0) {
         this.dispatchEvent(
@@ -95,8 +95,6 @@ class CambriaDocument extends HTMLElement {
       this.editor.destroy()
     }
     this.editor = new JSONEditor(this.editorHost, { schema })
-    this.lastJSON = {}
-    // let handlePatch take care of filling in the data
     this.applyPatch({ patch })
     this.editor.on('change', (e) => this.handleEdit(e))
   }

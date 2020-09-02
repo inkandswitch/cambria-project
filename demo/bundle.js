@@ -286,7 +286,7 @@ class CambriaDocument extends HTMLElement {
       }
       const newJSON = this.editor.getValue()
       const patch = jsonpatch.compare(this.lastJSON, newJSON)
-      this.lastJSON = {}
+      this.lastJSON = newJSON
 
       if (patch.length > 0) {
         this.dispatchEvent(
@@ -318,8 +318,6 @@ class CambriaDocument extends HTMLElement {
       this.editor.destroy()
     }
     this.editor = new JSONEditor(this.editorHost, { schema })
-    this.lastJSON = {}
-    // let handlePatch take care of filling in the data
     this.applyPatch({ patch })
     this.editor.on('change', (e) => this.handleEdit(e))
   }
@@ -764,8 +762,11 @@ const to_json_schema_1 = __importDefault(require("to-json-schema"));
 const defaults_1 = require("./defaults");
 const patch_1 = require("./patch");
 const json_schema_1 = require("./json-schema");
-// This is legitimately an "any" type, since we can do pretty much anything here
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+/**
+ * importDoc - convert any Plain Old Javascript Object into an implied JSON Schema and
+ *             a JSON Patch that sets every value in that document.
+ * @param inputDoc a document to convert into a big JSON patch describing its full contents
+ */
 function importDoc(inputDoc) {
     const options = {
         postProcessFnc: (type, schema, obj, defaultFnc) => (Object.assign(Object.assign({}, defaultFnc(type, schema, obj)), { type: [type, 'null'] })),
@@ -778,8 +779,15 @@ function importDoc(inputDoc) {
     return [schema, patch];
 }
 exports.importDoc = importDoc;
-// utility function: converts a document (rather than a patch) through a lens
-// this has to be an "any" because we're calculating the return type internally at runtime
+/**
+ * applyLensToDoc - converts a full document through a lens.
+ * Under the hood, we convert your input doc into a big patch and the apply it to the targetDoc.
+ * This allows merging data back and forth with other omitted values.
+ * @property lensSource: the lens specification to apply to the document
+ * @property inputDoc: the Plain Old Javascript Object to convert
+ * @property inputSchema: (default: inferred from inputDoc) a JSON schema defining the input
+ * @property targetDoc: (default: {}) a document to apply the contents of this document to as a patch
+ */
 function applyLensToDoc(lensSource, 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 inputDoc, inputSchema, 
@@ -907,7 +915,14 @@ Object.defineProperty(exports, "lensGraphSchema", { enumerable: true, get: funct
 Object.defineProperty(exports, "lensFromTo", { enumerable: true, get: function () { return lens_graph_1.lensFromTo; } });
 var helpers_1 = require("./helpers");
 Object.defineProperty(exports, "addProperty", { enumerable: true, get: function () { return helpers_1.addProperty; } });
+Object.defineProperty(exports, "removeProperty", { enumerable: true, get: function () { return helpers_1.removeProperty; } });
 Object.defineProperty(exports, "renameProperty", { enumerable: true, get: function () { return helpers_1.renameProperty; } });
+Object.defineProperty(exports, "hoistProperty", { enumerable: true, get: function () { return helpers_1.hoistProperty; } });
+Object.defineProperty(exports, "plungeProperty", { enumerable: true, get: function () { return helpers_1.plungeProperty; } });
+Object.defineProperty(exports, "wrapProperty", { enumerable: true, get: function () { return helpers_1.wrapProperty; } });
+Object.defineProperty(exports, "headProperty", { enumerable: true, get: function () { return helpers_1.headProperty; } });
+Object.defineProperty(exports, "inside", { enumerable: true, get: function () { return helpers_1.inside; } });
+Object.defineProperty(exports, "map", { enumerable: true, get: function () { return helpers_1.map; } });
 Object.defineProperty(exports, "convertValue", { enumerable: true, get: function () { return helpers_1.convertValue; } });
 var lens_loader_1 = require("./lens-loader");
 Object.defineProperty(exports, "loadYamlLens", { enumerable: true, get: function () { return lens_loader_1.loadYamlLens; } });
