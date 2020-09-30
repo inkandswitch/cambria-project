@@ -67,7 +67,7 @@ const newDoc = applyLensToDoc(lens, doc, program.schema, targetDoc)
 console.log(JSON.stringify(newDoc, null, 4))
 ```
 
-## Lense Ops
+## Lens Ops
 
 Each lens operation comes in raw yaml form that can be parsed and loaded with `loadLens()` and a helper function that generates the lens in code.
 
