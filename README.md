@@ -67,6 +67,237 @@ const newDoc = applyLensToDoc(lens, doc, program.schema, targetDoc)
 console.log(JSON.stringify(newDoc, null, 4))
 ```
 
+## Lense Ops
+
+Each lens operation comes in raw yaml form that can be parsed and loaded with `loadLens()` and a helper function that generates the lens in code.
+
+### Rename
+
+Rename, changes the name of a single property on an object.
+
+YAML
+
+```yaml
+- rename:
+    source: body
+    destination: description
+- rename:
+    source: description
+    destination: body
+```
+
+Javascript
+
+```js
+renameProperty('body', 'description')]
+renameProperty('description', 'body')]
+```
+
+Example
+
+```js
+  // before
+  { title: "example", body: "this is an example" }
+  // after
+  { title: "example", description: "this is an example" }
+```
+
+### Add / Remove
+
+Add (and its reverse, Remove) add and remove a single property to an object
+
+YAML
+
+```yaml
+- add:
+    name: important
+    type: boolean
+    default: false
+- remove:
+    name: important
+    type: boolean
+    default: false
+```
+
+Javascript
+
+```js
+  addProperty({ name: 'important', type: 'boolean', default: false }),
+  removeProperty({ name: 'important', type: 'boolean', default: false }),
+```
+
+Example
+
+```js
+  // before
+  { title: "example" }
+  // after
+  { title: "example", important: false }
+```
+
+### Hoist / Plunge
+
+Hoist and Plunge move a property up into the parent object - or down into a child object.
+
+YAML
+
+```yaml
+- hoist:
+    name: category
+    host: labels
+- plunge:
+    name: category
+    host: labels
+```
+
+Javascript
+
+```js
+  hoistProperty('metadata', 'createdAt'),
+  plungeProperty('metadata', 'createdAt'),
+```
+
+Example
+
+```js
+  // before
+  { title: "example", metadata: { important: true, createdAt: 0 } }
+  // after
+  { title: "example", createdAt: 0, metadata: { important: true } }
+```
+
+### Head / Wrap
+
+Head converts a list property into a nullable scalar looking only at the head, while wrap wraps a scalar property in a list.
+
+YAML
+
+```yaml
+- head:
+    name: assignees
+- wrap:
+    name: assignees
+```
+
+Javascript
+
+```js
+  headProperty('assignees'),
+  wrapProperty('assignees'),
+```
+
+Example
+
+```js
+  // before
+  { assignees: ["bob", joe"] }
+  // after
+  { assignees: "bob" }
+
+  // before
+  { assignees: [] }
+  // after
+  { assignees: null }
+```
+
+### Convert
+
+This defines a bi-directional set of converstion maps for a property in an object.
+
+YAML
+
+```yaml
+- convert:
+  name: status
+  mapping:
+    - 'false': todo
+      'true': done
+    - todo: false
+      inProgress: false
+      done: true
+      default: false
+  sourceType: boolean
+  destinationType: string
+- convert:
+  name: status
+  mapping:
+    - todo: false
+      inProgress: false
+      done: true
+      default: false
+    - 'false': todo
+      'true': done
+  sourceType: string
+  destinationType: boolean
+```
+
+Javascript
+
+```js
+  convertValue(
+    'status',
+    [
+      { false: 'todo', true: 'done' },
+      { todo: false, inProgress: false, done: true, default: false },
+    ],
+    'string',
+    'boolean'
+  // TODO - what about default?
+  convertValue(
+    'status',
+    [
+      { todo: false, inProgress: false, done: true, default: false },
+      { false: 'todo', true: 'done' },
+    ],
+    'boolean',
+    'string'
+```
+
+Example
+
+```js
+  // before
+  { status: false }
+  // after
+  { status: "todo" }
+```
+
+
+### In (and Map)
+
+These ops allow nesting of ops deeper in the type structure.
+
+YAML
+
+```yaml
+- in:
+    name: tags
+    lens:
+      - add:
+          name: color
+          type: string
+          default: green
+```
+
+Javascript
+
+```js
+  inside('tags', [
+    map([
+      addProperty({ name: 'color', type: 'string', default: 'green' }),
+    ]),
+  ])
+```
+
+Example
+
+```js
+  // before
+  { title: "example", tags: [ { name: "ok" } ] }
+  // after
+  { title: "example", tags: [ { name: "ok", color: "green" } ] }
+```
+
 ## Install
 
 If you're using npm, run `npm install cambria`. If you're using yarn, run `yarn add cambria`. Then you can import it with `require('cambria')` as in the examples (or `import * as Cambria from 'cambria'` if using ES2015 or TypeScript).
