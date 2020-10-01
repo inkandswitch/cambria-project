@@ -172,6 +172,8 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
 
         if (childPatch) {
           return { ...childPatch, path: `/${lensOp.name}${childPatch.path}` }
+        } else {
+          return null
         }
       }
       break
@@ -190,7 +192,7 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
       if (itemPatch) {
         return { ...itemPatch, path: `/${arrayIndex}${itemPatch.path}` }
       }
-      break
+      return null
     }
 
     case 'convert': {
