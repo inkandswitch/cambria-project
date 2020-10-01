@@ -1546,6 +1546,9 @@ function runLensOp(lensOp, patchOp) {
                 if (childPatch) {
                     return Object.assign(Object.assign({}, childPatch), { path: `/${lensOp.name}${childPatch.path}` });
                 }
+                else {
+                    return null;
+                }
             }
             break;
         }
@@ -1558,7 +1561,7 @@ function runLensOp(lensOp, patchOp) {
             if (itemPatch) {
                 return Object.assign(Object.assign({}, itemPatch), { path: `/${arrayIndex}${itemPatch.path}` });
             }
-            break;
+            return null;
         }
         case 'convert': {
             if (patchOp.op !== 'add' && patchOp.op !== 'replace')
