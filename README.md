@@ -12,6 +12,8 @@ Lenses are bidirectional. Once you've converted a document from schema A to sche
 
 For more background on why Cambria exists and what it can do, see the research essay. (todo: link once released)
 
+⚠ Cambria is still immature software, and isn't yet ready for production use
+
 ## Use cases
 
 - Manage backwards compatibility in a JSON API
