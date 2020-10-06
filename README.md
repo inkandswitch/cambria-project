@@ -77,10 +77,4 @@ If you're using npm, run `npm install cambria`. If you're using yarn, run `yarn 
 
 `npm run test`
 
-## API Reference
 
-Cambria supports a variety of lenses. Lenses are simple operations that modify a dataset in some way. /New lenses are likely to be added in the future -- if your use-case isn't supported by the lenses we have, please let us know!/
-
-```
-
-```
