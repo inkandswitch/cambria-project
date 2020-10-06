@@ -10,7 +10,7 @@ You specify (in YAML or JSON) a _lens_, which specifies a data transformation. C
 
 Lenses are bidirectional. Once you've converted a document from schema A to schema B, you can edit the document in schema B and propagate those edits _backwards through the same lens_ to schema A.
 
-For more background on why Cambria exists and what it can do, see the research essay. (todo: link once released)
+**For more background on why Cambria exists and what it can do, see the [research essay](https://www.inkandswitch.com/cambria.html).**
 
 ⚠ Cambria is still immature software, and isn't yet ready for production use
 
