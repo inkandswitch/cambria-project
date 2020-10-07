@@ -47,7 +47,7 @@ Live updating pipeline backwards:
 
 Cambria is mostly intended to be used as a Typescript / Javascript library. Here's a simple example of converting an entire document.
 
-```
+```js
 // read doc from stdin if no input specified
 const input = readFileSync(program.input || 0, 'utf-8')
 const doc = JSON.parse(input)
@@ -76,5 +76,3 @@ If you're using npm, run `npm install cambria`. If you're using yarn, run `yarn 
 ## Tests
 
 `npm run test`
-
-
