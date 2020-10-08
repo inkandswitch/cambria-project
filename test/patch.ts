@@ -398,6 +398,21 @@ describe('hoist (object)', () => {
 describe('plunge (object)', () => {
   const lensSource: LensSource = [plungeProperty('metadata', 'title')]
 
+  // currently does not pass - strange ordering issue with fields in the object
+  it.skip('pushes a field into a child with applyLensToDoc', () => {
+    assert.deepEqual(
+      applyLensToDoc(
+        [{op: "plunge", host: "tags", name: "color"}],
+        {
+          // this currently throws an error but works if we re-order color and tags in the object below
+          color: "orange",
+          tags: {}
+        }
+      ),
+      { tags: { color: 'orange' } }
+    )
+  })
+
   it('pushes a field into its child', () => {
     assert.deepEqual(
       applyLensToPatch(
