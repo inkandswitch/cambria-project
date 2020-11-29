@@ -54,6 +54,14 @@ export function lensGraphSchema({ graph }: LensGraph, schema: string): JSONSchem
 }
 
 export function lensFromTo({ graph }: LensGraph, from: string, to: string): LensSource {
+  if (!graph.hasNode(from)) {
+    throw new Error(`couldn't find schema in graph: ${from}`)
+  }
+
+  if (!graph.hasNode(to)) {
+    throw new Error(`couldn't find schema in graph: ${to}`)
+  }
+
   const migrationPaths = alg.dijkstra(graph, to)
   const lenses: LensOp[] = []
   if (migrationPaths[from].distance == Infinity) {

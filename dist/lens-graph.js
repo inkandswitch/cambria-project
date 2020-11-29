@@ -40,6 +40,12 @@ function lensGraphSchema({ graph }, schema) {
 }
 exports.lensGraphSchema = lensGraphSchema;
 function lensFromTo({ graph }, from, to) {
+    if (!graph.hasNode(from)) {
+        throw new Error(`couldn't find schema in graph: ${from}`);
+    }
+    if (!graph.hasNode(to)) {
+        throw new Error(`couldn't find schema in graph: ${to}`);
+    }
     const migrationPaths = graphlib_1.alg.dijkstra(graph, to);
     const lenses = [];
     if (migrationPaths[from].distance == Infinity) {
