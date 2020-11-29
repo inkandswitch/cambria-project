@@ -14,6 +14,9 @@ export function initLensGraph(): LensGraph {
   return lensGraph
 }
 
+// Add a new lens to the schema graph.
+// If the "to" schema doesn't exist yet, registers the schema too.
+// Returns a copy of the graph with the new contents.
 export function registerLens(
   { graph }: LensGraph,
   from: string,
@@ -31,16 +34,16 @@ export function registerLens(
   if (existingLens) {
     // we could assert this? assert.deepEqual(existingLens, lenses)
     // we've already registered a lens on this edge, hope it's the same one!
+    // todo: maybe warn here? seems dangerous to silently return...
     return { graph }
   }
 
-  if (graph.node(to)) {
-    throw new RangeError(`already have a schema named ${to}`)
+  if (!graph.node(to)) {
+    graph.setNode(to, updateSchema(graph.node(from), lenses))
   }
 
   graph.setEdge(from, to, lenses)
   graph.setEdge(to, from, reverseLens(lenses))
-  graph.setNode(to, updateSchema(graph.node(from), lenses))
 
   return { graph }
 }

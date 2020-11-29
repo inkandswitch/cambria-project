@@ -10,6 +10,9 @@ function initLensGraph() {
     return lensGraph;
 }
 exports.initLensGraph = initLensGraph;
+// Add a new lens to the schema graph.
+// If the "to" schema doesn't exist yet, registers the schema too.
+// Returns a copy of the graph with the new contents.
 function registerLens({ graph }, from, to, lenses) {
     // clone the graph to ensure this is a pure function
     graph = graphlib_1.json.read(graphlib_1.json.write(graph)); // (these are graphlib's jsons)
@@ -20,14 +23,14 @@ function registerLens({ graph }, from, to, lenses) {
     if (existingLens) {
         // we could assert this? assert.deepEqual(existingLens, lenses)
         // we've already registered a lens on this edge, hope it's the same one!
+        // todo: maybe warn here? seems dangerous to silently return...
         return { graph };
     }
-    if (graph.node(to)) {
-        throw new RangeError(`already have a schema named ${to}`);
+    if (!graph.node(to)) {
+        graph.setNode(to, _1.updateSchema(graph.node(from), lenses));
     }
     graph.setEdge(from, to, lenses);
     graph.setEdge(to, from, _1.reverseLens(lenses));
-    graph.setNode(to, _1.updateSchema(graph.node(from), lenses));
     return { graph };
 }
 exports.registerLens = registerLens;
