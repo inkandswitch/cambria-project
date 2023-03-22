@@ -25,7 +25,7 @@ describe('renaming title, and hoisting label name to category', () => {
 
   it('converts the doc forwards', () => {
     const { title: _title, labels: _labels, ...rest } = githubIssue
-    assert.deepEqual(applyLensToDoc(lens, githubIssue), {
+    assert.deepStrictEqual(applyLensToDoc(lens, githubIssue), {
       ...rest,
       name: githubIssue.title,
       category: githubIssue.labels[0].name,
@@ -40,7 +40,7 @@ describe('renaming title, and hoisting label name to category', () => {
 
     const newGithub = applyLensToDoc(reverseLens(lens), newArthropod, undefined, githubIssue)
 
-    assert.deepEqual(newGithub, {
+    assert.deepStrictEqual(newGithub, {
       ...githubIssue,
       title: 'Changed the name',
       labels: [
