@@ -37,6 +37,7 @@ function applyLensToPatch(lensSource, patch, patchSchema // the json schema for 
 exports.applyLensToPatch = applyLensToPatch;
 // todo: remove destinationDoc entirely
 function applyLensToPatchOp(lensSource, patchOp) {
+    // console.log('lensSource------>', lensSource)
     return lensSource.reduce((prevPatch, lensOp) => {
         return runLensOp(lensOp, prevPatch);
     }, patchOp);
@@ -158,6 +159,8 @@ function runLensOp(lensOp, patchOp) {
         case 'convert': {
             if (patchOp.op !== 'add' && patchOp.op !== 'replace')
                 break;
+            // console.log('patchOp---------->', patchOp)
+            // console.log('lensOp----------->', lensOp)
             if (`/${lensOp.name}` !== patchOp.path)
                 break;
             const stringifiedValue = String(patchOp.value);

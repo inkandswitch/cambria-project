@@ -45,6 +45,7 @@ export function defaultObjectForSchema(schema: JSONSchema7): JSONSchema7 {
 }
 
 export function addDefaultValues(patch: Patch, schema: JSONSchema7): Patch {
+  // console.log('addDefaultValues------------->', patch)
   return patch
     .map((op) => {
       const isMakeMap =

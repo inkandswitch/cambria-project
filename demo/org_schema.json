@@ -1,0 +1,36 @@
+{
+  "description": "Wir leben klimaneutral! \nDerzeit (14.02.20) sind wir 38 Personen. \nWir wollen Sie mit unserer Idee anstecken und zum Mitmachen bewegen.\n\nWenn wir 100 Personen sind, feiern wir gemeinsam ein Fest: „100 x klimaneutral“",
+  "kvm_category": [
+    "#non-profit"
+  ],
+  "latitude": 47.76343559,
+  "linked_schemas": [
+    "karte_von_morgen-v1.0.0"
+  ],
+  "longitude": 12.74614516,
+  "metadata": {
+    "sources": [
+      {
+        "access_time": 1679126426,
+        "name": "Karte von Morgen / Map of Tomorrow",
+        "profile_data_url": "https://api.ofdb.io/v0/entries/969d11ca3ae3422bb8077c7341acfcbd",
+        "url": "https://kartevonmorgen.org"
+      }
+    ]
+  },
+  "name": "Initiative 100xklimaneutral",
+  "primary_url": "https://www.100xklimaneutral.com/",
+  "region": "Inzell",
+  "tags": [
+    "klima",
+    "klimakrise",
+    "klimaneutral",
+    "klimaneutralität",
+    "klimaretten",
+    "klimaschutz",
+    "klimaschützen",
+    "klimawandel",
+    "sdg13",
+    "ökoligenta-netz"
+  ]
+}

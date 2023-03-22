@@ -56,6 +56,7 @@ export function applyLensToPatch(
 
 // todo: remove destinationDoc entirely
 export function applyLensToPatchOp(lensSource: LensSource, patchOp: MaybePatchOp): MaybePatchOp {
+  // console.log('lensSource------>', lensSource)
   return lensSource.reduce<MaybePatchOp>((prevPatch: MaybePatchOp, lensOp: LensOp) => {
     return runLensOp(lensOp, prevPatch)
   }, patchOp)
@@ -197,6 +198,8 @@ function runLensOp(lensOp: LensOp, patchOp: MaybePatchOp): MaybePatchOp {
 
     case 'convert': {
       if (patchOp.op !== 'add' && patchOp.op !== 'replace') break
+      // console.log('patchOp---------->', patchOp)
+      // console.log('lensOp----------->', lensOp)
       if (`/${lensOp.name}` !== patchOp.path) break
       const stringifiedValue = String(patchOp.value)
 

@@ -16,13 +16,14 @@ const json_schema_1 = require("./json-schema");
  */
 function importDoc(inputDoc) {
     const options = {
-        postProcessFnc: (type, schema, obj, defaultFnc) => (Object.assign(Object.assign({}, defaultFnc(type, schema, obj)), { type: [type, 'null'] })),
+        postProcessFnc: (type, schema, obj, defaultFnc) => (Object.assign({}, defaultFnc(type, schema, obj))),
         objects: {
             postProcessFnc: (schema, obj, defaultFnc) => (Object.assign(Object.assign({}, defaultFnc(schema, obj)), { required: Object.getOwnPropertyNames(obj) })),
         },
     };
     const schema = to_json_schema_1.default(inputDoc, options);
     const patch = fast_json_patch_1.compare({}, inputDoc);
+    // console.log('patch------->', patch)
     return [schema, patch];
 }
 exports.importDoc = importDoc;
@@ -49,6 +50,7 @@ targetDoc) {
     // then we add in any existing fields on the target doc.
     // TODO: I think we need to deep merge here, can't just shallow merge?
     const outputSchema = json_schema_1.updateSchema(inputSchema, lensSource);
+    console.log('outputSchema------>', outputSchema);
     const base = Object.assign(defaults_1.defaultObjectForSchema(outputSchema), targetDoc || {});
     // return a doc based on the converted patch.
     // (start with either a specified baseDoc, or just empty doc)

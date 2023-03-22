@@ -17,7 +17,8 @@ export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
   const options = {
     postProcessFnc: (type, schema, obj, defaultFnc) => ({
       ...defaultFnc(type, schema, obj),
-      type: [type, 'null'],
+      // fix for: https://github.com/inkandswitch/cambria-project/issues/4
+      // type: [type, 'null'],
     }),
     objects: {
       postProcessFnc: (schema, obj, defaultFnc) => ({
@@ -29,6 +30,8 @@ export function importDoc(inputDoc: any): [JSONSchema7, Patch] {
 
   const schema = toJSONSchema(inputDoc, options) as JSONSchema7
   const patch = compare({}, inputDoc)
+
+  // console.log('patch------->', patch)
 
   return [schema, patch]
 }
@@ -61,6 +64,7 @@ export function applyLensToDoc(
   // then we add in any existing fields on the target doc.
   // TODO: I think we need to deep merge here, can't just shallow merge?
   const outputSchema = updateSchema(inputSchema, lensSource)
+  // console.log('outputSchema------>', outputSchema)
   const base = Object.assign(defaultObjectForSchema(outputSchema), targetDoc || {})
 
   // return a doc based on the converted patch.

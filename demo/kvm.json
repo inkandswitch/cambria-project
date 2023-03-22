@@ -1,0 +1,41 @@
+{
+  "id": "969d11ca3ae3422bb8077c7341acfcbd",
+  "created": 1581709729,
+  "version": 2,
+  "title": "Initiative 100xklimaneutral",
+  "description": "Wir leben klimaneutral! \nDerzeit (14.02.20) sind wir 38 Personen. \nWir wollen Sie mit unserer Idee anstecken und zum Mitmachen bewegen.\n\nWenn wir 100 Personen sind, feiern wir gemeinsam ein Fest: „100 x klimaneutral“",
+  "lat": 47.763435588108116,
+  "lng": 12.74614516307886,
+  "street": "Traunsteiner Str. 3",
+  "zip": "83334",
+  "city": "Inzell",
+  "country": null,
+  "state": null,
+  "contact_name": null,
+  "email": null,
+  "telephone": null,
+  "homepage": "https://www.100xklimaneutral.com/",
+  "opening_hours": null,
+  "founded_on": null,
+  "categories": [
+    "2cd00bebec0c48ba9db761da48678134"
+  ],
+  "tags": [
+    "klima",
+    "klimakrise",
+    "klimaneutral",
+    "klimaneutralität",
+    "klimaretten",
+    "klimaschutz",
+    "klimaschützen",
+    "klimawandel",
+    "sdg13",
+    "ökoligenta-netz"
+  ],
+  "ratings": [
+    "4d4cf469c88644cb94d469dfde77b57e"
+  ],
+  "license": "CC0-1.0",
+  "image_url": null,
+  "image_link_url": null
+}

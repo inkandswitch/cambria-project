@@ -1,0 +1,75 @@
+# Convert a KVM profile into Org Schema v1 format
+schemaName: Profile
+
+lens:
+  # remove unnecessary fields
+  - remove: { name: license }
+  - remove: { name: version }
+  - remove: { name: ratings }
+
+  - rename:
+      source: title
+      destination: name
+
+  - rename:
+      source: homepage
+      destination: primary_url
+
+  - rename:
+      source: city
+      destination: locality
+
+  - rename:
+      source: country
+      destination: country_name
+
+  - rename:
+      source: created
+      destination: kvm_created
+
+  - rename:
+      source: id
+      destination: kvm_id
+
+  - rename:
+      source: categories
+      destination: kvm_category
+
+#   - convert:
+#       name: kvm_category
+#       mapping:
+#         - 2cd00bebec0c48ba9db761da48678134: non-profit
+#           77b3c33a92554bcf8e8c2c86cedd6f6f: commercial
+#           c2dc278a2d6a4b9b8a50cb606fc017ed: event
+#         - non-profit: 2cd00bebec0c48ba9db761da48678134
+#           commercial: 77b3c33a92554bcf8e8c2c86cedd6f6f
+#           event: c2dc278a2d6a4b9b8a50cb606fc017ed
+
+#   - convert:
+#       name: kvm_category
+#       mapping:
+#         - { "2cd00bebec0c48ba9db761da48678134": "non-profit", "77b3c33a92554bcf8e8c2c86cedd6f6f": "commercial", "c2dc278a2d6a4b9b8a50cb606fc017ed": "event" }
+#         - { "non-profit": "2cd00bebec0c48ba9db761da48678134", "commercial": "77b3c33a92554bcf8e8c2c86cedd6f6f", "event": "c2dc278a2d6a4b9b8a50cb606fc017ed" }
+
+#   - convert:
+#       name: kvm_category
+#       mapping:
+#         - { 2cd00bebec0c48ba9db761da48678134: non-profit, 77b3c33a92554bcf8e8c2c86cedd6f6f: commercial, c2dc278a2d6a4b9b8a50cb606fc017ed: event }
+#         - { non-profit: 2cd00bebec0c48ba9db761da48678134, commercial: 77b3c33a92554bcf8e8c2c86cedd6f6f, event: c2dc278a2d6a4b9b8a50cb606fc017ed }
+
+#   - head:
+#       name: labels
+
+#   - in:
+#       name: labels
+#       lens:
+#         - rename:
+#             source: name
+#             destination: category
+
+#   - hoist:
+#       host: labels
+#       name: category
+
+#   - remove:
+#       name: labels

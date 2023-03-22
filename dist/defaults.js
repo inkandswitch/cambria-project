@@ -42,6 +42,7 @@ function defaultObjectForSchema(schema) {
 }
 exports.defaultObjectForSchema = defaultObjectForSchema;
 function addDefaultValues(patch, schema) {
+    // console.log('addDefaultValues------------->', patch)
     return patch
         .map((op) => {
         const isMakeMap = (op.op === 'add' || op.op === 'replace') &&
